@@ -1,0 +1,51 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="BallBotGui.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="curBotKey" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0000</Value>
+    </Setting>
+    <Setting Name="curChatId" Type="System.String" Scope="User">
+      <Value Profile="(Default)">-1001912154644</Value>
+    </Setting>
+    <Setting Name="pollQuestion" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Волейбол в ЗАЛЕ с 8 до 10 вечера.</Value>
+    </Setting>
+    <Setting Name="questTuesday" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Вторник. 20.00-22.00</Value>
+    </Setting>
+    <Setting Name="questThursday" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Четверг 20.00-22.00</Value>
+    </Setting>
+    <Setting Name="questSunday" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Воскресенье 20.00-22.00</Value>
+    </Setting>
+    <Setting Name="questSkip" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Пропускаю. Но очень хочу играть.</Value>
+    </Setting>
+    <Setting Name="pollDay" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">6</Value>
+    </Setting>
+    <Setting Name="pollHour" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">21</Value>
+    </Setting>
+    <Setting Name="mainQuestion" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Играю!</Value>
+    </Setting>
+    <Setting Name="Setting" Type="System.String" Scope="User">
+      <Value Profile="(Default)">-1001645946649</Value>
+    </Setting>
+    <Setting Name="Setting1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">-912842250</Value>
+    </Setting>
+    <Setting Name="pollDayList" Type="System.String" Scope="User">
+      <Value Profile="(Default)">5,6,2,4</Value>
+    </Setting>
+    <Setting Name="pollBeforeGame" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">3</Value>
+    </Setting>
+    <Setting Name="pollTitleTemplate" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{dayName} 19.00-21.00</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
