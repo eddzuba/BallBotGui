@@ -15,7 +15,6 @@ namespace BallBotGui
 
         readonly BindingSource bsPoll = new(); // Poll
         readonly BindingSource bsPlayer = new(); // Player
-
         readonly BindingSource bsRating = new(); // Player
 
         public Form1() => InitializeComponent();
