@@ -120,7 +120,7 @@
             dataGridViewPlayers.MultiSelect = false;
             dataGridViewPlayers.Name = "dataGridViewPlayers";
             dataGridViewPlayers.RowHeadersWidth = 82;
-            dataGridViewPlayers.RowTemplate.Height = 41;
+            dataGridViewPlayers.RowTemplate.Height = 30;
             dataGridViewPlayers.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridViewPlayers.Size = new Size(983, 780);
             dataGridViewPlayers.TabIndex = 5;
@@ -187,7 +187,7 @@
             dataGridViewRating.MultiSelect = false;
             dataGridViewRating.Name = "dataGridViewRating";
             dataGridViewRating.RowHeadersWidth = 82;
-            dataGridViewRating.RowTemplate.Height = 41;
+            dataGridViewRating.RowTemplate.Height = 30;
             dataGridViewRating.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridViewRating.Size = new Size(921, 833);
             dataGridViewRating.TabIndex = 11;
@@ -225,6 +225,7 @@
             Margin = new Padding(5);
             Name = "Form1";
             Text = "Волейбольный бот";
+            Activated += Form1_Activated;
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)dataGridViewPoll).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPlayers).EndInit();

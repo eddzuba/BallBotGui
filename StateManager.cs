@@ -170,19 +170,22 @@ namespace BallBotGui
             }
         }
 
-        internal void RemoteVote(string idPoll, long idPlayer)
+        internal bool RemoteVote(string idPoll, long idPlayer)
         {
             var curPoll = state.pollList.FirstOrDefault(x => x.idPoll == idPoll);
             if (curPoll != null)
             {
-                curPoll.DeletePlayerFromList(idPlayer);
+                return curPoll.DeletePlayerFromList(idPlayer);
+            
             }
+            return false;
         }
 
         internal void ArchPolls(Telegram.Bot.TelegramBotClient botClient)
         {
+            var curTime = DateTime.Now; ;
             // Архивировать опросы с датой раньше текущей даты
-            foreach (var poll in state.pollList.Where(p => p.GetGameDate() < DateTime.Now.AddDays(-1)).ToList())
+            foreach (var poll in state.pollList.Where(p => p.GetGameDate() < curTime.AddDays(-1)).ToList())
             {
                 ArchivePoll(poll);
                 state.pollList.Remove(poll);

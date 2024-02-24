@@ -252,12 +252,15 @@ namespace BallBotGui
                 if (update.PollAnswer.OptionIds.Length == 0)
                 {
                     // снятие голоса
-                    stateManager.RemoteVote(update.PollAnswer.PollId, update.PollAnswer.User.Id);
-                    DateTime curTime = DateTime.Now;
-                    // после объявления состава до момента игры
-                    if(curTime.Hour >= 10 && curTime.Hour <= 19)
+                    if( stateManager.RemoteVote(update.PollAnswer.PollId, update.PollAnswer.User.Id) )
                     {
-                        inviteNextPlayer(update.PollAnswer.PollId, update.PollAnswer.User);
+                        // если мы сняли игрока то идем дальше
+                        DateTime curTime = DateTime.Now;
+                        // после объявления состава до момента игры
+                        if(curTime.Hour >= 10 && curTime.Hour <= 19)
+                        {
+                            inviteNextPlayer(update.PollAnswer.PollId, update.PollAnswer.User);
+                        }
                     }
                     
                 }
@@ -290,7 +293,7 @@ namespace BallBotGui
             if( poll != null)
             {
                 PlayerVote voter = poll.playrsList[13]; // берем последнего игрока
-                string message = $"Снялся @{oldUser.Username}. В игру ступает @{voter.name} {voter.firstName}!";
+                string message = $"Снялся @{oldUser.Username}. В игру вступает @{voter.name} {voter.firstName}!";
 
                 await botClient.SendTextMessageAsync(chatId, message);
             }

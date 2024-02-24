@@ -75,6 +75,7 @@ namespace BallBotGui
             dataGridViewRating.DataSource = bsRating;
             dataGridViewRating.AutoGenerateColumns = true;
 
+
         }
 
         private async void minuteTimer_Tick(object sender, EventArgs e)
@@ -90,7 +91,7 @@ namespace BallBotGui
                 createNewPoll();
             }
 
-            if (curTime.Hour == 7 && curTime.Minute == 00)
+            if (curTime.Hour == 23 && curTime.Minute == 30)
             {
                 telConnector.ArchPolls();
 
@@ -99,6 +100,16 @@ namespace BallBotGui
             if (curTime.Hour == 11 && curTime.Minute == 00)
             {
                 sendInvitation();
+            }
+
+            if ((curTime.Hour == 10 && curTime.Minute == 00))
+            {
+                foreach (var curPoll in this.stateManager.state.pollList)
+                {
+                    stateManager.AddPlayersToRating(curPoll);
+                }
+
+                bsRating.ResetBindings(false);
             }
 
         }
@@ -265,7 +276,12 @@ namespace BallBotGui
 
         private void button9_Click(object sender, EventArgs e)
         {
-               // stateManager.Take2Teams();
+            // stateManager.Take2Teams();
+
+        }
+
+        private void Form1_Activated(object sender, EventArgs e)
+        {
            
         }
     }

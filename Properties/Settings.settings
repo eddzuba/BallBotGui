@@ -2,9 +2,6 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="BallBotGui.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="curBotKey" Type="System.String" Scope="User">
-      <Value Profile="(Default)">0000</Value>
-    </Setting>
     <Setting Name="curChatId" Type="System.String" Scope="User">
       <Value Profile="(Default)">-1001912154644</Value>
     </Setting>
@@ -46,6 +43,9 @@
     </Setting>
     <Setting Name="pollTitleTemplate" Type="System.String" Scope="User">
       <Value Profile="(Default)">{dayName} 19.00-21.00</Value>
+    </Setting>
+    <Setting Name="curBotKey" Type="System.String" Scope="User">
+      <Value Profile="(Default)">7109057711:AAH_c0-lj-WjP2SC313r6s-aR4ensgCGIWw</Value>
     </Setting>
   </Settings>
 </SettingsFile>

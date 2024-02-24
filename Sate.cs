@@ -71,13 +71,23 @@ namespace BallBotGui
 
         public List<PlayerVote> playrsList { get; set; } = new();
 
-        public void DeletePlayerFromList(long idPlayer)
+        // Возвращаем True если удалился игрок из первых 14
+        public bool DeletePlayerFromList(long idPlayer)
         {
-                PlayerVote personToRemove = playrsList.FirstOrDefault(p => p.id == idPlayer);
-                if (personToRemove != null)
-                {
-                    playrsList.Remove(personToRemove);
-                }
+            int index = this.playrsList.FindIndex(player => player.id == idPlayer);
+
+            if (index != -1)
+            {
+                // Удаляем игрока из списка
+                playrsList.RemoveAt(index);
+
+                // Проверяем, был ли удален игрок из первых 14
+                return index < 14;
+            }
+
+            // Игрок с указанным Id не найден
+            return false;
+
         }
 
         public PlayerVote AddPlayerToList(long id, string name, string firstName, long idVoute)

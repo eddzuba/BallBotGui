@@ -12,7 +12,7 @@ namespace BallBotGui.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.8.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.9.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -20,18 +20,6 @@ namespace BallBotGui.Properties {
         public static Settings Default {
             get {
                 return defaultInstance;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0000")]
-        public string curBotKey {
-            get {
-                return ((string)(this["curBotKey"]));
-            }
-            set {
-                this["curBotKey"] = value;
             }
         }
         
@@ -200,6 +188,18 @@ namespace BallBotGui.Properties {
             }
             set {
                 this["pollTitleTemplate"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("7109057711:AAH_c0-lj-WjP2SC313r6s-aR4ensgCGIWw")]
+        public string curBotKey {
+            get {
+                return ((string)(this["curBotKey"]));
+            }
+            set {
+                this["curBotKey"] = value;
             }
         }
     }
