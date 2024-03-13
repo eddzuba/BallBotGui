@@ -320,6 +320,14 @@ namespace BallBotGui
                 {
                     suggectTeams(update);
                 }
+
+                if (update.Message != null &&  update.Message.Type == MessageType.ChatMembersAdded && update.Message.NewChatMembers != null )
+                {
+                    foreach (var member in update.Message.NewChatMembers)
+                    {
+                       sendWellcomeMessage(member);
+                    }
+                }
                 return false;
             }
             if (update.Type == UpdateType.PollAnswer)
@@ -327,7 +335,17 @@ namespace BallBotGui
                 onNewPollAnswer(update);
                 return true;
             }
+
+            
             return false;
+        }
+
+        private async void sendWellcomeMessage(User? member)
+        {
+            if(member != null)
+            {
+                await botClient.SendTextMessageAsync(chatId, $"Приветствуем, {member.FirstName}! Мы рады, что вы присоединились к нам. Напишите пару слов о вашем уровне игры в волейбол. Ближайшие игры, правила нашего сообщества и вся важная информация находятся в закрепленных сообщениях, ознакомьтесь с ними, пожалуйста. Ждем вас на играх.");
+            }
         }
 
         internal async void suggectTeams(Update update)
