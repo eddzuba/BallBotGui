@@ -17,6 +17,9 @@ namespace BallBotGui
         readonly BindingSource bsPlayer = new(); // Player
         readonly BindingSource bsRating = new(); // Player
 
+        private BindingSource bsCars = new();
+        readonly BindingSource bsCarStops = new(); // CarStops
+
         public Form1() => InitializeComponent();
 
         public void refreshGrids()
@@ -75,6 +78,26 @@ namespace BallBotGui
             dataGridViewRating.AutoGenerateColumns = true;
 
 
+            bsCars.DataSource = stateManager.state.carList;
+            dgvCars.DataSource = bsCars;
+            dgvCars.AutoGenerateColumns = true;
+
+
+
+            /*bsCarStops.DataSource = bsCars;
+            bsCarStops.DataMember = "carStops";
+
+            dataGridViewCarStops.DataSource = bsCarStops;
+            dataGridViewCarStops.AutoGenerateColumns = true;
+            // Разрешаем редактирование данных в таблице
+            dataGridViewCarStops.ReadOnly = false;
+*/
+
+
+
+
+
+
         }
 
         private async void minuteTimer_Tick(object sender, EventArgs e)
@@ -99,6 +122,8 @@ namespace BallBotGui
             if (curTime.Hour == 11 && curTime.Minute == 00)
             {
                 sendInvitation();
+                await Task.Delay(20000); // ждем 20 секунд, чтобы сообщение было после
+                sendCarsInfo(); 
             }
 
             if ((curTime.Hour == 10 && curTime.Minute == 00))
@@ -236,7 +261,8 @@ namespace BallBotGui
 
         private void clickSendInvitation(object sender, EventArgs e)
         {
-            sendInvitation();
+            // sendInvitation();
+            sendCarsInfo();
         }
 
         private void sendInvitation()
@@ -247,6 +273,17 @@ namespace BallBotGui
                 telConnector.sendInvitation(todayApprovedGamePoll);
             }
         }
+
+        private void sendCarsInfo()
+        {
+            Poll? todayApprovedGamePoll = stateManager.getTodayApprovedGamePoll();
+            if (todayApprovedGamePoll != null)
+            {
+               telConnector.sendCarsMessage(todayApprovedGamePoll);
+            }
+        }
+
+
 
         private async void createNewPoll()
         {
@@ -281,7 +318,61 @@ namespace BallBotGui
 
         private void Form1_Activated(object sender, EventArgs e)
         {
-           
+
+        }
+
+        private void addCar_Click(object sender, EventArgs e)
+        {
+
+            var newCar = new Car(1, "ed", "edGzrd", 4);
+            var stop1 = new CarStops("Парковка Gardens 19.35", "");
+            var stop2 = new CarStops("Метро Gardens 19.40", "");
+
+            newCar.carStops.Add(stop1);
+            newCar.carStops.Add(stop2);
+
+            this.stateManager.state.carList.Add(newCar);
+
+        }
+
+        private void getCars_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void dgvCars_SelectionChanged(object sender, EventArgs e)
+        {
+            Console.WriteLine("changed");
+            if (dgvCars.CurrentRow != null)
+            {
+                var selectedCar = dgvCars.CurrentRow.DataBoundItem as Car;
+                if (selectedCar != null)
+                {
+
+                    /*   bsCars.DataSource = stateManager.state.carList;
+                       dgvCars.DataSource = bsCars;
+                       dgvCars.AutoGenerateColumns = true;
+
+   */
+
+                    bsCarStops.DataSource = selectedCar.carStops;
+                    bsCarStops.ResetBindings(false);
+                    dataGridViewCarStops.DataSource = bsCarStops;
+                    dataGridViewCarStops.AutoGenerateColumns = true;
+                    dataGridViewCarStops.ReadOnly = false;
+
+                    /*bsCarStops.DataSource = bsCars;
+                    bsCarStops.DataMember = "carStops";
+
+                    dataGridViewCarStops.DataSource = bsCarStops;
+                    dataGridViewCarStops.AutoGenerateColumns = true;
+                    // Разрешаем редактирование данных в таблице
+                    dataGridViewCarStops.ReadOnly = false;
+        */
+                    // Выбранный объект доступен в selectedCar
+                    // Можно выполнить нужные действия с выбранным объектом
+                }
+            }
         }
     }
 }

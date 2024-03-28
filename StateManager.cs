@@ -191,7 +191,7 @@ namespace BallBotGui
                 state.pollList.Remove(poll);
                 if(poll.idMessage > 0)
                 {
-                    botClient.UnpinChatMessageAsync(Properties.Settings.Default.curChatId, poll.idMessage);
+                    botClient.UnpinChatMessageAsync(Properties.Settings.Default.chatId, poll.idMessage);
                 }
                 
             }
@@ -214,8 +214,8 @@ namespace BallBotGui
         internal Poll? getTodayApprovedGamePoll()
         {
             var now = DateTime.Now.ToString("dd.MM");
-
-            Poll ?poll = state.pollList.FirstOrDefault(x => x.date == now && x.approved);
+            // TODO Uncomment!!!!
+            Poll ?poll = state.pollList.FirstOrDefault(x =>  x.date == now &&  x.approved);
 
             return poll;
         }

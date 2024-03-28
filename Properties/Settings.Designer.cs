@@ -26,12 +26,12 @@ namespace BallBotGui.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("-1001912154644")]
-        public string curChatId {
+        public string chatId {
             get {
-                return ((string)(this["curChatId"]));
+                return ((string)(this["chatId"]));
             }
             set {
-                this["curChatId"] = value;
+                this["chatId"] = value;
             }
         }
         

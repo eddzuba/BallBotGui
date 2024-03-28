@@ -2,7 +2,7 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="BallBotGui.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="curChatId" Type="System.String" Scope="User">
+    <Setting Name="chatId" Type="System.String" Scope="User">
       <Value Profile="(Default)">-1001912154644</Value>
     </Setting>
     <Setting Name="pollQuestion" Type="System.String" Scope="User">

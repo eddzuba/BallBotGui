@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.ComponentModel;
+using System.Text.RegularExpressions;
 
 
 namespace BallBotGui
@@ -43,16 +44,71 @@ namespace BallBotGui
         }
     }
 
+    public class CarStops
+    {
+        public string name { get; set; }
+
+        public string link { get; set; }
+
+
+        public CarStops(string name, string link)
+        {
+            this.name = name;
+            this.link = link;
+        }
+       
+    }
+    public class Car
+    {
+        public long idPlayer { get; set;  } // хозяин машины
+        public string name { get; set; }   // nik
+        public string firstName { get; set; } // Имя
+        public int placeCount { get; set; } = 2; // количество мест
+
+        public BindingList<CarStops> carStops { get; set; } = new();    // где может забрать людей
+
+        public Car(long idPlayer, string name, string firstName, int placeCount )
+        {
+            this.idPlayer = idPlayer;
+            this.name = name;
+            this.firstName = firstName;
+            this.placeCount = placeCount;
+        }
+    }
+    public class OccupiedPlace
+    {
+        public long idPlayer { get; set; } // кто занял место
+        public long idCarOwner { get; set; } // у кого в машине
+
+        public int stopIdx { get; set; } = 1; // Номер остановки на которой нужно его забрать 
+
+        public string? nickname { get; set; }  // имя пользователя телеграм
+        public string? firstName { get; set; } // Имя
+
+        public OccupiedPlace(long idPlayer, long idCarOwner, int stopIdx, string? nickname, string? firstName)
+        {
+            this.idPlayer = idPlayer;
+            this.idCarOwner = idCarOwner;
+            this.stopIdx = stopIdx;
+            this.nickname = nickname;
+            this.firstName = firstName;
+        }
+    }
+
     public class Poll
     { 
-        public bool approved { get; set; } = false;
+        public bool approved { get; set; } = true;
         public string date { get; set; }    // дата игры
         public string question { get; set; } // текст опроса
 
         public int idMessage { get; set; }
         public string idPoll { get; set; }   // код опроса
 
+        public int idCarsMessage { get; set; } = -1; // код сообщения о доступных машинах
 
+        public List<long> idleDrivers { get; set; } = new List<long>(); // список водителей кто не может сегодня подвозить
+
+        public List<OccupiedPlace> occupiedPlaces { get; set; } = new List<OccupiedPlace>(); // доставка, брони
 
         public Poll(string idPoll, string date, string question, int idMessage = 0) {
             this.idPoll = idPoll;
@@ -174,6 +230,7 @@ namespace BallBotGui
     public class State
     {
         public List<Poll> pollList = new();
+        public BindingList<Car> carList = new();
 
         public Poll AddNewPoll(string idPoll, string date, string question, int messageId = 0)
         {

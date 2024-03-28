@@ -9,7 +9,7 @@ namespace BallBotGui
     internal class PollGenerator
     {
         public static TelegramBotClient botClient;
-        private static string chatId = Properties.Settings.Default.curChatId;
+        private static string chatId = Properties.Settings.Default.chatId;
         private static System.Timers.Timer timerFirst = new System.Timers.Timer();
         public void startGeneratePoll()
         {

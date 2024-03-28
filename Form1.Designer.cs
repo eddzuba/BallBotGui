@@ -43,9 +43,23 @@
             button8 = new Button();
             dataGridViewRating = new DataGridView();
             button9 = new Button();
+            tabControl1 = new TabControl();
+            Players = new TabPage();
+            Cars = new TabPage();
+            dataGridViewCarStops = new DataGridView();
+            carStopsBindingSource = new BindingSource(components);
+            dgvCars = new DataGridView();
+            addCar = new Button();
+            getCars = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPoll).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPlayers).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewRating).BeginInit();
+            tabControl1.SuspendLayout();
+            Players.SuspendLayout();
+            Cars.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dataGridViewCarStops).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)carStopsBindingSource).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvCars).BeginInit();
             SuspendLayout();
             // 
             // minuteTimer
@@ -56,8 +70,8 @@
             // 
             // btnCreatePoll
             // 
-            btnCreatePoll.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnCreatePoll.Location = new Point(1780, 910);
+            btnCreatePoll.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnCreatePoll.Location = new Point(1780, 1126);
             btnCreatePoll.Name = "btnCreatePoll";
             btnCreatePoll.Size = new Size(309, 46);
             btnCreatePoll.TabIndex = 0;
@@ -68,7 +82,7 @@
             // button1
             // 
             button1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button1.Location = new Point(1780, 962);
+            button1.Location = new Point(1780, 1178);
             button1.Name = "button1";
             button1.Size = new Size(309, 46);
             button1.TabIndex = 1;
@@ -79,7 +93,7 @@
             // button2
             // 
             button2.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button2.Location = new Point(1780, 1014);
+            button2.Location = new Point(1780, 1230);
             button2.Name = "button2";
             button2.Size = new Size(309, 46);
             button2.TabIndex = 2;
@@ -90,7 +104,7 @@
             // button3
             // 
             button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button3.Location = new Point(1471, 962);
+            button3.Location = new Point(1471, 1178);
             button3.Name = "button3";
             button3.Size = new Size(302, 46);
             button3.TabIndex = 3;
@@ -122,7 +136,7 @@
             dataGridViewPlayers.RowHeadersWidth = 82;
             dataGridViewPlayers.RowTemplate.Height = 30;
             dataGridViewPlayers.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridViewPlayers.Size = new Size(983, 780);
+            dataGridViewPlayers.Size = new Size(983, 996);
             dataGridViewPlayers.TabIndex = 5;
             dataGridViewPlayers.SelectionChanged += onPlayerSelect;
             // 
@@ -149,7 +163,7 @@
             // button6
             // 
             button6.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button6.Location = new Point(1470, 1014);
+            button6.Location = new Point(1470, 1230);
             button6.Name = "button6";
             button6.Size = new Size(304, 46);
             button6.TabIndex = 8;
@@ -160,7 +174,7 @@
             // button7
             // 
             button7.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button7.Location = new Point(1471, 910);
+            button7.Location = new Point(1471, 1126);
             button7.Name = "button7";
             button7.Size = new Size(303, 46);
             button7.TabIndex = 9;
@@ -171,7 +185,7 @@
             // button8
             // 
             button8.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button8.Location = new Point(1153, 910);
+            button8.Location = new Point(1153, 1126);
             button8.Name = "button8";
             button8.Size = new Size(303, 46);
             button8.TabIndex = 10;
@@ -183,34 +197,126 @@
             // 
             dataGridViewRating.AllowUserToAddRows = false;
             dataGridViewRating.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewRating.Location = new Point(1153, 12);
+            dataGridViewRating.Dock = DockStyle.Fill;
+            dataGridViewRating.Location = new Point(3, 3);
             dataGridViewRating.MultiSelect = false;
             dataGridViewRating.Name = "dataGridViewRating";
             dataGridViewRating.RowHeadersWidth = 82;
             dataGridViewRating.RowTemplate.Height = 30;
             dataGridViewRating.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridViewRating.Size = new Size(921, 833);
+            dataGridViewRating.Size = new Size(990, 1048);
             dataGridViewRating.TabIndex = 11;
             dataGridViewRating.CellEndEdit += dataGridViewRating_CellEndEdit;
             // 
             // button9
             // 
             button9.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button9.Location = new Point(1153, 962);
+            button9.Location = new Point(1153, 1178);
             button9.Name = "button9";
             button9.Size = new Size(303, 46);
             button9.TabIndex = 12;
-            button9.Text = "Дать команды";
+            button9.Text = "Сегодня играют";
             button9.UseVisualStyleBackColor = true;
             button9.Click += button9_Click;
+            // 
+            // tabControl1
+            // 
+            tabControl1.Controls.Add(Players);
+            tabControl1.Controls.Add(Cars);
+            tabControl1.Location = new Point(1140, 12);
+            tabControl1.Name = "tabControl1";
+            tabControl1.SelectedIndex = 0;
+            tabControl1.Size = new Size(1012, 1108);
+            tabControl1.TabIndex = 13;
+            // 
+            // Players
+            // 
+            Players.Controls.Add(dataGridViewRating);
+            Players.Location = new Point(8, 46);
+            Players.Name = "Players";
+            Players.Padding = new Padding(3);
+            Players.Size = new Size(996, 1054);
+            Players.TabIndex = 0;
+            Players.Text = "Игроки";
+            Players.UseVisualStyleBackColor = true;
+            // 
+            // Cars
+            // 
+            Cars.Controls.Add(dataGridViewCarStops);
+            Cars.Controls.Add(dgvCars);
+            Cars.Location = new Point(8, 46);
+            Cars.Name = "Cars";
+            Cars.Padding = new Padding(3);
+            Cars.Size = new Size(996, 1054);
+            Cars.TabIndex = 1;
+            Cars.Text = "Машины";
+            Cars.UseVisualStyleBackColor = true;
+            // 
+            // dataGridViewCarStops
+            // 
+            dataGridViewCarStops.AllowUserToOrderColumns = true;
+            dataGridViewCarStops.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewCarStops.Dock = DockStyle.Bottom;
+            dataGridViewCarStops.EditMode = DataGridViewEditMode.EditProgrammatically;
+            dataGridViewCarStops.Location = new Point(3, 592);
+            dataGridViewCarStops.MultiSelect = false;
+            dataGridViewCarStops.Name = "dataGridViewCarStops";
+            dataGridViewCarStops.RowHeadersWidth = 82;
+            dataGridViewCarStops.RowTemplate.Height = 30;
+            dataGridViewCarStops.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dataGridViewCarStops.Size = new Size(990, 459);
+            dataGridViewCarStops.TabIndex = 15;
+            // 
+            // carStopsBindingSource
+            // 
+            // carStopsBindingSource.DataSource = typeof(CarStops);
+            // 
+            // dgvCars
+            // 
+            dgvCars.AllowUserToOrderColumns = true;
+            dgvCars.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvCars.Dock = DockStyle.Top;
+            dgvCars.Location = new Point(3, 3);
+            dgvCars.MultiSelect = false;
+            dgvCars.Name = "dgvCars";
+            dgvCars.RowHeadersWidth = 82;
+            dgvCars.RowTemplate.Height = 41;
+            dgvCars.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvCars.Size = new Size(990, 489);
+            dgvCars.TabIndex = 14;
+            dgvCars.SelectionChanged += dgvCars_SelectionChanged;
+            // 
+            // addCar
+            // 
+            addCar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            addCar.Location = new Point(1153, 1230);
+            addCar.Name = "addCar";
+            addCar.Size = new Size(99, 46);
+            addCar.TabIndex = 14;
+            addCar.Text = "+ Car";
+            addCar.UseVisualStyleBackColor = true;
+            addCar.Click += addCar_Click;
+            // 
+            // getCars
+            // 
+            getCars.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            getCars.Location = new Point(1258, 1230);
+            getCars.Name = "getCars";
+            getCars.Size = new Size(198, 46);
+            getCars.TabIndex = 15;
+            getCars.Text = "GenCarsMessage";
+            getCars.UseVisualStyleBackColor = true;
+            getCars.Click += getCars_Click;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(2164, 1079);
+            ClientSize = new Size(2164, 1295);
+            Controls.Add(getCars);
+            Controls.Add(addCar);
+            Controls.Add(tabControl1);
             Controls.Add(button9);
-            Controls.Add(dataGridViewRating);
             Controls.Add(button8);
             Controls.Add(button7);
             Controls.Add(button6);
@@ -230,6 +336,12 @@
             ((System.ComponentModel.ISupportInitialize)dataGridViewPoll).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPlayers).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewRating).EndInit();
+            tabControl1.ResumeLayout(false);
+            Players.ResumeLayout(false);
+            Cars.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)dataGridViewCarStops).EndInit();
+            ((System.ComponentModel.ISupportInitialize)carStopsBindingSource).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvCars).EndInit();
             ResumeLayout(false);
         }
 
@@ -249,5 +361,13 @@
         private Button button8;
         private DataGridView dataGridViewRating;
         private Button button9;
+        private TabControl tabControl1;
+        private TabPage Players;
+        private TabPage Cars;
+        private DataGridView dgvCars;
+        private Button addCar;
+        private DataGridView dataGridViewCarStops;
+        private Button getCars;
+        private BindingSource carStopsBindingSource;
     }
 }

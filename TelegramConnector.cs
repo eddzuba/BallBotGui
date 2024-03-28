@@ -11,6 +11,10 @@ using System.Numerics;
 using System.Windows.Forms;
 using static System.Windows.Forms.AxHost;
 using System.Diagnostics.Metrics;
+using System.Text;
+using Telegram.Bot.Types.ReplyMarkups;
+using System.Xml.Linq;
+using System.Collections.Generic;
 
 namespace BallBotGui
 {
@@ -20,7 +24,7 @@ namespace BallBotGui
         private readonly StateManager stateManager;
         private Form1 curForm;
 
-        private readonly string chatId = Properties.Settings.Default.curChatId;
+        private readonly string chatId = Properties.Settings.Default.chatId;
         private  System.Timers.Timer timerFirst = new System.Timers.Timer();
 
         public TelegramConnector(TelegramBotClient botClient, StateManager stateManager, Form1 form)
@@ -37,6 +41,20 @@ namespace BallBotGui
 
             
 
+        }
+
+        struct StopInfo
+        {
+            public long DriverCode;
+            public int StopNumber;
+            public int SequentialNumber;
+
+            public StopInfo(long driverCode, int stopNumber, int sequentialNumber)
+            {
+                DriverCode = driverCode;
+                StopNumber = stopNumber;
+                SequentialNumber = sequentialNumber;
+            }
         }
 
         private void StartReadingMessage()
@@ -257,10 +275,12 @@ namespace BallBotGui
                         // если мы сняли игрока то идем дальше
                         DateTime curTime = DateTime.Now;
                         // после объявления состава до момента игры
-                        if(curTime.Hour >= 10 && curTime.Hour <= 19)
+                        if(curTime.Hour >= 7 && curTime.Hour <= 19)
                         {
                             inviteNextPlayer(update.PollAnswer.PollId, update.PollAnswer.User);
                         }
+
+                        removeFromCars(update.PollAnswer.PollId, update.PollAnswer.User.Id);
                     }
                     
                 }
@@ -275,6 +295,27 @@ namespace BallBotGui
                     }
                 }
             }
+        }
+
+        private void removeFromCars(string idPoll, long idPlayer)
+        {
+            // удаляем как пасажира
+            var curPoll = stateManager.state.pollList.FirstOrDefault(x => x.idPoll == idPoll);
+            if (curPoll != null)
+            {
+                Poll? todayApprovedGamePoll = stateManager.getTodayApprovedGamePoll();
+                if (todayApprovedGamePoll != null)
+                {
+                    // сегодняшний опрос и снялся человек и было уже сообщение
+                    if(curPoll.idPoll == todayApprovedGamePoll.idPoll && todayApprovedGamePoll.idCarsMessage > 0) { 
+                        freeSeat(idPlayer, todayApprovedGamePoll);
+                        // обновляем сообщение с машинами
+                        sendCarsMessage(todayApprovedGamePoll);
+                    }
+                }
+                
+            }
+
         }
 
         private async void inviteNextPlayer(string idPoll, User oldUser)
@@ -312,6 +353,14 @@ namespace BallBotGui
                 }
 
             }*/
+           if (update.Type == UpdateType.CallbackQuery)
+            {
+                if(update != null && update.CallbackQuery != null && update.CallbackQuery.Data != null && update.CallbackQuery.Data.StartsWith("takeaseat:"))
+                {
+                    takeSeat(update);
+                }
+                return false;
+            }
 
             if (update.Type == UpdateType.Message)
             {
@@ -338,6 +387,93 @@ namespace BallBotGui
 
             
             return false;
+        }
+
+ 
+
+        private void takeSeat(Update update)
+        {
+            Poll? todayApprovedGamePoll = stateManager.getTodayApprovedGamePoll();
+            if (todayApprovedGamePoll != null)  // сегодня ест игра....
+            {
+                var idCurUser = update.CallbackQuery.From.Id;
+
+                if (update.CallbackQuery.Data.StartsWith("takeaseat:0:0"))
+                {
+                    // если просящий есть среди тех кто уже занял место то удаляем его 
+                    if (freeSeat(idCurUser, todayApprovedGamePoll) > 0)
+                    {
+                        stateManager.SaveState();
+                        // обновляем сообщение с машинами
+                        sendCarsMessage(todayApprovedGamePoll);
+                    }
+
+                    return;
+                }
+
+
+
+                // проверяем что у нас трока в проавильно формате
+                var values = update.CallbackQuery.Data.Split(":");
+                if (values.Length == 3 )
+                {
+                    long driverId = 0;
+                    int stopIdx = 0;
+
+                    var first14Ids = todayApprovedGamePoll.playrsList.OrderBy(player => player.idVote)
+                                      .Take(14)
+                                      .Select(player => player.id);
+
+                    // проверяем что остановка это число
+                    if (!int.TryParse(values[2], out stopIdx) || !long.TryParse(values[1], out driverId)) { return; }
+
+                    // проверяем что тот что просится тоже срежи первых 14
+                    if (update.CallbackQuery.From != null && idCurUser > 0)
+                    {
+                        if (!first14Ids.Contains(idCurUser)) { return; }
+                    }
+
+                    // проверяем что водитель есть среди первых 14
+                    if (!first14Ids.Contains(driverId)) { return; }
+
+                    
+
+                    // проверяем что данного водителя ещё есть места, без учета просящегося
+                    // Подсчет количества записей для конкретного пользователя
+                    int count = todayApprovedGamePoll.occupiedPlaces.Count(place => place.idCarOwner == driverId);
+                    Car foundCar = stateManager.state.carList.FirstOrDefault(car => car.idPlayer == driverId);
+                    if (foundCar == null || count >= foundCar.placeCount)
+                    {
+                        return;
+                    }
+
+                    // проверяем что он ещё не занял место в данной точке
+                    if (todayApprovedGamePoll.occupiedPlaces.Any(o => o.idCarOwner == driverId && o.stopIdx == stopIdx && o.idPlayer == idCurUser) ) {
+                        return;
+                    }
+                 
+
+                    // если просящий есть среди тех кто уже занял место то удаляем его 
+                    freeSeat(idCurUser, todayApprovedGamePoll);
+
+                    // записываем просящегося 
+                    var newTake = new OccupiedPlace(idCurUser, driverId, stopIdx, nickname: update.CallbackQuery.From.Username, update.CallbackQuery.From.FirstName);
+                    todayApprovedGamePoll.occupiedPlaces.Add(newTake);
+                    stateManager.SaveState();
+
+                    // обновляем сообщение с машинами
+                    sendCarsMessage(todayApprovedGamePoll);
+                }
+
+
+
+            }
+        }
+
+        private static int freeSeat(long idMember, Poll todayApprovedGamePoll)
+        {
+            // Удаление объектов, относящихся к определенному игроку
+            return todayApprovedGamePoll.occupiedPlaces.RemoveAll(place => place.idPlayer == idMember);
         }
 
         private async void sendWellcomeMessage(User? member)
@@ -381,6 +517,155 @@ namespace BallBotGui
                 await botClient.SendTextMessageAsync(chatId, message);
             }
         }
+
+        internal async void sendCarsMessage(Poll todayApprovedGamePoll)
+        {
+
+            var stops = new List<StopInfo>();
+ 
+            // Получаем id игроков из первых 14 в голосовании
+            var first14Ids = todayApprovedGamePoll.playrsList.OrderBy(player => player.idVote)
+                                        .Take(14)
+                                        .Select(player => player.id);
+
+            // Выбираем машины, у которых idPlayer есть в first14Ids
+            var carsWithOwnersInFirst14 = stateManager.state.carList.Where(car => first14Ids.Contains(car.idPlayer)).ToList();
+
+            if (carsWithOwnersInFirst14.Count > 0)
+            {
+                StringBuilder messageBuilder = new StringBuilder();
+
+                messageBuilder.AppendLine("Сегодня нам помогают добраться:");
+
+                int stopIdx = 1;
+                foreach (var car in carsWithOwnersInFirst14)
+                {
+                   var owner = todayApprovedGamePoll.playrsList.FirstOrDefault(player => player.id == car.idPlayer);
+                    if (owner != null)
+                    {
+                        messageBuilder.AppendLine($"🚗 <b> {owner.firstName} @{owner.name}, мест в машине: {car.placeCount}</b>");
+                        stopIdx = addStops(todayApprovedGamePoll, stops, messageBuilder, stopIdx, car, owner);
+
+                        messageBuilder.AppendLine(); // Добавляем пустую строку между информацией о машинах
+                    }
+                }
+                string time = DateTime.Now.AddHours(1).ToString("HH:mm:ss"); // Получаем текущее время
+                messageBuilder.AppendLine($"{time}");
+                messageBuilder.AppendLine($"На какой точке вас забрать?");
+                string message = messageBuilder.ToString();
+                var keyboard = addButtons(stateManager, todayApprovedGamePoll, stops, message);
+
+                if (todayApprovedGamePoll.idCarsMessage > 0)
+                {
+                    bool success = false;
+                    int retryCount = 0;
+                    while (!success && retryCount < 3) // Попытаемся три раза
+                    {
+                        try
+                        {
+                            var carInfoMessage = await botClient.EditMessageTextAsync(chatId: chatId, messageId: todayApprovedGamePoll.idCarsMessage, text: message, parseMode: ParseMode.Html, disableWebPagePreview: true, replyMarkup: keyboard);
+                            success = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            retryCount++;
+                            await Task.Delay(60000); // Подождем 1 минуту перед следующей попыткой
+                        }
+                    }
+
+                   
+                }
+                else
+                {
+                    var carInfoMessage = await botClient.SendTextMessageAsync(chatId: chatId, text: message, parseMode: ParseMode.Html, disableWebPagePreview: true, replyMarkup: keyboard);
+                    todayApprovedGamePoll.idCarsMessage = carInfoMessage.MessageId;
+                    // Закрепление опроса по машинам
+                    await botClient.PinChatMessageAsync(
+                                chatId: chatId,
+                                messageId: carInfoMessage.MessageId
+                            );
+                    stateManager.SaveState();
+                }
+            }
+            else
+            {
+                if (todayApprovedGamePoll.idCarsMessage > 0)
+                {
+                    // у нас нет машин, но похоже раньше они были и нужно удалить сообщение
+                    await botClient.DeleteMessageAsync(chatId, todayApprovedGamePoll.idCarsMessage);
+                    todayApprovedGamePoll.idCarsMessage = 0;
+                    stateManager.SaveState();
+                }
+            }
+        }
+
+        private static int addStops(Poll todayApprovedGamePoll, List<StopInfo> stops, StringBuilder messageBuilder, int stopIdx, Car? car, PlayerVote? owner)
+        {
+            if (car.carStops.Any())
+            {
+                messageBuilder.AppendLine("<b>Остановки:</b>");
+                var curDriverStopIdx = 1;
+
+                foreach (var stop in car.carStops)
+                {
+                    var newPoint = new StopInfo(owner.id, curDriverStopIdx, stopIdx);
+                    stops.Add(newPoint);
+
+                    if (stop.link == null)
+                    {
+                        messageBuilder.AppendLine($" {stopIdx}: {stop.name}");
+                    }
+                    else
+                    {
+                        messageBuilder.AppendLine($" {stopIdx}: {stop.name} - <a href=\"{stop.link}\">тут</a>");
+                    }
+
+                    // пишет пассажиров на данной точке
+                    // находим список пассажиров на данной точке 
+                    // Фильтрация списка по idCarOwner и stopIdx
+                    var filteredPlaces = todayApprovedGamePoll.occupiedPlaces.Where(place => place.idCarOwner == owner.id && place.stopIdx == curDriverStopIdx).ToList();
+
+                    // Вывод результатов
+                    if (filteredPlaces.Count > 0)
+                    {
+                 
+                        foreach (var place in filteredPlaces)
+                        {
+                            messageBuilder.AppendLine($" . 🙋‍ {place.firstName} @{place.nickname}");
+                        }
+                        
+                    }
+
+                    stopIdx++;
+                    curDriverStopIdx++;
+                }
+            }
+            else
+            {
+                messageBuilder.AppendLine("У машины нет указанных остановок.");
+            }
+
+            return stopIdx;
+        }
+
+        private InlineKeyboardMarkup addButtons(StateManager stateManager, Poll todayApprovedGamePoll, List<StopInfo> stops, string message)
+        {
+            var buttons = new List<InlineKeyboardButton[]>();
+            for (int i = 0; i < stops.Count; i += 4)
+            {
+                var rowButtons = stops.Skip(i).Take(4)
+                                    .Select(stop => InlineKeyboardButton.WithCallbackData(stop.SequentialNumber.ToString(), $"takeaseat:{stop.DriverCode}:{stop.StopNumber}"))
+                                    .ToArray();
+                buttons.Add(rowButtons);
+            }
+
+            // добовляем последнюю кнопку
+            var byMySelf = InlineKeyboardButton.WithCallbackData("Добираюсь самостоятельно", "takeaseat:0:0");
+            buttons.Add(new[] { byMySelf });
+            return new InlineKeyboardMarkup(buttons);
+
+        }
+
     }
     
 }
