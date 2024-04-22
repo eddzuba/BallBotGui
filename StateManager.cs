@@ -167,6 +167,7 @@ namespace BallBotGui
             if(curPoll != null)
             {
                 curPoll.AddPlayerToList(idPlayer, name, lastName, idVoute);
+                AddPlayersToRating(curPoll);
             }
         }
 
@@ -185,7 +186,7 @@ namespace BallBotGui
         {
             var curTime = DateTime.Now; ;
             // Архивировать опросы с датой раньше текущей даты
-            foreach (var poll in state.pollList.Where(p => p.GetGameDate() < curTime.AddDays(-1)).ToList())
+            foreach (var poll in state.pollList.Where(p => p.GetGameDate() < curTime.AddDays(0)).ToList())
             {
                 ArchivePoll(poll);
                 state.pollList.Remove(poll);
@@ -202,12 +203,20 @@ namespace BallBotGui
 
         private void ArchivePoll(Poll poll)
         {
-            var a = poll;
+            var archiveFolderName = "Arch";
             var polDate = poll.GetGameDate().ToString("ddMMyyyy");
+            var archiveFolderPath = Path.Combine(Directory.GetCurrentDirectory(), archiveFolderName);
+
+            if (!Directory.Exists(archiveFolderPath))
+            {
+                Directory.CreateDirectory(archiveFolderPath);
+            }
 
             string json = JsonConvert.SerializeObject(poll);
-            var fileName = "Arch" + polDate + ".json";
-            File.WriteAllText(fileName, json);
+            var fileName = $"Arch{polDate}.json";
+            var filePath = Path.Combine(archiveFolderPath, fileName);
+
+            File.WriteAllText(filePath, json);
 
         }
 

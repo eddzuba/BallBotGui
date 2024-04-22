@@ -15,6 +15,10 @@ using System.Text;
 using Telegram.Bot.Types.ReplyMarkups;
 using System.Xml.Linq;
 using System.Collections.Generic;
+using System.Drawing;
+using Microsoft.VisualBasic.Devices;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using System.Runtime.CompilerServices;
 
 namespace BallBotGui
 {
@@ -291,7 +295,7 @@ namespace BallBotGui
                     {
                         var user = update.PollAnswer.User;
                         stateManager.AddVote(update.PollAnswer.PollId, user.Id, user.Username, user.FirstName, update.Id);
-                        
+                     
                     }
                 }
             }
@@ -370,6 +374,11 @@ namespace BallBotGui
                     suggectTeams(update);
                 }
 
+                if (update.Message != null && (update.Message.Text == "#mystat" || update.Message.Text == "#mystats"))
+                {
+                    writePlayerStat(update);
+                }
+
                 if (update.Message != null &&  update.Message.Type == MessageType.ChatMembersAdded && update.Message.NewChatMembers != null )
                 {
                     foreach (var member in update.Message.NewChatMembers)
@@ -389,7 +398,17 @@ namespace BallBotGui
             return false;
         }
 
- 
+        private async void writePlayerStat(Update update)
+        {
+            if (update != null)
+            {
+                var statist = new StatisticsManager();
+                string message = statist.getPlayerStat(update);
+                await botClient.SendTextMessageAsync(chatId, message);
+
+            }
+            
+        }
 
         private void takeSeat(Update update)
         {
@@ -503,6 +522,11 @@ namespace BallBotGui
         internal void ArchPolls()
         {
             stateManager.ArchPolls(botClient);
+            foreach (var poll in stateManager.state.pollList.Where(p => p.idCarsMessage > 0).ToList())
+            {
+                deleteCarMessage(poll);
+
+            }
         }
 
         internal async void sendInvitation(Poll? todayApprovedGamePoll)
@@ -553,7 +577,7 @@ namespace BallBotGui
                 messageBuilder.AppendLine($"{time}");
                 messageBuilder.AppendLine($"На какой точке вас забрать?");
                 string message = messageBuilder.ToString();
-                var keyboard = addButtons(stateManager, todayApprovedGamePoll, stops, message);
+                var keyboard = addButtons(stops);
 
                 if (todayApprovedGamePoll.idCarsMessage > 0)
                 {
@@ -592,11 +616,16 @@ namespace BallBotGui
                 if (todayApprovedGamePoll.idCarsMessage > 0)
                 {
                     // у нас нет машин, но похоже раньше они были и нужно удалить сообщение
-                    await botClient.DeleteMessageAsync(chatId, todayApprovedGamePoll.idCarsMessage);
-                    todayApprovedGamePoll.idCarsMessage = 0;
+                    deleteCarMessage(todayApprovedGamePoll);
                     stateManager.SaveState();
                 }
             }
+        }
+
+        public async void deleteCarMessage(Poll curPoll)
+        {
+            await botClient.DeleteMessageAsync(chatId, curPoll.idCarsMessage);
+            curPoll.idCarsMessage = 0;
         }
 
         private static int addStops(Poll todayApprovedGamePoll, List<StopInfo> stops, StringBuilder messageBuilder, int stopIdx, Car? car, PlayerVote? owner)
@@ -648,7 +677,7 @@ namespace BallBotGui
             return stopIdx;
         }
 
-        private InlineKeyboardMarkup addButtons(StateManager stateManager, Poll todayApprovedGamePoll, List<StopInfo> stops, string message)
+        private InlineKeyboardMarkup addButtons(List<StopInfo> stops)
         {
             var buttons = new List<InlineKeyboardButton[]>();
             for (int i = 0; i < stops.Count; i += 4)
@@ -666,6 +695,25 @@ namespace BallBotGui
 
         }
 
+        internal async Task sendTestMessageAsync()
+        {
+            // ID пользователя, которого вы хотите упомянуть
+            int userId = 348518374;
+         //string message = $"<a href=\"tg://user?id={userId}\"> inline mention of a user</a>";
+            string username = "[" + "Sergey" + "](tg://user?id=" + userId + ")";
+            string message = $"Hello {username}";
+            try
+            {
+                var testMessage = await botClient.SendTextMessageAsync(chatId: chatId, text: message, parseMode: ParseMode.Markdown);
+            }
+            catch (Exception ex)
+            {
+                var dd = ex;
+                throw;
+            }
+           
+
+        }
     }
     
 }

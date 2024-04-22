@@ -123,7 +123,7 @@ namespace BallBotGui
             {
                 sendInvitation();
                 await Task.Delay(20000); // ждем 20 секунд, чтобы сообщение было после
-                sendCarsInfo(); 
+                sendCarsInfo();
             }
 
             if ((curTime.Hour == 10 && curTime.Minute == 00))
@@ -279,7 +279,7 @@ namespace BallBotGui
             Poll? todayApprovedGamePoll = stateManager.getTodayApprovedGamePoll();
             if (todayApprovedGamePoll != null)
             {
-               telConnector.sendCarsMessage(todayApprovedGamePoll);
+                telConnector.sendCarsMessage(todayApprovedGamePoll);
             }
         }
 
@@ -373,6 +373,11 @@ namespace BallBotGui
                     // Можно выполнить нужные действия с выбранным объектом
                 }
             }
+        }
+
+        private void button9_Click_1(object sender, EventArgs e)
+        {
+            this.telConnector.sendTestMessageAsync();
         }
     }
 }

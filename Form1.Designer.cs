@@ -42,15 +42,15 @@
             button7 = new Button();
             button8 = new Button();
             dataGridViewRating = new DataGridView();
-            button9 = new Button();
             tabControl1 = new TabControl();
             Players = new TabPage();
             Cars = new TabPage();
             dataGridViewCarStops = new DataGridView();
-            carStopsBindingSource = new BindingSource(components);
             dgvCars = new DataGridView();
+            carStopsBindingSource = new BindingSource(components);
             addCar = new Button();
             getCars = new Button();
+            button9 = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPoll).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPlayers).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewRating).BeginInit();
@@ -58,8 +58,8 @@
             Players.SuspendLayout();
             Cars.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewCarStops).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)carStopsBindingSource).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvCars).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)carStopsBindingSource).BeginInit();
             SuspendLayout();
             // 
             // minuteTimer
@@ -208,17 +208,6 @@
             dataGridViewRating.TabIndex = 11;
             dataGridViewRating.CellEndEdit += dataGridViewRating_CellEndEdit;
             // 
-            // button9
-            // 
-            button9.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button9.Location = new Point(1153, 1178);
-            button9.Name = "button9";
-            button9.Size = new Size(303, 46);
-            button9.TabIndex = 12;
-            button9.Text = "Сегодня играют";
-            button9.UseVisualStyleBackColor = true;
-            button9.Click += button9_Click;
-            // 
             // tabControl1
             // 
             tabControl1.Controls.Add(Players);
@@ -267,10 +256,6 @@
             dataGridViewCarStops.Size = new Size(990, 459);
             dataGridViewCarStops.TabIndex = 15;
             // 
-            // carStopsBindingSource
-            // 
-            // carStopsBindingSource.DataSource = typeof(CarStops);
-            // 
             // dgvCars
             // 
             dgvCars.AllowUserToOrderColumns = true;
@@ -308,15 +293,26 @@
             getCars.UseVisualStyleBackColor = true;
             getCars.Click += getCars_Click;
             // 
+            // button9
+            // 
+            button9.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            button9.Location = new Point(1153, 1178);
+            button9.Name = "button9";
+            button9.Size = new Size(303, 46);
+            button9.TabIndex = 16;
+            button9.Text = "Тест сообщение";
+            button9.UseVisualStyleBackColor = true;
+            button9.Click += button9_Click_1;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(2164, 1295);
+            Controls.Add(button9);
             Controls.Add(getCars);
             Controls.Add(addCar);
             Controls.Add(tabControl1);
-            Controls.Add(button9);
             Controls.Add(button8);
             Controls.Add(button7);
             Controls.Add(button6);
@@ -340,8 +336,8 @@
             Players.ResumeLayout(false);
             Cars.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dataGridViewCarStops).EndInit();
-            ((System.ComponentModel.ISupportInitialize)carStopsBindingSource).EndInit();
             ((System.ComponentModel.ISupportInitialize)dgvCars).EndInit();
+            ((System.ComponentModel.ISupportInitialize)carStopsBindingSource).EndInit();
             ResumeLayout(false);
         }
 
@@ -360,7 +356,6 @@
         private Button button7;
         private Button button8;
         private DataGridView dataGridViewRating;
-        private Button button9;
         private TabControl tabControl1;
         private TabPage Players;
         private TabPage Cars;
@@ -369,5 +364,6 @@
         private DataGridView dataGridViewCarStops;
         private Button getCars;
         private BindingSource carStopsBindingSource;
+        private Button button9;
     }
 }
