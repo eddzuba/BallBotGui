@@ -19,6 +19,7 @@ using System.Drawing;
 using Microsoft.VisualBasic.Devices;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 using System.Runtime.CompilerServices;
+using Newtonsoft.Json;
 
 namespace BallBotGui
 {
@@ -713,6 +714,45 @@ namespace BallBotGui
             }
            
 
+        }
+
+        internal List<PlayerVote> askNewPlayers(Poll todayApprovedGamePoll)
+        {
+            var previousPlayerIds = new HashSet<long>();
+
+
+            // Получаем все архивные файлы
+            var archiveFolderName = "Arch";
+            var archiveFolderPath = Path.Combine(Directory.GetCurrentDirectory(), archiveFolderName);
+            var files = Directory.GetFiles(archiveFolderPath, "Arch*.json");
+
+            foreach (var file in files)
+            {
+                var json = System.IO.File.ReadAllText(file);
+                var poll = JsonConvert.DeserializeObject<Poll>(json);
+              
+                if(poll != null && poll.approved)
+                {
+                    foreach (var player in poll.playrsList)
+                    {
+                        previousPlayerIds.Add(player.id);
+                    }
+                }
+               
+            }
+
+            // Находим новых игроков
+
+            var curPlayersList = todayApprovedGamePoll.playrsList.Take(14);
+            var newPlayers = curPlayersList.Where(p => !previousPlayerIds.Contains(p.id)).ToList();
+            return newPlayers;
+        }
+
+        internal async Task askAboutFirstGameAsync(PlayerVote player)
+        {
+            string message = $"Добрый день, @{player.name} {player.firstName}. Вы сегодны первый раз с нами играте! Как добираетесь? ";
+
+            await botClient.SendTextMessageAsync(chatId, message);
         }
     }
     

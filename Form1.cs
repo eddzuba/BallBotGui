@@ -124,6 +124,8 @@ namespace BallBotGui
                 sendInvitation();
                 await Task.Delay(20000); // ждем 20 секунд, чтобы сообщение было после
                 sendCarsInfo();
+                await Task.Delay(20000); // ждем 20 секунд, чтобы сообщение было после
+                await askNewPlayesrsAsync();
             }
 
             if ((curTime.Hour == 10 && curTime.Minute == 00))
@@ -136,6 +138,22 @@ namespace BallBotGui
                 bsRating.ResetBindings(false);
             }
 
+        }
+
+        private async Task askNewPlayesrsAsync()
+        {
+            Poll? todayApprovedGamePoll = stateManager.getTodayApprovedGamePoll();
+            if (todayApprovedGamePoll != null)
+            {
+                var newPlayes = telConnector.askNewPlayers(todayApprovedGamePoll);
+                if (newPlayes != null)
+                {
+                    foreach (var player in newPlayes)
+                    {
+                        await telConnector.askAboutFirstGameAsync(player);
+                    }
+                }
+            }
         }
 
         private int[] getPollDays()
@@ -337,7 +355,7 @@ namespace BallBotGui
 
         private void getCars_Click(object sender, EventArgs e)
         {
-
+            askNewPlayesrsAsync();
         }
 
         private void dgvCars_SelectionChanged(object sender, EventArgs e)

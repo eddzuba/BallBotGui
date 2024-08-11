@@ -48,7 +48,6 @@
             dataGridViewCarStops = new DataGridView();
             dgvCars = new DataGridView();
             carStopsBindingSource = new BindingSource(components);
-            addCar = new Button();
             getCars = new Button();
             button9 = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPoll).BeginInit();
@@ -271,25 +270,14 @@
             dgvCars.TabIndex = 14;
             dgvCars.SelectionChanged += dgvCars_SelectionChanged;
             // 
-            // addCar
-            // 
-            addCar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            addCar.Location = new Point(1153, 1230);
-            addCar.Name = "addCar";
-            addCar.Size = new Size(99, 46);
-            addCar.TabIndex = 14;
-            addCar.Text = "+ Car";
-            addCar.UseVisualStyleBackColor = true;
-            addCar.Click += addCar_Click;
-            // 
             // getCars
             // 
             getCars.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            getCars.Location = new Point(1258, 1230);
+            getCars.Location = new Point(1153, 1230);
             getCars.Name = "getCars";
-            getCars.Size = new Size(198, 46);
+            getCars.Size = new Size(303, 46);
             getCars.TabIndex = 15;
-            getCars.Text = "GenCarsMessage";
+            getCars.Text = "NewPlayersMessage";
             getCars.UseVisualStyleBackColor = true;
             getCars.Click += getCars_Click;
             // 
@@ -311,7 +299,6 @@
             ClientSize = new Size(2164, 1295);
             Controls.Add(button9);
             Controls.Add(getCars);
-            Controls.Add(addCar);
             Controls.Add(tabControl1);
             Controls.Add(button8);
             Controls.Add(button7);
@@ -360,7 +347,6 @@
         private TabPage Players;
         private TabPage Cars;
         private DataGridView dgvCars;
-        private Button addCar;
         private DataGridView dataGridViewCarStops;
         private Button getCars;
         private BindingSource carStopsBindingSource;
