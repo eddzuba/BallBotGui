@@ -185,6 +185,7 @@ namespace BallBotGui
             // сохранение опроса в статусе
             stateManager.state.AddNewPoll(poll.Poll.Id, curDay.ToString("dd.MM", new CultureInfo("ru-RU")), curQuest, poll.MessageId);
             stateManager.SaveState();
+            await Task.Delay(60000); // ждем минуту, чтобы не прыгал чат
             // Закрепление опроса
             await botClient.PinChatMessageAsync(
                         chatId: chatId,
