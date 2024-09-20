@@ -1,6 +1,10 @@
-﻿using System.Windows.Forms;
+﻿using Microsoft.VisualBasic.Devices;
+using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 using Telegram.Bot;
+using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 
 
 namespace BallBotGui
@@ -57,7 +61,7 @@ namespace BallBotGui
             if (e.RowIndex < 14)
             {
                 // Устанавливаем цвет фона для текущей ячейки
-                e.CellStyle.BackColor = Color.LightGreen;
+                e.CellStyle.BackColor = System.Drawing.Color.LightGreen;
             }
         }
 
@@ -157,7 +161,7 @@ namespace BallBotGui
         }
 
         private int[] getPollDays()
-        {
+            {
             // get day number when we need to grate a poll
             var stringArray = Properties.Settings.Default.pollDayList.Split(',');
             // Convert string array to integer array
@@ -355,7 +359,7 @@ namespace BallBotGui
 
         private void getCars_Click(object sender, EventArgs e)
         {
-            askNewPlayesrsAsync();
+            this.telConnector.startScoreBoard();
         }
 
         private void dgvCars_SelectionChanged(object sender, EventArgs e)

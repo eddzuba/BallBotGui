@@ -624,6 +624,27 @@ namespace BallBotGui
             }
         }
 
+        public async void startScoreBoard()
+        {
+        
+
+            // Создание инлайн-кнопки, которая открывает веб-приложение
+            var inlineKeyboard = new InlineKeyboardMarkup(new[]
+            {
+                InlineKeyboardButton.WithWebApp("Запустить мини-приложение", new WebAppInfo
+                    {
+                        Url = "https://eddzuba.github.io/scoreBoard/"
+                 })
+            });
+
+            await botClient.SendTextMessageAsync(
+               chatId: chatId,
+               text: "Нажмите кнопку ниже для запуска мини-приложения (открытия сайта Google).",
+               replyMarkup: inlineKeyboard
+           );
+         
+        }
+
         public async void deleteCarMessage(Poll curPoll)
         {
             await botClient.DeleteMessageAsync(chatId, curPoll.idCarsMessage);

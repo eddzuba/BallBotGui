@@ -277,7 +277,7 @@
             getCars.Name = "getCars";
             getCars.Size = new Size(303, 46);
             getCars.TabIndex = 15;
-            getCars.Text = "NewPlayersMessage";
+            getCars.Text = "Табло запуск";
             getCars.UseVisualStyleBackColor = true;
             getCars.Click += getCars_Click;
             // 
