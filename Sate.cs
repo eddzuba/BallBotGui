@@ -50,11 +50,14 @@ namespace BallBotGui
 
         public string link { get; set; }
 
+        public int minBefore { get; set; }
 
-        public CarStops(string name, string link)
+
+        public CarStops(string name, string link, int minBefore)
         {
             this.name = name;
             this.link = link;
+            this.minBefore = minBefore;
         }
        
     }
@@ -106,14 +109,17 @@ namespace BallBotGui
 
         public int idCarsMessage { get; set; } = -1; // код сообщения о доступных машинах
 
-        public List<long> idleDrivers { get; set; } = new List<long>(); // список водителей кто не может сегодня подвозить
+        public List<long> idleDrivers { get; set; } = new(); // список водителей кто не может сегодня подвозить
+
+        public VolleybollGame curGame { get; set; }
 
         public List<OccupiedPlace> occupiedPlaces { get; set; } = new List<OccupiedPlace>(); // доставка, брони
 
-        public Poll(string idPoll, string date, string question, int idMessage = 0) {
+        public Poll(string idPoll, string date, string question, int idMessage, VolleybollGame curGame) {
             this.idPoll = idPoll;
             this.question = question;
             this.idMessage = idMessage;
+            this.curGame = curGame;
 
             if (date == string.Empty)
             {
@@ -232,13 +238,13 @@ namespace BallBotGui
         public List<Poll> pollList = new();
         public BindingList<Car> carList = new();
 
-        public Poll AddNewPoll(string idPoll, string date, string question, int messageId = 0)
+        public Poll AddNewPoll(string idPoll, string date, string question, int messageId, VolleybollGame? curGame)
         {
 
             Poll oldPoll = pollList.FirstOrDefault(poll => poll.idPoll == idPoll);
             if (oldPoll == null)
             {
-                var newPoll = new Poll(idPoll, date, question, messageId);
+                var newPoll = new Poll(idPoll, date, question, messageId, curGame);
                 pollList.Add(newPoll);
                 return newPoll;
             }
@@ -248,7 +254,7 @@ namespace BallBotGui
         }
          
          
-        public bool RemovePoll(string idPoll, string date, string question) {
+     /*   public bool RemovePoll(string idPoll, string date, string question) {
             
             var newPoll = new Poll(idPoll, date, question);
             if (!pollList.Contains(newPoll))
@@ -257,7 +263,7 @@ namespace BallBotGui
                 return true;
             }
             return false;
-        }
+        }*/
      
 
     }

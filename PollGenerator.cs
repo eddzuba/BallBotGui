@@ -3,6 +3,7 @@ using System.Timers;
 using System.Security.Cryptography;
 using System;
 using System.Globalization;
+using Telegram.Bot.Types;
 
 namespace BallBotGui
 {
@@ -30,10 +31,10 @@ namespace BallBotGui
                 + nextSunday.ToString("dd.MM");
                 
 
-            await botClient.SendPollAsync(
+            await botClient.SendPoll(
                 chatId: chatId, 
                 question:  curQuest,
-                options: new[]
+                options: new InputPollOption[]
                     {
                     Properties.Settings.Default.questTuesday,
                     Properties.Settings.Default.questThursday,
@@ -77,10 +78,10 @@ namespace BallBotGui
             // Модифицируем строку, чтобы первая буква дня недели была заглавной
             formattedDate = formattedDate.ToUpper();
             string curQuest = formattedDate + "! " + Properties.Settings.Default.pollQuestion;
-            await botClient.SendPollAsync(
+            await botClient.SendPoll(
                             chatId: chatId, 
                             question: curQuest,
-                            options: new[]
+                            options: new InputPollOption[]
                                 {
                     Properties.Settings.Default.mainQuestion,
                     Properties.Settings.Default.questSkip

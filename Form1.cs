@@ -1,19 +1,12 @@
-﻿using Microsoft.VisualBasic.Devices;
-using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
-using Telegram.Bot;
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
-
+﻿using Telegram.Bot;
 
 namespace BallBotGui
 {
 
     public partial class Form1 : Form
     {
-        private TelegramBotClient botClient;
-        private TelegramConnector telConnector;
+        private TelegramBotClient? botClient;
+        private TelegramConnector? telConnector;
         private string? botKey;
         private StateManager stateManager = new();
 
@@ -23,14 +16,20 @@ namespace BallBotGui
 
         private BindingSource bsCars = new();
         readonly BindingSource bsCarStops = new(); // CarStops
+        private GameManager? gameManager;
 
-        public Form1() => InitializeComponent();
+
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
 
         public void refreshGrids()
         {
-            if (this.dataGridViewPoll.InvokeRequired)
+            if (dataGridViewPoll.InvokeRequired)
             {
-                this.dataGridViewPoll.Invoke(new Action(() =>
+                dataGridViewPoll.Invoke(new Action(() =>
                 {
                     bsPoll.ResetBindings(false);
                     bsPlayer.ResetBindings(false);
@@ -52,6 +51,7 @@ namespace BallBotGui
             botKey = Properties.Settings.Default.curBotKey;
             botClient = new TelegramBotClient(botKey);
             telConnector = new TelegramConnector(botClient, stateManager, this);
+            gameManager = new GameManager(telConnector);
 
             initDs();
         }
@@ -104,19 +104,19 @@ namespace BallBotGui
 
         }
 
-        private async void minuteTimer_Tick(object sender, EventArgs e)
+        private async void MinuteTimer_Tick(object sender, EventArgs e)
         {
             DateTime curTime = DateTime.Now;
 
-            int pollHour = Properties.Settings.Default.pollHour;
-
-            int[] days = getPollDays();
-            if (Array.Exists(days, el => el == ((int)curTime.DayOfWeek))
-                && curTime.Hour == pollHour && curTime.Minute == 00)
-            {
-                createNewPoll();
+            if (gameManager != null){
+            var pullCreated = await gameManager.CheckScheduleAndCreatePollAsync(curTime);
+                if (pullCreated)
+                {
+                    bsPoll.ResetBindings(false);
+                    bsPlayer.ResetBindings(false);
+                }
             }
-
+         
             if (curTime.Hour == 23 && curTime.Minute == 30)
             {
                 telConnector.ArchPolls();
@@ -161,8 +161,8 @@ namespace BallBotGui
         }
 
         private int[] getPollDays()
-            {
-            // get day number when we need to grate a poll
+        {
+            // get day number when we need to create a poll
             var stringArray = Properties.Settings.Default.pollDayList.Split(',');
             // Convert string array to integer array
             int[] intArray = new int[stringArray.Length];
@@ -184,7 +184,24 @@ namespace BallBotGui
 
         private async void btnCreatePoll_press(object sender, EventArgs e)
         {
-            createNewPoll();
+            //  createNewPoll();
+            DateTime now = DateTime.Now; // Текущее время
+            int targetDay = 6; // День недели (1 = понедельник, 2 = вторник, ..., 7 = воскресенье). Например, 4 = четверг.
+
+            int currentDay = (int)now.DayOfWeek == 0 ? 7 : (int)now.DayOfWeek; // Преобразуем DayOfWeek (0 = воскресенье) в систему, где 1 = понедельник
+            int daysUntilTarget = (targetDay - currentDay + 7) % 7; // Количество дней до цели
+
+            if (daysUntilTarget == 0 && now.TimeOfDay > new TimeSpan(23, 0, 0))
+            {
+                // Если сегодня целевой день, но время уже больше 23:00, берём следующий такой день
+                daysUntilTarget = 7;
+            }
+
+            DateTime nextTargetDayAt23 = now.Date.AddDays(daysUntilTarget).AddHours(23);
+            if (gameManager != null)
+            {
+                var pullCreated = await gameManager.CheckScheduleAndCreatePollAsync(nextTargetDayAt23);
+            }
         }
 
         private void testSave(object sender, EventArgs e)
@@ -307,7 +324,7 @@ namespace BallBotGui
 
 
 
-        private async void createNewPoll()
+        private async void createNewPoll() //
         {
 
             DateTime curTime = DateTime.Now;
@@ -343,7 +360,7 @@ namespace BallBotGui
 
         }
 
-        private void addCar_Click(object sender, EventArgs e)
+      /*  private void addCar_Click(object sender, EventArgs e)
         {
 
             var newCar = new Car(1, "ed", "edGzrd", 4);
@@ -355,7 +372,7 @@ namespace BallBotGui
 
             this.stateManager.state.carList.Add(newCar);
 
-        }
+        }*/
 
         private void getCars_Click(object sender, EventArgs e)
         {

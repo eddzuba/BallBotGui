@@ -42,7 +42,7 @@ namespace BallBotGui
                              $"Играли: {Y} \n" +
                              $"Не получилось: {Z} \n" +
                              $"Сожгли {totalKcalBurned} ккал\n" +
-                             $"Потеряли {fatNotAccumulated} гр. жира";
+                             $"Сожгли {fatNotAccumulated} гр. жира";
 
             return message;
         }

@@ -2,24 +2,11 @@
 using System.Globalization;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
-using System.Text.RegularExpressions;
-using System.ComponentModel;
 using Telegram.Bot.Polling;
-using Telegram.Bot.Exceptions;
-using Microsoft.VisualBasic;
-using System.Numerics;
-using System.Windows.Forms;
-using static System.Windows.Forms.AxHost;
-using System.Diagnostics.Metrics;
 using System.Text;
 using Telegram.Bot.Types.ReplyMarkups;
-using System.Xml.Linq;
-using System.Collections.Generic;
-using System.Drawing;
-using Microsoft.VisualBasic.Devices;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
-using System.Runtime.CompilerServices;
 using Newtonsoft.Json;
+
 
 namespace BallBotGui
 {
@@ -68,94 +55,95 @@ namespace BallBotGui
             {
                 AllowedUpdates = Array.Empty<UpdateType>() // receive all update types except ChatMember related updates
             };
-            using CancellationTokenSource cts = new();
 
-            botClient.StartReceiving(
-                    updateHandler: HandleUpdateAsync,
-                    pollingErrorHandler: HandlePollingErrorAsync,
-                    receiverOptions: receiverOptions,
-                    cancellationToken: cts.Token
-                );
+            botClient.OnError += OnError;
+            /* botClient.OnMessage += OnMessage;*/
+            botClient.OnUpdate += OnUpdate;
+
+            /*    botClient.StartReceiving(
+                        updateHandler: HandleUpdateAsync,
+                        pollingErrorHandler: HandlePollingErrorAsync,
+                        receiverOptions: receiverOptions,
+                        cancellationToken: cts.Token
+                    );
+            }
+            */
+
+            /*async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)*/
+            
         }
-
-
-        async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+       
+        async Task OnUpdate(Update update)
         {
             var needToSave = OnNewUpdate(update);
-            if(needToSave)
+            if (needToSave)
             {
                 stateManager.SaveState();
                 curForm.refreshGrids();
             }
         }
-
-        Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+        async Task OnError(Exception exception, HandleErrorSource source)
         {
-            var ErrorMessage = exception switch
-            {
-                ApiRequestException apiRequestException
-                    => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
-                _ => exception.ToString()
-            };
-
-            Console.WriteLine(ErrorMessage);
-            return Task.CompletedTask;
+                Console.WriteLine(exception); // just dump the exception to the console
         }
 
+        /* public void startGeneratePoll()
+         {
 
-        public void startGeneratePoll()
+             TriggerFunction3Poll();
+
+         }*/
+
+        /*  public async void TriggerFunction3Poll()
+         {
+             DateTime today = DateTime.Today;
+
+
+             // Вторник
+             await createOnePoll(GetNextWeekday(today, DayOfWeek.Tuesday));
+             // Пятница
+             await createOnePoll(GetNextWeekday(today.AddDays(4), DayOfWeek.Friday));
+             // Воскресенье
+             await createOnePoll(GetNextWeekday(today.AddDays(4), DayOfWeek.Sunday));
+
+             timerFirst.Stop();
+             return;
+         }*/
+
+        public async Task createOnePoll(DateTime curDay, VolleybollGame curGame)
         {
+           /* string formattedDate = curDay.ToString("dddd, dd.MM", new CultureInfo("ru-RU"));
 
-            TriggerFunction3Poll();
+            // Модифицируем строку, чтобы первая буква дня недели была заглавной
+            formattedDate = formattedDate.ToUpper();
+            string curQuest = formattedDate + "! " + Properties.Settings.Default.pollQuestion;
+*/
+            string curQuest = curGame.GetQuest(curDay);
+            var poll = await botClient.SendPoll(
+                            chatId: chatId,
+                            question: curQuest,
 
-        }
-        
-        // старая версия
-        public async void TriggerFunction()
-        {
-            DateTime today = DateTime.Today;
-            DateTime nextMonday = GetNextWeekday(today, DayOfWeek.Monday);
-            DateTime nextSunday = GetNextWeekday(today.AddDays(2), DayOfWeek.Sunday);
-            string curQuest = Properties.Settings.Default.pollQuestion + " "
-                + nextMonday.ToString("dd.MM") 
-                + " - "
-                + nextSunday.ToString("dd.MM");
-                
+                            options: new InputPollOption[]
+                                {
+                                    Properties.Settings.Default.mainQuestion,
+                                    Properties.Settings.Default.questSkip
+                                 },
+                            allowsMultipleAnswers: false,
+                            isAnonymous: false
+                        );
 
-            await botClient.SendPollAsync(
-                chatId: chatId, 
-                question:  curQuest,
-                options: new[]
-                    {
-                    Properties.Settings.Default.questTuesday,
-                    Properties.Settings.Default.questThursday,
-                    Properties.Settings.Default.questSunday,
-                    Properties.Settings.Default.questSkip
-                },
-                allowsMultipleAnswers: true,
-                isAnonymous: false
-            );
 
-            timerFirst.Stop();
-            return;
+            // сохранение опроса в статусе
+            stateManager.state.AddNewPoll(poll.Poll.Id, curDay.ToString("dd.MM", new CultureInfo("ru-RU")), curQuest, poll.MessageId, curGame);
+            stateManager.SaveState();
+            await Task.Delay(60000); // ждем минуту, чтобы не прыгал чат
+            // Закрепление опроса
+            await botClient.PinChatMessage(
+                        chatId: chatId,
+                        messageId: poll.MessageId
+                    );
         }
 
-        // пока оставил старые версии
-        public async void TriggerFunction3Poll()
-        {
-            DateTime today = DateTime.Today;
-       
-            
-            // Вторник
-            await createOnePoll(GetNextWeekday(today, DayOfWeek.Tuesday));
-            // Пятница
-            await createOnePoll(GetNextWeekday(today.AddDays(4), DayOfWeek.Friday));
-            // Воскресенье
-            await createOnePoll(GetNextWeekday(today.AddDays(4), DayOfWeek.Sunday));
-
-            timerFirst.Stop();
-            return;
-        }
 
 
         /// <summary>
@@ -169,13 +157,13 @@ namespace BallBotGui
             // Модифицируем строку, чтобы первая буква дня недели была заглавной
             formattedDate = formattedDate.ToUpper();
             string curQuest = formattedDate + "! " + Properties.Settings.Default.pollQuestion;
-            var poll = await botClient.SendPollAsync(
+            var poll = await botClient.SendPoll(
                             chatId: chatId, 
                             question: curQuest,
-                            options: new[]
+                            options: new InputPollOption[]
                                 {
-                    Properties.Settings.Default.mainQuestion,
-                    Properties.Settings.Default.questSkip
+                                    Properties.Settings.Default.mainQuestion,
+                                    Properties.Settings.Default.questSkip
                             },
                             allowsMultipleAnswers: false,
                             isAnonymous: false
@@ -183,30 +171,23 @@ namespace BallBotGui
             
 
             // сохранение опроса в статусе
-            stateManager.state.AddNewPoll(poll.Poll.Id, curDay.ToString("dd.MM", new CultureInfo("ru-RU")), curQuest, poll.MessageId);
+            stateManager.state.AddNewPoll(poll.Poll.Id, curDay.ToString("dd.MM", new CultureInfo("ru-RU")), curQuest, poll.MessageId, null);
             stateManager.SaveState();
             await Task.Delay(60000); // ждем минуту, чтобы не прыгал чат
             // Закрепление опроса
-            await botClient.PinChatMessageAsync(
+            await botClient.PinChatMessage(
                         chatId: chatId,
                         messageId: poll.MessageId
                     );
         }
 
-        // открепляем poll
-        public async Task UnpinPoll(int pollId)
-        {
-            await botClient.UnpinChatMessageAsync(
-                        chatId: chatId,
-                        messageId: pollId
-                    );
-        }
-
+      
+/*
         private DateTime GetNextWeekday(DateTime currentDate, DayOfWeek targetDay)
         {
             int daysUntilTargetDay = ((int)targetDay - (int)currentDate.DayOfWeek + 7) % 7;
             return currentDate.AddDays(daysUntilTargetDay);
-        }
+        }*/
 
         public async void ReadAllUpdates()
         {
@@ -240,12 +221,15 @@ namespace BallBotGui
                 {
                         UpdateType.Poll,
                         UpdateType.PollAnswer,
+                
+                
+                        UpdateType.CallbackQuery
                         
                         // Добавьте другие типы обновлений, которые вам нужны
                 };
 
 
-            var updates = await botClient.GetUpdatesAsync(offset  
+            var updates = await botClient.GetUpdates(offset  
                  , allowedUpdates: allowedUpdatesValue
                  );
             var needToSave = false;
@@ -264,10 +248,10 @@ namespace BallBotGui
 
         }
 
-        private void onNewPollUpdate(Update update)
+       /* private void onNewPollUpdate(Update update)
         {
             stateManager.state.AddNewPoll(update.Poll.Id, string.Empty, update.Poll.Question);
-        }
+        }*/
 
         private void onNewPollAnswer(Update update)
         {
@@ -342,7 +326,7 @@ namespace BallBotGui
                 PlayerVote voter = poll.playrsList[13]; // берем последнего игрока
                 string message = $"Снялся @{oldUser.Username}. В игру вступает @{voter.name} {voter.firstName}!";
 
-                await botClient.SendTextMessageAsync(chatId, message);
+                await botClient.SendMessage(chatId, message);
             }
 
         }
@@ -380,8 +364,8 @@ namespace BallBotGui
                 {
                     writePlayerStat(update);
                 }
-
-                if (update.Message != null &&  update.Message.Type == MessageType.ChatMembersAdded && update.Message.NewChatMembers != null )
+                // TODO проверить
+                if (update.Message != null &&  update.Message.Type == MessageType.NewChatMembers && update.Message.NewChatMembers != null )
                 {
                     foreach (var member in update.Message.NewChatMembers)
                     {
@@ -406,7 +390,7 @@ namespace BallBotGui
             {
                 var statist = new StatisticsManager();
                 string message = statist.getPlayerStat(update);
-                await botClient.SendTextMessageAsync(chatId, message);
+                await botClient.SendMessage(chatId, message);
 
             }
             
@@ -501,7 +485,10 @@ namespace BallBotGui
         {
             if(member != null)
             {
-                await botClient.SendTextMessageAsync(chatId, $"Приветствуем, {member.FirstName}! Мы рады, что вы присоединились к нам. Напишите пару слов о вашем уровне игры в волейбол. Ближайшие игры, правила нашего сообщества и вся важная информация находятся в закрепленных сообщениях, ознакомьтесь с ними, пожалуйста. Ждем вас на играх.");
+                var inviteMessage = BallBotGui.Properties.Settings.Default.inviteMessage;
+                inviteMessage = inviteMessage.Replace("@Player", member.FirstName);
+
+                await botClient.SendMessage(chatId, inviteMessage);
             }
         }
 
@@ -517,7 +504,7 @@ namespace BallBotGui
                 string team2Players = string.Join("\n", teams.Team2.Select(p => $"@{p.name} {p.firstName}"));
 
                 string message = $"Предлагаются следующие составы команд:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}";
-                await botClient.SendTextMessageAsync(chatId, message);
+                await botClient.SendMessage(chatId, message);
             }
         }
 
@@ -534,13 +521,13 @@ namespace BallBotGui
         internal async void sendInvitation(Poll? todayApprovedGamePoll)
         {
             int inviteCount = Math.Min(todayApprovedGamePoll.playrsList.Count, 14);
-            await botClient.SendTextMessageAsync(chatId, "Сегодня на игру приглашаются: ");
+            await botClient.SendMessage(chatId, "Сегодня на игру приглашаются: ");
             for (int i = 0; i < inviteCount; i++)
             {
                 PlayerVote voter = todayApprovedGamePoll.playrsList[i];
                 string message = $"Игрок # {i + 1} @{voter.name} {voter.firstName}";
 
-                await botClient.SendTextMessageAsync(chatId, message);
+                await botClient.SendMessage(chatId, message);
             }
         }
 
@@ -589,7 +576,13 @@ namespace BallBotGui
                     {
                         try
                         {
-                            var carInfoMessage = await botClient.EditMessageTextAsync(chatId: chatId, messageId: todayApprovedGamePoll.idCarsMessage, text: message, parseMode: ParseMode.Html, disableWebPagePreview: true, replyMarkup: keyboard);
+                            var carInfoMessage = await botClient.EditMessageText(
+                                chatId: chatId, 
+                                messageId: todayApprovedGamePoll.idCarsMessage, 
+                                text: message, 
+                                parseMode: ParseMode.Html,
+                                linkPreviewOptions: true, 
+                                replyMarkup: keyboard);
                             success = true;
                         }
                         catch (Exception ex)
@@ -603,10 +596,16 @@ namespace BallBotGui
                 }
                 else
                 {
-                    var carInfoMessage = await botClient.SendTextMessageAsync(chatId: chatId, text: message, parseMode: ParseMode.Html, disableWebPagePreview: true, replyMarkup: keyboard);
+                    var carInfoMessage = await botClient.SendMessage(
+                        chatId: chatId, 
+                        text: message, 
+                        parseMode: ParseMode.Html,
+                        linkPreviewOptions: true,
+                        replyMarkup: keyboard);
                     todayApprovedGamePoll.idCarsMessage = carInfoMessage.MessageId;
+                    
                     // Закрепление опроса по машинам
-                    await botClient.PinChatMessageAsync(
+                    await botClient.PinChatMessage(
                                 chatId: chatId,
                                 messageId: carInfoMessage.MessageId
                             );
@@ -626,28 +625,13 @@ namespace BallBotGui
 
         public async void startScoreBoard()
         {
-        
-
-            // Создание инлайн-кнопки, которая открывает веб-приложение
-            var inlineKeyboard = new InlineKeyboardMarkup(new[]
-            {
-                InlineKeyboardButton.WithWebApp("Запустить мини-приложение", new WebAppInfo
-                    {
-                        Url = "https://eddzuba.github.io/scoreBoard/"
-                 })
-            });
-
-            await botClient.SendTextMessageAsync(
-               chatId: chatId,
-               text: "Нажмите кнопку ниже для запуска мини-приложения (открытия сайта Google).",
-               replyMarkup: inlineKeyboard
-           );
-         
+            string webAppUrl = "https://your-web-app-url.com";
+       
         }
 
         public async void deleteCarMessage(Poll curPoll)
         {
-            await botClient.DeleteMessageAsync(chatId, curPoll.idCarsMessage);
+            await botClient.DeleteMessage(chatId, curPoll.idCarsMessage);
             curPoll.idCarsMessage = 0;
         }
 
@@ -663,13 +647,28 @@ namespace BallBotGui
                     var newPoint = new StopInfo(owner.id, curDriverStopIdx, stopIdx);
                     stops.Add(newPoint);
 
+                    TimeSpan gameTime = new TimeSpan(20, 0, 0); // Время игры: 20:00
+                    int minutesToSubtract = 30;
+
+                    if (stop.minBefore > 0 )
+                    {
+                        minutesToSubtract = stop.minBefore;
+
+                    }
+
+                    TimeSpan adjustedTime = gameTime.Subtract(TimeSpan.FromMinutes(minutesToSubtract));
+                    // Преобразуем в строку в 24-часовом формате
+                    string adjustedTimeString = adjustedTime.ToString(@"hh\:mm");
+
+                    var stopName = stop.name.Replace("@Time", adjustedTimeString);
+
                     if (stop.link == null)
                     {
-                        messageBuilder.AppendLine($" {stopIdx}: {stop.name}");
+                        messageBuilder.AppendLine($" {stopIdx}: {stopName}");
                     }
                     else
                     {
-                        messageBuilder.AppendLine($" {stopIdx}: {stop.name} - <a href=\"{stop.link}\">тут</a>");
+                        messageBuilder.AppendLine($" {stopIdx}: {stopName} - <a href=\"{stop.link}\">тут</a>");
                     }
 
                     // пишет пассажиров на данной точке
@@ -727,7 +726,7 @@ namespace BallBotGui
             string message = $"Hello {username}";
             try
             {
-                var testMessage = await botClient.SendTextMessageAsync(chatId: chatId, text: message, parseMode: ParseMode.Markdown);
+                var testMessage = await botClient.SendMessage(chatId: chatId, text: message, parseMode: ParseMode.Markdown);
             }
             catch (Exception ex)
             {
@@ -774,7 +773,7 @@ namespace BallBotGui
         {
             string message = $"Добрый день, @{player.name} {player.firstName}. Вы сегодны первый раз с нами играте! Как добираетесь? ";
 
-            await botClient.SendTextMessageAsync(chatId, message);
+            await botClient.SendMessage(chatId, message);
         }
     }
     

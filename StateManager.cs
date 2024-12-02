@@ -182,7 +182,7 @@ namespace BallBotGui
             return false;
         }
 
-        internal void ArchPolls(Telegram.Bot.TelegramBotClient botClient)
+        internal void ArchPolls(TelegramBotClient botClient)
         {
             var curTime = DateTime.Now; ;
             // Архивировать опросы с датой раньше текущей даты
@@ -192,7 +192,7 @@ namespace BallBotGui
                 state.pollList.Remove(poll);
                 if(poll.idMessage > 0)
                 {
-                    botClient.UnpinChatMessageAsync(Properties.Settings.Default.chatId, poll.idMessage);
+                    botClient.UnpinChatMessage(Properties.Settings.Default.chatId, poll.idMessage);
                 }
                 
             }

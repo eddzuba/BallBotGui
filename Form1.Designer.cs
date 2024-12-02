@@ -65,7 +65,7 @@
             // 
             minuteTimer.Enabled = true;
             minuteTimer.Interval = 60000;
-            minuteTimer.Tick += minuteTimer_Tick;
+            minuteTimer.Tick += MinuteTimer_Tick;
             // 
             // btnCreatePoll
             // 
@@ -177,7 +177,7 @@
             button7.Name = "button7";
             button7.Size = new Size(303, 46);
             button7.TabIndex = 9;
-            button7.Text = "Отправить приглашения";
+            button7.Text = "Машины показать";
             button7.UseVisualStyleBackColor = true;
             button7.Click += clickSendInvitation;
             // 

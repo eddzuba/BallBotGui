@@ -12,7 +12,7 @@ namespace BallBotGui.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.9.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.12.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -193,13 +193,90 @@ namespace BallBotGui.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("7109057711:AAH_c0-lj-WjP2SC313r6s-aR4ensgCGIWw")]
+        [global::System.Configuration.DefaultSettingValueAttribute("7109057711:AAHU_BqkQO3v9cElniVKIA44ABXrkGoMtDA")]
         public string curBotKey {
             get {
                 return ((string)(this["curBotKey"]));
             }
             set {
                 this["curBotKey"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"[
+	{
+		""PullHour"": 23,
+		""PullMinute"": 0,
+		""GameDay"": 1,
+		""PullBeforeDay"": 3,
+		""GameStartHour"": 20,
+		""GameStartMinute"": 0,
+		""Location"": ""https://maps.example.com/location1"",
+		""Title"": ""Понедельник, @GameDayName Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера.""
+	},
+	{
+		""PullHour"": 23,
+		""PullMinute"": 0,
+		""GameDay"": 2,
+		""PullBeforeDay"": 3,
+		""GameStartHour"": 20,
+		""GameStartMinute"": 0,
+		""Location"": ""https://maps.example.com/location2"",
+		""Title"": ""Вторник, @GameDayName! Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера.""
+	},
+	{
+		""PullHour"": 23,
+		""PullMinute"": 0,
+		""GameDay"": 4,
+		""PullBeforeDay"": 3,
+		""GameStartHour"": 21,
+		""GameStartMinute"": 0,
+		""Location"": ""https://maps.example.com/location2"",
+		""Title"": ""Четрверг, @GameDayName! Волейбол в ЗАЛЕ(Нибрас) с 9 до 11 вечера.""
+	},
+	{
+		""PullHour"": 23,
+		""PullMinute"": 0,
+		""GameDay"": 5,
+		""PullBeforeDay"": 3,
+		""GameStartHour"": 20,
+		""GameStartMinute"": 0,
+		""Location"": ""https://maps.example.com/location1"",
+		""Title"": ""Пятница, @GameDayName Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера.""
+	},
+	{
+		""PullHour"": 23,
+		""PullMinute"": 0,
+		""GameDay"": 7,
+		""PullBeforeDay"": 3,
+		""GameStartHour"": 20,
+		""GameStartMinute"": 0,
+		""Location"": ""https://maps.example.com/location2"",
+		""Title"": ""Воскресенье, @GameDayName! Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера.""
+	}
+]")]
+        public string GamesJson {
+            get {
+                return ((string)(this["GamesJson"]));
+            }
+            set {
+                this["GamesJson"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Приветствуем, @Player!\r\n - Мы вам рады!\r\n - Ответы на вопросы Где? Когда? Как зап" +
+            "исаться? тут: https://t.me/c/1645946649/4774\r\n - Обязательно напишите о своем ур" +
+            "овне игры.\r\n - Все текущие игры в закрепах")]
+        public string inviteMessage {
+            get {
+                return ((string)(this["inviteMessage"]));
+            }
+            set {
+                this["inviteMessage"] = value;
             }
         }
     }
