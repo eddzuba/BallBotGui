@@ -132,9 +132,9 @@ namespace BallBotGui
                             isAnonymous: false
                         );
 
-
+            var gameTime = curDay.AddDays(curGame.PullBeforeDay);
             // сохранение опроса в статусе
-            stateManager.state.AddNewPoll(poll.Poll.Id, curDay.ToString("dd.MM", new CultureInfo("ru-RU")), curQuest, poll.MessageId, curGame);
+            stateManager.state.AddNewPoll(poll.Poll.Id, gameTime.ToString("dd.MM", new CultureInfo("ru-RU")), curQuest, poll.MessageId, curGame);
             stateManager.SaveState();
             await Task.Delay(60000); // ждем минуту, чтобы не прыгал чат
             // Закрепление опроса

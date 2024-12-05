@@ -186,7 +186,7 @@ namespace BallBotGui
         {
             //  createNewPoll();
             DateTime now = DateTime.Now; // Текущее время
-            int targetDay = 6; // День недели (1 = понедельник, 2 = вторник, ..., 7 = воскресенье). Например, 4 = четверг.
+            int targetDay = 2; // День недели (1 = понедельник, 2 = вторник, ..., 7 = воскресенье). Например, 4 = четверг.
 
             int currentDay = (int)now.DayOfWeek == 0 ? 7 : (int)now.DayOfWeek; // Преобразуем DayOfWeek (0 = воскресенье) в систему, где 1 = понедельник
             int daysUntilTarget = (targetDay - currentDay + 7) % 7; // Количество дней до цели
