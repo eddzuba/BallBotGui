@@ -6,6 +6,7 @@ using Telegram.Bot.Polling;
 using System.Text;
 using Telegram.Bot.Types.ReplyMarkups;
 using Newtonsoft.Json;
+using System.Windows.Forms;
 
 
 namespace BallBotGui
@@ -315,19 +316,38 @@ namespace BallBotGui
             // и у нас игроков 14 как минимум осталось
             // то отправляем приглашение 14-ому игроку
 
+            const int maxGameSpots = 14;
+
 
             var now = DateTime.Now.ToString("dd.MM");
 
             Poll? poll = this.stateManager.state.pollList.FirstOrDefault(x => 
-                    x.date == now && x.approved && x.idPoll == idPoll && x.playrsList.Count >= 14 );
+                    x.date == now && x.approved && x.idPoll == idPoll);
 
-            if( poll != null)
+            if (poll != null)
             {
-                PlayerVote voter = poll.playrsList[13]; // берем последнего игрока
-                string message = $"Снялся @{oldUser.Username}. В игру вступает @{voter.name} {voter.firstName}!";
+                if ( poll.playrsList.Count >= maxGameSpots)
+                {
+                    PlayerVote voter = poll.playrsList[13]; // берем последнего игрока
+                    string message = $"Снялся @{oldUser.Username}. В игру вступает @{voter.name} {voter.firstName}!";
 
-                await botClient.SendMessage(chatId, message);
+                    await botClient.SendMessage(chatId, message);
+                }
+                else
+                {
+                    int freeSpots = maxGameSpots - poll.playrsList.Count;
+                    string message = $"Снялся @{oldUser.Username}. Свободных мест: {freeSpots} ";
+                    await botClient.SendMessage(chatId, message);
+                }
+
+                if( poll.playrsList.Count < 12 )
+                {
+                    string message = $"После снятия  @{oldUser.Username} игроков осталось меньше 12. Штрафные санкции! ";
+                    await botClient.SendMessage(chatId, message);
+                }
             }
+
+            
 
         }
 
