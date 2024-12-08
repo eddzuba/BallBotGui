@@ -774,7 +774,7 @@ namespace BallBotGui
               
                 if(poll != null && poll.approved)
                 {
-                    foreach (var player in poll.playrsList)
+                    foreach (var player in poll.playrsList.Take(14))
                     {
                         previousPlayerIds.Add(player.id);
                     }
@@ -791,7 +791,7 @@ namespace BallBotGui
 
         internal async Task askAboutFirstGameAsync(PlayerVote player)
         {
-            string message = $"Добрый день, @{player.name} {player.firstName}. Вы сегодны первый раз с нами играте! Как добираетесь? ";
+            string message = $"Добрый день, @{player.name} {player.firstName}. Вы сегодня первый раз с нами играете! Как добираетесь? ";
 
             await botClient.SendMessage(chatId, message);
         }
