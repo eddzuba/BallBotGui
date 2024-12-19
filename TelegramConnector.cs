@@ -675,6 +675,13 @@ namespace BallBotGui
                         minutesToSubtract = stop.minBefore;
 
                     }
+                    var curGame = todayApprovedGamePoll.curGame;
+                    if (curGame != null  
+                        && curGame.GameStartHour > 0 )
+                    {
+                        
+                        gameTime = new TimeSpan(curGame.GameStartHour, curGame.GameStartMinute, 0);
+                    }
 
                     TimeSpan adjustedTime = gameTime.Subtract(TimeSpan.FromMinutes(minutesToSubtract));
                     // Преобразуем в строку в 24-часовом формате
