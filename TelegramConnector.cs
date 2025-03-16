@@ -7,6 +7,7 @@ using System.Text;
 using Telegram.Bot.Types.ReplyMarkups;
 using Newtonsoft.Json;
 using System.Windows.Forms;
+using System.Linq;
 
 
 namespace BallBotGui
@@ -58,7 +59,7 @@ namespace BallBotGui
             };
 
             botClient.OnError += OnError;
-            /* botClient.OnMessage += OnMessage;*/
+           /* botClient.OnMessage += OnMessage;*/
             botClient.OnUpdate += OnUpdate;
 
             /*    botClient.StartReceiving(
@@ -222,8 +223,7 @@ namespace BallBotGui
                 {
                         UpdateType.Poll,
                         UpdateType.PollAnswer,
-                
-                
+                        UpdateType.Message,
                         UpdateType.CallbackQuery
                         
                         // Добавьте другие типы обновлений, которые вам нужны
@@ -313,10 +313,10 @@ namespace BallBotGui
         {
             // если сегодня игровой день
             // и у нас время после объявления состава игроков ( проверили ранее перед функцией )
-            // и у нас игроков 14 как минимум осталось
-            // то отправляем приглашение 14-ому игроку
+            // и у нас игроков maxGameSpots как минимум осталось
+            // то отправляем приглашение maxPlayersCount-ому игроку
 
-            const int maxGameSpots = 14;
+
 
 
             var now = DateTime.Now.ToString("dd.MM");
@@ -326,12 +326,14 @@ namespace BallBotGui
 
             if (poll != null)
             {
+                int maxGameSpots = poll.maxPlayersCount;
                 if ( poll.playrsList.Count >= maxGameSpots)
                 {
-                    PlayerVote voter = poll.playrsList[13]; // берем последнего игрока
+                    PlayerVote voter = poll.playrsList[maxGameSpots - 1]; // берем последнего игрока
                     string message = $"Снялся @{oldUser.Username}. В игру вступает @{voter.name} {voter.firstName}!";
 
                     await botClient.SendMessage(chatId, message);
+                    await sendPlayerInvitation(poll, voter);
                 }
                 else
                 {
@@ -375,21 +377,49 @@ namespace BallBotGui
             if (update.Type == UpdateType.Message)
             {
                 var d = update;
-                if(update.Message != null && update.Message.Text == "#teams")
-                {
-                    suggectTeams(update);
-                }
 
-                if (update.Message != null && (update.Message.Text == "#mystat" || update.Message.Text == "#mystats"))
-                {
-                    writePlayerStat(update);
-                }
-                // TODO проверить
-                if (update.Message != null &&  update.Message.Type == MessageType.NewChatMembers && update.Message.NewChatMembers != null )
-                {
-                    foreach (var member in update.Message.NewChatMembers)
+
+
+                if (update.Message != null)
+                { 
+                    if (update.Message.Chat.Type == ChatType.Private)
                     {
-                       sendWellcomeMessage(member);
+                        try
+                        {
+                            if(update.Message.Text?.Trim() == "/start")
+                            {
+                                sendDirectMessage(update.Message.From, "Приветствую, я просто БОТ. Я буду напоминать вам о волейболе!");
+                            }
+                           
+                        }
+                        catch (Exception)
+                        {
+
+                        
+                        }
+                        
+                    }
+                    if ( update.Message.Text?.Trim() == "#teams")
+                    {
+                        suggectTeams(update);
+                    }
+
+                    if ( update.Message.Text?.Trim() == "#teams4")
+                    {
+                        suggect4Teams(update);
+                    }
+
+                    if ( (update.Message.Text == "#mystat" || update.Message.Text == "#mystats"))
+                    {
+                        writePlayerStat(update);
+                    }
+                    // TODO проверить
+                    if ( update.Message.Type == MessageType.NewChatMembers && update.Message.NewChatMembers != null)
+                    {
+                        foreach (var member in update.Message.NewChatMembers)
+                        {
+                            sendWellcomeMessage(member);
+                        }
                     }
                 }
                 return false;
@@ -402,6 +432,14 @@ namespace BallBotGui
 
             
             return false;
+        }
+
+        private async void sendDirectMessage(User? from, string message)
+        {
+            if (from != null)
+            {
+                await botClient.SendMessage(from.Id, message);
+            }
         }
 
         private async void writePlayerStat(Update update)
@@ -419,7 +457,7 @@ namespace BallBotGui
         private void takeSeat(Update update)
         {
             Poll? todayApprovedGamePoll = stateManager.getTodayApprovedGamePoll();
-            if (todayApprovedGamePoll != null)  // сегодня ест игра....
+            if (todayApprovedGamePoll != null)  // сегодня есть игра....
             {
                 var idCurUser = update.CallbackQuery.From.Id;
 
@@ -445,21 +483,21 @@ namespace BallBotGui
                     long driverId = 0;
                     int stopIdx = 0;
 
-                    var first14Ids = todayApprovedGamePoll.playrsList.OrderBy(player => player.idVote)
-                                      .Take(14)
+                    var firstMaxPlayersCountIds = todayApprovedGamePoll.playrsList.OrderBy(player => player.idVote)
+                                      .Take(todayApprovedGamePoll.maxPlayersCount)
                                       .Select(player => player.id);
 
                     // проверяем что остановка это число
                     if (!int.TryParse(values[2], out stopIdx) || !long.TryParse(values[1], out driverId)) { return; }
 
-                    // проверяем что тот что просится тоже срежи первых 14
+                    // проверяем что тот что просится тоже срежи первых todayApprovedGamePoll.maxPlayersCount
                     if (update.CallbackQuery.From != null && idCurUser > 0)
                     {
-                        if (!first14Ids.Contains(idCurUser)) { return; }
+                        if (!firstMaxPlayersCountIds.Contains(idCurUser)) { return; }
                     }
 
-                    // проверяем что водитель есть среди первых 14
-                    if (!first14Ids.Contains(driverId)) { return; }
+                    // проверяем что водитель есть среди первых todayApprovedGamePoll.maxPlayersCount
+                    if (!firstMaxPlayersCountIds.Contains(driverId)) { return; }
 
                     
 
@@ -512,6 +550,8 @@ namespace BallBotGui
             }
         }
 
+        
+
         internal async void suggectTeams(Update update)
         {
 
@@ -527,6 +567,23 @@ namespace BallBotGui
                 await botClient.SendMessage(chatId, message);
             }
         }
+        internal async void suggect4Teams(Update update)
+        {
+
+            var teams = stateManager.Take4Teams(update);
+            if (teams.Team1.Count > 5 && teams.Team2.Count > 5)
+            {
+
+
+                string team1Players = string.Join("\n", teams.Team1.Select(p => $"@{p.name} {p.firstName}"));
+                string team2Players = string.Join("\n", teams.Team2.Select(p => $"@{p.name} {p.firstName}"));
+                string team3Players = string.Join("\n", teams.Team3.Select(p => $"@{p.name} {p.firstName}"));
+                string team4Players = string.Join("\n", teams.Team4.Select(p => $"@{p.name} {p.firstName}"));
+
+                string message = $"Предлагаются следующие составы команд:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}\n\nКоманда 3:\n{team3Players}\n\nКоманда 4:\n{team4Players}";
+                await botClient.SendMessage(chatId, message);
+            }
+        }
 
         internal void ArchPolls()
         {
@@ -538,9 +595,9 @@ namespace BallBotGui
             }
         }
 
-        internal async void sendInvitation(Poll? todayApprovedGamePoll)
+        internal async void sendInvitation(Poll todayApprovedGamePoll)
         {
-            int inviteCount = Math.Min(todayApprovedGamePoll.playrsList.Count, 14);
+            int inviteCount = Math.Min(todayApprovedGamePoll.playrsList.Count, todayApprovedGamePoll.maxPlayersCount);
             await botClient.SendMessage(chatId, "Сегодня на игру приглашаются: ");
             for (int i = 0; i < inviteCount; i++)
             {
@@ -549,29 +606,49 @@ namespace BallBotGui
 
                 await botClient.SendMessage(chatId, message);
             }
+
+
+            for (int i = 0; i < inviteCount; i++)
+            {
+                PlayerVote voter = todayApprovedGamePoll.playrsList[i];
+                await sendPlayerInvitation(todayApprovedGamePoll, voter);
+            }
+        }
+
+        private async Task sendPlayerInvitation(Poll todayApprovedGamePoll, PlayerVote voter)
+        {
+            string message = $" {voter.firstName}. Вы сегодня играете в волейбол в {todayApprovedGamePoll.curGame.GameStartHour}:{todayApprovedGamePoll.curGame.GameStartMinute:D2}";
+            try
+            {
+                await botClient.SendMessage(voter.id, message);
+            }
+            catch (Exception ex)
+            {
+                var dd = ex;
+            }
         }
 
         internal async void sendCarsMessage(Poll todayApprovedGamePoll)
         {
 
             var stops = new List<StopInfo>();
- 
-            // Получаем id игроков из первых 14 в голосовании
-            var first14Ids = todayApprovedGamePoll.playrsList.OrderBy(player => player.idVote)
-                                        .Take(14)
+
+            // Получаем id игроков из первых maxPlayersCount в голосовании
+            var firstMaxPlayersCountIds = todayApprovedGamePoll.playrsList.OrderBy(player => player.idVote)
+                                        .Take(todayApprovedGamePoll.maxPlayersCount)
                                         .Select(player => player.id);
 
-            // Выбираем машины, у которых idPlayer есть в first14Ids
-            var carsWithOwnersInFirst14 = stateManager.state.carList.Where(car => first14Ids.Contains(car.idPlayer)).ToList();
+            // Выбираем машины, у которых idPlayer есть в carsWithOwnersInFirstMaxPlayersCount
+            var carsWithOwnersInFirstMaxPlayersCount = stateManager.state.carList.Where(car => firstMaxPlayersCountIds.Contains(car.idPlayer)).ToList();
 
-            if (carsWithOwnersInFirst14.Count > 0)
+            if (carsWithOwnersInFirstMaxPlayersCount.Count > 0)
             {
                 StringBuilder messageBuilder = new StringBuilder();
 
                 messageBuilder.AppendLine("Сегодня нам помогают добраться:");
 
                 int stopIdx = 1;
-                foreach (var car in carsWithOwnersInFirst14)
+                foreach (var car in carsWithOwnersInFirstMaxPlayersCount)
                 {
                    var owner = todayApprovedGamePoll.playrsList.FirstOrDefault(player => player.id == car.idPlayer);
                     if (owner != null)
@@ -781,7 +858,7 @@ namespace BallBotGui
               
                 if(poll != null && poll.approved)
                 {
-                    foreach (var player in poll.playrsList.Take(14))
+                    foreach (var player in poll.playrsList.Take(poll.maxPlayersCount))
                     {
                         previousPlayerIds.Add(player.id);
                     }
@@ -791,7 +868,7 @@ namespace BallBotGui
 
             // Находим новых игроков
 
-            var curPlayersList = todayApprovedGamePoll.playrsList.Take(14);
+            var curPlayersList = todayApprovedGamePoll.playrsList.Take(todayApprovedGamePoll.maxPlayersCount);
             var newPlayers = curPlayersList.Where(p => !previousPlayerIds.Contains(p.id)).ToList();
             return newPlayers;
         }

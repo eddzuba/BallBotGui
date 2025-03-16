@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Linq;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using File = System.IO.File;
@@ -160,7 +161,79 @@ namespace BallBotGui
             }
             return teams;
         }
+        public Teams Take4Teams(Update update)
+        {
+            // получает опрос на сегодняшний день
+            Poll? poll = getTodayApprovedGamePoll();
+            bool playerExistsInTopPlayers = poll.playrsList.Take(poll.maxPlayersCount).Any(p => p.id == update?.Message?.From?.Id || update.Message.From.Id == 245566701);
 
+            Random random = new();
+            Teams teams = new();
+
+            if (poll != null && poll.playrsList.Count >= 20 && playerExistsInTopPlayers)
+            {
+                // Ограничение списка проголосовавших игроков до максимум maxPlayersCount
+                var votedPlayersLimited = poll.playrsList.Take(poll.maxPlayersCount).ToList();
+
+                // Получаем список игроков, которые проголосовали и переводим в список игроков
+                var playersWithRatings = votedPlayersLimited
+                    .Join(this.players, p => p.id, pr => pr.id, (p, pr) => new { Player = p, Rating = pr.group });
+
+                // Группировка игроков по уровню рейтинга
+                var groupedPlayersWithRatings = playersWithRatings.GroupBy(p => p.Rating);
+
+                // Создание словаря для хранения игроков каждой группы
+                Dictionary<int, List<(Player player, int Rating)>> groupedPlayersDictionary = new();
+                foreach (var group in groupedPlayersWithRatings.OrderBy(g => g.Key))
+                {
+                    // Случайное перемешивание порядка игроков в группе
+                    var shuffledGroup = group.OrderBy(x => random.Next())
+                                             .Select(x => (new Player(x.Player.id, x.Player.name, x.Player.firstName), x.Rating))
+                                             .ToList();
+                    groupedPlayersDictionary[group.Key] = shuffledGroup;
+                }
+
+                // Создание списка первых poll.maxPlayersCount игроков с учетом рейтинга и порядка в группе
+                List<(Player player, int rating)> topPlayers = new();
+                foreach (var group in groupedPlayersDictionary.Values)
+                {
+                    int countToAdd = Math.Min(group.Count, poll.maxPlayersCount - topPlayers.Count);
+                    topPlayers.AddRange(group.Take(countToAdd));
+                    if (topPlayers.Count >= poll.maxPlayersCount)
+                    {
+                        break;
+                    }
+                }
+
+                // Распределение игроков по четырем командам
+                for (int i = 0; i < topPlayers.Count; i++)
+                {
+                    switch (i % 4)
+                    {
+                        case 0:
+                            teams.Team1.Add(topPlayers[i].player);
+                            break;
+                        case 1:
+                            teams.Team2.Add(topPlayers[i].player);
+                            break;
+                        case 2:
+                            teams.Team3.Add(topPlayers[i].player);
+                            break;
+                        case 3:
+                            teams.Team4.Add(topPlayers[i].player);
+                            break;
+                    }
+                }
+
+                // Перемешивание игроков в каждой команде
+                teams.Team1 = teams.Team1.OrderBy(x => random.Next()).ToList();
+                teams.Team2 = teams.Team2.OrderBy(x => random.Next()).ToList();
+                teams.Team3 = teams.Team3.OrderBy(x => random.Next()).ToList();
+                teams.Team4 = teams.Team4.OrderBy(x => random.Next()).ToList();
+            }
+
+            return teams;
+        }
         public void AddVote(string IdPoll, long idPlayer, string name, string lastName, long idVoute)
         {
             var curPoll = state.pollList.FirstOrDefault(x => x.idPoll == IdPoll);

@@ -50,6 +50,8 @@
             carStopsBindingSource = new BindingSource(components);
             getCars = new Button();
             button9 = new Button();
+            button10 = new Button();
+            button11 = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPoll).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPlayers).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewRating).BeginInit();
@@ -69,8 +71,7 @@
             // 
             // btnCreatePoll
             // 
-            btnCreatePoll.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnCreatePoll.Location = new Point(1780, 1126);
+            btnCreatePoll.Location = new Point(1778, 1126);
             btnCreatePoll.Name = "btnCreatePoll";
             btnCreatePoll.Size = new Size(309, 46);
             btnCreatePoll.TabIndex = 0;
@@ -80,8 +81,7 @@
             // 
             // button1
             // 
-            button1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button1.Location = new Point(1780, 1178);
+            button1.Location = new Point(1148, 1126);
             button1.Name = "button1";
             button1.Size = new Size(309, 46);
             button1.TabIndex = 1;
@@ -91,8 +91,7 @@
             // 
             // button2
             // 
-            button2.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button2.Location = new Point(1780, 1230);
+            button2.Location = new Point(1778, 1230);
             button2.Name = "button2";
             button2.Size = new Size(309, 46);
             button2.TabIndex = 2;
@@ -102,8 +101,7 @@
             // 
             // button3
             // 
-            button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button3.Location = new Point(1471, 1178);
+            button3.Location = new Point(1469, 1178);
             button3.Name = "button3";
             button3.Size = new Size(302, 46);
             button3.TabIndex = 3;
@@ -119,7 +117,6 @@
             dataGridViewPoll.MultiSelect = false;
             dataGridViewPoll.Name = "dataGridViewPoll";
             dataGridViewPoll.RowHeadersWidth = 82;
-            dataGridViewPoll.RowTemplate.Height = 41;
             dataGridViewPoll.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridViewPoll.Size = new Size(983, 269);
             dataGridViewPoll.TabIndex = 4;
@@ -135,7 +132,7 @@
             dataGridViewPlayers.RowHeadersWidth = 82;
             dataGridViewPlayers.RowTemplate.Height = 30;
             dataGridViewPlayers.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridViewPlayers.Size = new Size(983, 996);
+            dataGridViewPlayers.Size = new Size(983, 1100);
             dataGridViewPlayers.TabIndex = 5;
             dataGridViewPlayers.SelectionChanged += onPlayerSelect;
             // 
@@ -161,8 +158,7 @@
             // 
             // button6
             // 
-            button6.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button6.Location = new Point(1470, 1230);
+            button6.Location = new Point(1468, 1230);
             button6.Name = "button6";
             button6.Size = new Size(304, 46);
             button6.TabIndex = 8;
@@ -172,8 +168,7 @@
             // 
             // button7
             // 
-            button7.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button7.Location = new Point(1471, 1126);
+            button7.Location = new Point(1469, 1126);
             button7.Name = "button7";
             button7.Size = new Size(303, 46);
             button7.TabIndex = 9;
@@ -183,8 +178,7 @@
             // 
             // button8
             // 
-            button8.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button8.Location = new Point(1153, 1126);
+            button8.Location = new Point(1778, 1178);
             button8.Name = "button8";
             button8.Size = new Size(303, 46);
             button8.TabIndex = 10;
@@ -264,7 +258,6 @@
             dgvCars.MultiSelect = false;
             dgvCars.Name = "dgvCars";
             dgvCars.RowHeadersWidth = 82;
-            dgvCars.RowTemplate.Height = 41;
             dgvCars.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvCars.Size = new Size(990, 489);
             dgvCars.TabIndex = 14;
@@ -272,8 +265,7 @@
             // 
             // getCars
             // 
-            getCars.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            getCars.Location = new Point(1153, 1230);
+            getCars.Location = new Point(1151, 1230);
             getCars.Name = "getCars";
             getCars.Size = new Size(303, 46);
             getCars.TabIndex = 15;
@@ -283,8 +275,7 @@
             // 
             // button9
             // 
-            button9.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button9.Location = new Point(1153, 1178);
+            button9.Location = new Point(1151, 1178);
             button9.Name = "button9";
             button9.Size = new Size(303, 46);
             button9.TabIndex = 16;
@@ -292,11 +283,33 @@
             button9.UseVisualStyleBackColor = true;
             button9.Click += button9_Click_1;
             // 
+            // button10
+            // 
+            button10.Location = new Point(1145, 1291);
+            button10.Name = "button10";
+            button10.Size = new Size(309, 46);
+            button10.TabIndex = 17;
+            button10.Text = "Статистика";
+            button10.UseVisualStyleBackColor = true;
+            button10.Click += getStat;
+            // 
+            // button11
+            // 
+            button11.Location = new Point(1460, 1291);
+            button11.Name = "button11";
+            button11.Size = new Size(309, 46);
+            button11.TabIndex = 18;
+            button11.Text = "Приглашение игроков";
+            button11.UseVisualStyleBackColor = true;
+            button11.Click += button11_ClickAsync;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(2164, 1295);
+            ClientSize = new Size(2164, 1544);
+            Controls.Add(button11);
+            Controls.Add(button10);
             Controls.Add(button9);
             Controls.Add(getCars);
             Controls.Add(tabControl1);
@@ -351,5 +364,7 @@
         private Button getCars;
         private BindingSource carStopsBindingSource;
         private Button button9;
+        private Button button10;
+        private Button button11;
     }
 }

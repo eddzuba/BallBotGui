@@ -1,4 +1,6 @@
-﻿using Telegram.Bot;
+﻿using Newtonsoft.Json;
+using System.Linq;
+using Telegram.Bot;
 
 namespace BallBotGui
 {
@@ -108,15 +110,16 @@ namespace BallBotGui
         {
             DateTime curTime = DateTime.Now;
 
-            if (gameManager != null){
-            var pullCreated = await gameManager.CheckScheduleAndCreatePollAsync(curTime);
+            if (gameManager != null)
+            {
+                var pullCreated = await gameManager.CheckScheduleAndCreatePollAsync(curTime);
                 if (pullCreated)
                 {
                     bsPoll.ResetBindings(false);
                     bsPlayer.ResetBindings(false);
                 }
             }
-         
+
             if (curTime.Hour == 23 && curTime.Minute == 30)
             {
                 telConnector.ArchPolls();
@@ -293,7 +296,7 @@ namespace BallBotGui
 
         private void ArchPools(object sender, EventArgs e)
         {
-            telConnector.ArchPolls();
+            telConnector?.ArchPolls();
             bsPoll.ResetBindings(false);
             bsPlayer.ResetBindings(false);
         }
@@ -309,7 +312,7 @@ namespace BallBotGui
             Poll? todayApprovedGamePoll = stateManager.getTodayApprovedGamePoll();
             if (todayApprovedGamePoll != null)
             {
-                telConnector.sendInvitation(todayApprovedGamePoll);
+                telConnector?.sendInvitation(todayApprovedGamePoll);
             }
         }
 
@@ -360,19 +363,19 @@ namespace BallBotGui
 
         }
 
-      /*  private void addCar_Click(object sender, EventArgs e)
-        {
+        /*  private void addCar_Click(object sender, EventArgs e)
+          {
 
-            var newCar = new Car(1, "ed", "edGzrd", 4);
-            var stop1 = new CarStops("Парковка Gardens 19.35", "");
-            var stop2 = new CarStops("Метро Gardens 19.40", "");
+              var newCar = new Car(1, "ed", "edGzrd", 4);
+              var stop1 = new CarStops("Парковка Gardens 19.35", "");
+              var stop2 = new CarStops("Метро Gardens 19.40", "");
 
-            newCar.carStops.Add(stop1);
-            newCar.carStops.Add(stop2);
+              newCar.carStops.Add(stop1);
+              newCar.carStops.Add(stop2);
 
-            this.stateManager.state.carList.Add(newCar);
+              this.stateManager.state.carList.Add(newCar);
 
-        }*/
+          }*/
 
         private void getCars_Click(object sender, EventArgs e)
         {
@@ -417,6 +420,46 @@ namespace BallBotGui
         private void button9_Click_1(object sender, EventArgs e)
         {
             this.telConnector.sendTestMessageAsync();
+        }
+
+        private void getStat(object sender, EventArgs e)
+        {
+            string archiveFolderName = "Arch";
+            var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), archiveFolderName);
+            HashSet<long> uniquePlayerIds = new HashSet<long>();
+
+            foreach (string filePath in Directory.GetFiles(directoryPath, "Arch*.json"))
+            {
+                try
+                {
+                    string fileContent = File.ReadAllText(filePath);
+                    var gameData = JsonConvert.DeserializeObject<Poll>(fileContent);
+
+                    if (gameData?.playrsList != null)
+                    {
+                        var firstmaxPlayersCountPlayers = gameData.playrsList.Take(gameData.maxPlayersCount);
+                        foreach (var player in firstmaxPlayersCountPlayers)
+                        {
+
+                            uniquePlayerIds.Add(player.id);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error processing file {filePath}: {ex.Message}");
+                }
+            }
+
+            var distinctCount = uniquePlayerIds.Count();
+            var d = 0;
+        }
+
+        private void button11_ClickAsync(object sender, EventArgs e)
+        {
+            sendInvitation();
+            // sendCarsInfo();
+            // askNewPlayesrsAsync();
         }
     }
 }

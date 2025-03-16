@@ -8,6 +8,8 @@ namespace BallBotGui
     {
         public List<Player> Team1 = new();
         public List<Player> Team2 = new();
+        public List<Player> Team3 = new();
+        public List<Player> Team4 = new();
     }
     public class Player
     {
@@ -99,7 +101,8 @@ namespace BallBotGui
     }
 
     public class Poll
-    { 
+    {
+        public int maxPlayersCount { get; set; } = 14; // Максимальное количество игроков
         public bool approved { get; set; } = true;
         public string date { get; set; }    // дата игры
         public string question { get; set; } // текст опроса
@@ -133,7 +136,7 @@ namespace BallBotGui
 
         public List<PlayerVote> playrsList { get; set; } = new();
 
-        // Возвращаем True если удалился игрок из первых 14
+        // Возвращаем True если удалился игрок из первых maxPlayersCount
         public bool DeletePlayerFromList(long idPlayer)
         {
             int index = this.playrsList.FindIndex(player => player.id == idPlayer);
@@ -143,8 +146,8 @@ namespace BallBotGui
                 // Удаляем игрока из списка
                 playrsList.RemoveAt(index);
 
-                // Проверяем, был ли удален игрок из первых 14
-                return index < 14;
+                // Проверяем, был ли удален игрок из первых maxPlayersCount
+                return index < maxPlayersCount;
             }
 
             // Игрок с указанным Id не найден
