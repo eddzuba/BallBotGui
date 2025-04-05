@@ -558,10 +558,11 @@ namespace BallBotGui
             var teams = stateManager.Take2Teams(update);
             if (teams.Team1.Count > 5 && teams.Team2.Count > 5)
             {
-               
 
-                string team1Players = string.Join("\n", teams.Team1.Select(p => $"@{p.name} {p.firstName}"));
-                string team2Players = string.Join("\n", teams.Team2.Select(p => $"@{p.name} {p.firstName}"));
+
+                string team1Players = string.Join("\n", teams.Team1.Select(p => $"@{p.name} {(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)}"));
+                string team2Players = string.Join("\n", teams.Team2.Select(p => $"@{p.name} {(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)}"));
+
 
                 string message = $"Предлагаются следующие составы команд:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}";
                 await botClient.SendMessage(chatId, message);
@@ -621,12 +622,22 @@ namespace BallBotGui
             try
             {
                 await botClient.SendMessage(voter.id, message);
+
+                string[] phrases = Properties.Settings.Default.MotivationPhrases.Split('|');
+
+                // Генерируем случайный индекс
+                Random rand = new Random();
+                string randomPhrase = phrases[rand.Next(phrases.Length)];
+                await botClient.SendMessage(voter.id, randomPhrase);
+
             }
             catch (Exception ex)
             {
                 var dd = ex;
             }
         }
+
+
 
         internal async void sendCarsMessage(Poll todayApprovedGamePoll)
         {

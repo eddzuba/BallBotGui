@@ -461,5 +461,10 @@ namespace BallBotGui
             // sendCarsInfo();
             // askNewPlayesrsAsync();
         }
+
+        private void dataGridViewRating_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
     }
 }

@@ -13,14 +13,17 @@ namespace BallBotGui
     }
     public class Player
     {
-        public Player(long id, string name, string firstName) { 
+        public Player(long id, string name, string firstName, string normalName) { 
             this.id = id;
             this.name = name;
             this.firstName = firstName;
+            this.normalName = normalName;
         }
         public long id { get; set; }  // уникальный код игрока
         public string name { get; set; }  // имя линка
         public string firstName { get; set; } // Имя игрока
+
+        public string normalName { get; set; } // Нормальное имя игрока
 
         public int group { get; set; } = 2;// Группа , по уровню игры
 
@@ -28,6 +31,21 @@ namespace BallBotGui
            2 средние
            3 начинающие
         */
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            Player other = (Player)obj;
+            return id == other.id;
+        }
+
+        public override int GetHashCode()
+        {
+            return id.GetHashCode();
+        }
     }
 
     public class PlayerVote
@@ -240,6 +258,7 @@ namespace BallBotGui
     {
         public List<Poll> pollList = new();
         public BindingList<Car> carList = new();
+        public List<DislikedTeammates> dislikedTeammates = new();
 
         public Poll AddNewPoll(string idPoll, string date, string question, int messageId, VolleybollGame? curGame)
         {

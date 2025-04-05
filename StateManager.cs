@@ -82,7 +82,7 @@ namespace BallBotGui
                         {
                             if (!players.Any(p => p.id == player.id))
                             {
-                                players.Add(new Player(player.id, player.name, player.firstName));
+                                players.Add(new Player(player.id, player.name, player.firstName, player.firstName));
                             }
                         }
                     }
@@ -97,70 +97,140 @@ namespace BallBotGui
         {
             // получает опрос на сегодняшний день
             Poll? poll = getTodayApprovedGamePoll();
-            bool playerExistsInTopPlayers = poll.playrsList.Take(14).Any(p => p.id == update?.Message?.From?.Id || update.Message.From.Id == 245566701);
+            Teams teams = new();
 
-            Random random = new();
-            Teams teams = new();   
-            if (poll != null && poll.playrsList.Count >= 12 && playerExistsInTopPlayers)
+            if (poll != null)
             {
-                // Ограничение списка проголосовавших игроков до максимум 14
-                var votedPlayersLimited = poll.playrsList.Take(14).ToList();
+                bool playerExistsInTopPlayers = poll.playrsList.Take(14).Any(p => p.id == update?.Message?.From?.Id || update.Message.From.Id == 245566701);
 
-                // Получаем список игроков, которые проголосовали и переводим в список игроков
-                // Получение списка игроков с их рейтингами
-                var playersWithRatings = votedPlayersLimited
-                    .Join(this.players, p => p.id, pr => pr.id, (p, pr) => new { Player = p, Rating = pr.group });
+                Random random = new();
 
-                // Группировка игроков по уровню рейтинга
-                var groupedPlayersWithRatings = playersWithRatings.GroupBy(p => p.Rating);
-
-                // Создание словаря для хранения игроков каждой группы
-                Dictionary<int, List<(Player player, int Rating)>> groupedPlayersDictionary = new();
-                foreach (var group in groupedPlayersWithRatings.OrderBy(g => g.Key))
+                if (poll != null && poll.playrsList.Count >= 12 && playerExistsInTopPlayers)
                 {
-                    // Случайное перемешивание порядка игроков в группе и конвертация в List<(Player, int)>
-                    var shuffledGroup = group.OrderBy(x => random.Next())
-                                        .Select(x => (new Player(x.Player.id, x.Player.name, x.Player.firstName), x.Rating))
-                                        .ToList();
-                    groupedPlayersDictionary[group.Key] = shuffledGroup;
-                }
+                    // Ограничение списка проголосовавших игроков до максимум 14
+                    var votedPlayersLimited = poll.playrsList.Take(14).ToList();
 
-                // Создание списка первых 14 игроков с учетом рейтинга и порядка в группе
-                List<(Player player, int rating)> topPlayers = new();
-                foreach (var group in groupedPlayersDictionary.Values)
-                {
-                    int countToAdd = Math.Min(group.Count, 14 - topPlayers.Count);
-                    topPlayers.AddRange(group.Take(countToAdd));
-                    if (topPlayers.Count >= 14)
+                    // Получаем список игроков, которые проголосовали и переводим в список игроков
+                    // Получение списка игроков с их рейтингами
+                    var playersWithRatings = votedPlayersLimited
+                        .Join(this.players, p => p.id, pr => pr.id, (p, pr) =>
+                        new { Player = p, Rating = pr.group, NormalName = pr.normalName }).ToList();
+
+
+
+                    // Группировка игроков по уровню рейтинга
+                    var groupedPlayersWithRatings = playersWithRatings.GroupBy(p => p.Rating);
+
+                    // Создание словаря для хранения игроков каждой группы
+                    Dictionary<int, List<(Player player, int Rating)>> groupedPlayersDictionary = new();
+                    foreach (var group in groupedPlayersWithRatings.OrderBy(g => g.Key))
                     {
-                        break;
+                        // Случайное перемешивание порядка игроков в группе и конвертация в List<(Player, int)>
+                        var shuffledGroup = group.OrderBy(x => random.Next())
+                                            .Select(x => (new Player(x.Player.id, x.Player.name, x.Player.firstName, x.NormalName), x.Rating))
+                                            .ToList();
+                        groupedPlayersDictionary[group.Key] = shuffledGroup;
                     }
-                }
 
-                for (int i = 0; i < topPlayers.Count; i++)
-                {
-                    if (i % 2 == 0)
+                    // Создание списка первых 14 игроков с учетом рейтинга и порядка в группе
+                    List<(Player player, int rating)> topPlayers = new();
+                    foreach (var group in groupedPlayersDictionary.Values)
                     {
-                        teams.Team1.Add(topPlayers[i].player);
+                        int countToAdd = Math.Min(group.Count, 14 - topPlayers.Count);
+                        topPlayers.AddRange(group.Take(countToAdd));
+                        if (topPlayers.Count >= 14)
+                        {
+                            break;
+                        }
                     }
-                    else
+
+                    for (int i = 0; i < topPlayers.Count; i++)
                     {
-                        teams.Team2.Add(topPlayers[i].player);
+                        if (i % 2 == 0)
+                        {
+                            teams.Team1.Add(topPlayers[i].player);
+                        }
+                        else
+                        {
+                            teams.Team2.Add(topPlayers[i].player);
+                        }
                     }
+
+                    FixConflicts(teams, playersWithRatings.Select(p => 
+                    (new Player(p.Player.id, p.Player.name, p.Player.firstName, p.NormalName), p.Rating)).ToList());
+
+                    // Перемешивание игроков в команде 1
+                    teams.Team1 = teams.Team1.OrderBy(x => random.Next()).ToList();
+
+                    // Перемешивание игроков в команде 2
+                    teams.Team2 = teams.Team2.OrderBy(x => random.Next()).ToList();
+
+
+
+
                 }
-
-                // Перемешивание игроков в команде 1
-                teams.Team1 = teams.Team1.OrderBy(x => random.Next()).ToList();
-
-                // Перемешивание игроков в команде 2
-                teams.Team2 = teams.Team2.OrderBy(x => random.Next()).ToList();
-
-
-
-
             }
+
             return teams;
         }
+
+        private void FixConflicts(Teams teams, List<(Player player, int rating)> playersWithRatings)
+        {
+            bool changesMade;
+            List<DislikedTeammates> dislikedTeammates = state.dislikedTeammates;
+            do
+            {
+                changesMade = false;
+
+                // Create a copy of the list to iterate without issues when modifying
+                var playersToCheck = playersWithRatings.ToList();
+
+                foreach (var (player, rating) in playersToCheck)
+                {
+                    var team1Contains = teams.Team1.Contains(player);
+                    var team2Contains = teams.Team2.Contains(player);
+
+                    if (!team1Contains && !team2Contains)
+                        continue; // Player is no longer in teams (possibly replaced earlier)
+
+                    var currentTeam = team1Contains ? teams.Team1 : teams.Team2;
+                    var oppositeTeam = team1Contains ? teams.Team2 : teams.Team1;
+
+                    var dislikedPlayer = dislikedTeammates.FirstOrDefault(dt => dt.idPlayer == player.id);
+                    var dislikedIds = dislikedPlayer != null ? dislikedPlayer.dislikedPlayers : new List<long>();
+
+                    // Check if the player has conflicts in the current team
+                    bool hasConflict = currentTeam.Any(p => dislikedIds.Contains(p.id));
+
+                    if (!hasConflict)
+                        continue; // If no conflicts, move to the next player
+
+                    // Find a player to swap with the same rating who doesn't conflict with the new team
+                    var swapCandidate = oppositeTeam.FirstOrDefault(p =>
+                             playersWithRatings.Any(tp => tp.player.id == p.id && tp.rating == rating) && // тот же рейтинг
+                              !dislikedTeammates.Any(dt =>
+                                  (dt.idPlayer == p.id && dt.dislikedPlayers.Intersect(currentTeam.Select(tp => tp.id)).Any()) || // кандидат конфликтует с текущей командой
+                                  (dt.idPlayer == player.id && dt.dislikedPlayers.Intersect(oppositeTeam.Select(tp => tp.id).Where(id => id != p.id)).Any()) // исходный игрок конфликтует с новой командой, исключая игрока, которого убираем
+                              )
+                    );
+
+                    if (swapCandidate != null)
+                    {
+                        // Swap players
+                        currentTeam.Remove(player);
+                        oppositeTeam.Remove(swapCandidate);
+
+                        currentTeam.Add(swapCandidate);
+                        oppositeTeam.Add(player);
+
+                        changesMade = true; // Mark that a swap was made
+                    }
+                }
+            } 
+            while (changesMade); // Repeat until no more improvements
+        }
+
+
         public Teams Take4Teams(Update update)
         {
             // получает опрос на сегодняшний день
@@ -177,7 +247,7 @@ namespace BallBotGui
 
                 // Получаем список игроков, которые проголосовали и переводим в список игроков
                 var playersWithRatings = votedPlayersLimited
-                    .Join(this.players, p => p.id, pr => pr.id, (p, pr) => new { Player = p, Rating = pr.group });
+                    .Join(this.players, p => p.id, pr => pr.id, (p, pr) => new { Player = p, Rating = pr.group, NormalName = pr.normalName });
 
                 // Группировка игроков по уровню рейтинга
                 var groupedPlayersWithRatings = playersWithRatings.GroupBy(p => p.Rating);
@@ -188,7 +258,7 @@ namespace BallBotGui
                 {
                     // Случайное перемешивание порядка игроков в группе
                     var shuffledGroup = group.OrderBy(x => random.Next())
-                                             .Select(x => (new Player(x.Player.id, x.Player.name, x.Player.firstName), x.Rating))
+                                             .Select(x => (new Player(x.Player.id, x.Player.name, x.Player.firstName, x.NormalName), x.Rating))
                                              .ToList();
                     groupedPlayersDictionary[group.Key] = shuffledGroup;
                 }
