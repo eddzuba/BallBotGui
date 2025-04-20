@@ -193,76 +193,13 @@ namespace BallBotGui.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("7109057711:AAHU_BqkQO3v9cElniVKIA44ABXrkGoMtDA")]
+        [global::System.Configuration.DefaultSettingValueAttribute("7109057711:111111123упNCnphiUD7U")]
         public string curBotKey {
             get {
                 return ((string)(this["curBotKey"]));
             }
             set {
                 this["curBotKey"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(@"[
-	{
-		""PullHour"": 23,
-		""PullMinute"": 0,
-		""GameDay"": 1,
-		""PullBeforeDay"": 3,
-		""GameStartHour"": 20,
-		""GameStartMinute"": 0,
-		""Location"": ""https://maps.example.com/location1"",
-		""Title"": ""Понедельник, @GameDayName Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера.""
-	},
-	{
-		""PullHour"": 23,
-		""PullMinute"": 0,
-		""GameDay"": 2,
-		""PullBeforeDay"": 3,
-		""GameStartHour"": 20,
-		""GameStartMinute"": 0,
-		""Location"": ""https://maps.example.com/location2"",
-		""Title"": ""Вторник, @GameDayName! Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера.""
-	},
-	{
-		""PullHour"": 23,
-		""PullMinute"": 0,
-		""GameDay"": 4,
-		""PullBeforeDay"": 3,
-		""GameStartHour"": 21,
-		""GameStartMinute"": 0,
-		""Location"": ""https://maps.example.com/location2"",
-		""Title"": ""Четрверг, @GameDayName! Волейбол в ЗАЛЕ(Нибрас) с 9 до 11 вечера.""
-	},
-	{
-		""PullHour"": 23,
-		""PullMinute"": 0,
-		""GameDay"": 5,
-		""PullBeforeDay"": 3,
-		""GameStartHour"": 20,
-		""GameStartMinute"": 0,
-		""Location"": ""https://maps.example.com/location1"",
-		""Title"": ""Пятница, @GameDayName Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера.""
-	},
-	{
-		""PullHour"": 23,
-		""PullMinute"": 0,
-		""GameDay"": 7,
-		""PullBeforeDay"": 3,
-		""GameStartHour"": 20,
-		""GameStartMinute"": 0,
-		""Location"": ""https://maps.example.com/location2"",
-		""Title"": ""Воскресенье, @GameDayName! Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера.""
-	}
-]")]
-        public string GamesJson {
-            get {
-                return ((string)(this["GamesJson"]));
-            }
-            set {
-                this["GamesJson"] = value;
             }
         }
         
@@ -314,6 +251,38 @@ namespace BallBotGui.Properties {
             }
             set {
                 this["MotivationPhrases"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("[{\r\n\t\t\"PullHour\": 22,\r\n\t\t\"PullMinute\": 0,\r\n\t\t\"GameDay\": 1,\r\n\t\t\"PullBeforeDay\": 3," +
+            "\r\n\t\t\"GameStartHour\": 20,\r\n\t\t\"GameStartMinute\": 0,\r\n\t\t\"Location\": \"https://maps.e" +
+            "xample.com/location1\",\r\n\t\t\"Title\": \"Понедельник, @GameDayName Волейбол в ЗАЛЕ(Ни" +
+            "брас) с 8 до 10 вечера.\"\r\n\t},\r\n\t{\r\n\t\t\"PullHour\": 22,\r\n\t\t\"PullMinute\": 0,\r\n\t\t\"Gam" +
+            "eDay\": 2,\r\n\t\t\"PullBeforeDay\": 3,\r\n\t\t\"GameStartHour\": 20,\r\n\t\t\"GameStartMinute\": 0" +
+            ",\r\n\t\t\"Location\": \"https://maps.example.com/location2\",\r\n\t\t\"Title\": \"Вторник, @Ga" +
+            "meDayName! Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера.\"\r\n\t},\r\n\t{\r\n\t\t\"PullHour\": 22" +
+            ",\r\n\t\t\"PullMinute\": 0,\r\n\t\t\"GameDay\": 4,\r\n\t\t\"PullBeforeDay\": 3,\r\n\t\t\"GameStartHour\"" +
+            ": 21,\r\n\t\t\"GameStartMinute\": 0,\r\n\t\t\"Location\": \"https://maps.example.com/location" +
+            "2\",\r\n\t\t\"Title\": \"Четверг, @GameDayName! Волейбол в ЗАЛЕ(Нибрас) с 9 до 11 вечера" +
+            ".\"\r\n\t},\r\n\t{\r\n\t\t\"PullHour\": 22,\r\n\t\t\"PullMinute\": 0,\r\n\t\t\"GameDay\": 5,\r\n\t\t\"PullBefo" +
+            "reDay\": 3,\r\n\t\t\"GameStartHour\": 20,\r\n\t\t\"GameStartMinute\": 0,\r\n\t\t\"Location\": \"http" +
+            "s://maps.example.com/location1\",\r\n\t\t\"Title\": \"Пятница, @GameDayName Волейбол в З" +
+            "АЛЕ(Нибрас) с 8 до 10 вечера.\"\r\n\t},\r\n\t{\r\n\t\t\"PullHour\": 22,\r\n\t\t\"PullMinute\": 15,\r" +
+            "\n\t\t\"GameDay\": 7,\r\n\t\t\"PullBeforeDay\": 3,\r\n\t\t\"GameStartHour\": 20,\r\n\t\t\"GameStartMin" +
+            "ute\": 0,\r\n\t\t\"Location\": \"https://maps.example.com/location2\",\r\n\t\t\"Title\": \"Воскр" +
+            "есенье, @GameDayName! Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера.\"\r\n\t},\r\n\t{\r\n\t\t\"Pu" +
+            "llHour\": 22,\r\n\t\t\"PullMinute\": 0,\r\n\t\t\"GameDay\": 6,\r\n\t\t\"PullBeforeDay\": 3,\r\n\t\t\"Gam" +
+            "eStartHour\": 19,\r\n\t\t\"GameStartMinute\": 0,\r\n\t\t\"ActiveGame\": false,\r\n\t\t\"Location\":" +
+            " \"https://maps.example.com/location1\",\r\n\t\t\"Title\": \"Суббота, @GameDayName Волейб" +
+            "ол в ЗАЛЕ(Нибрас) с 7 до 9 вечера.\"\r\n\t}\r\n\t]")]
+        public string GamesJson {
+            get {
+                return ((string)(this["GamesJson"]));
+            }
+            set {
+                this["GamesJson"] = value;
             }
         }
     }

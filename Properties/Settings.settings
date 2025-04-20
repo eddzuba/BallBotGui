@@ -45,61 +45,7 @@
       <Value Profile="(Default)">{dayName} 19.00-21.00</Value>
     </Setting>
     <Setting Name="curBotKey" Type="System.String" Scope="User">
-      <Value Profile="(Default)">7109057711:AAHU_BqkQO3v9cElniVKIA44ABXrkGoMtDA</Value>
-    </Setting>
-    <Setting Name="GamesJson" Type="System.String" Scope="User">
-      <Value Profile="(Default)">[
-	{
-		"PullHour": 23,
-		"PullMinute": 0,
-		"GameDay": 1,
-		"PullBeforeDay": 3,
-		"GameStartHour": 20,
-		"GameStartMinute": 0,
-		"Location": "https://maps.example.com/location1",
-		"Title": "Понедельник, @GameDayName Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера."
-	},
-	{
-		"PullHour": 23,
-		"PullMinute": 0,
-		"GameDay": 2,
-		"PullBeforeDay": 3,
-		"GameStartHour": 20,
-		"GameStartMinute": 0,
-		"Location": "https://maps.example.com/location2",
-		"Title": "Вторник, @GameDayName! Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера."
-	},
-	{
-		"PullHour": 23,
-		"PullMinute": 0,
-		"GameDay": 4,
-		"PullBeforeDay": 3,
-		"GameStartHour": 21,
-		"GameStartMinute": 0,
-		"Location": "https://maps.example.com/location2",
-		"Title": "Четрверг, @GameDayName! Волейбол в ЗАЛЕ(Нибрас) с 9 до 11 вечера."
-	},
-	{
-		"PullHour": 23,
-		"PullMinute": 0,
-		"GameDay": 5,
-		"PullBeforeDay": 3,
-		"GameStartHour": 20,
-		"GameStartMinute": 0,
-		"Location": "https://maps.example.com/location1",
-		"Title": "Пятница, @GameDayName Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера."
-	},
-	{
-		"PullHour": 23,
-		"PullMinute": 0,
-		"GameDay": 7,
-		"PullBeforeDay": 3,
-		"GameStartHour": 20,
-		"GameStartMinute": 0,
-		"Location": "https://maps.example.com/location2",
-		"Title": "Воскресенье, @GameDayName! Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера."
-	}
-]</Value>
+      <Value Profile="(Default)">7109057711:111111123упNCnphiUD7U</Value>
     </Setting>
     <Setting Name="inviteMessage" Type="System.String" Scope="User">
       <Value Profile="(Default)">Приветствуем, @Player!
@@ -111,6 +57,70 @@
     <Setting Name="MotivationPhrases" Type="System.String" Scope="User">
       <Value Profile="(Default)">Двигайся к цели! Даже маленький шаг сегодня – это большой результат завтра!|Твое будущее тело зависит от того, что ты делаешь сегодня!|Лень пройдет, а гордость за себя останется!|Час тренировки – всего 4% твоего дня. Ты точно не найдешь время?|Преодолей себя, и ты станешь сильнее во всем!|После тренировки ты будешь чувствовать себя лучше, чем сейчас. Проверь!|Сегодня ты можешь стать сильнее, чем был вчера. Не упускай шанс!|Тело создано для движения. Не лишай его этого!|Начни прямо сейчас, и уже через месяц ты скажешь себе 'Спасибо'!|Ты не должен быть лучшим. Ты должен быть лучше, чем вчера!|Спорт – это инвестиция в себя, которая всегда окупается!|Пот сегодня – гордость завтра!|Никто не сделает это за тебя. Но ты можешь сделать это для себя!|Ты сильнее, чем твои оправдания. Действуй!|Болит? Значит, ты работаешь над собой! Не сдавайся!|Одна тренировка не сделает тебя чемпионом, но без нее ты им точно не станешь!|Результат не придет сразу, но каждый шаг приближает тебя к нему!|Сделай первый шаг, а дальше появится энергия двигаться вперед!|Тренировка – лучший способ перезагрузить голову и тело!|Не думай. Просто вставай и делай!|Каждый повтор – это шаг к силе!|Хочешь красивое тело? Тогда начни прямо сейчас!|День без движения – шаг назад!|Вложи энергию в спорт, и он вложит её в тебя!|Тренировка – это лучшее лекарство от стресса!|Ты можешь больше, чем думаешь! Проверь себя!|Нет идеального времени для начала, но есть идеальное тело после тренировок!|Преодолей лень – и ты уже победил!|Никто не станет сильнее за тебя! Действуй!|Кто-то мечтает о форме, а кто-то идёт и делает её!|Сильное тело – сильный дух!|Привычка к спорту – привычка к успеху!|Нужно всего 21 день, чтобы сделать спорт своей привычкой!|Ты один раз решишь потренироваться – и дальше это станет легче!|Каждое движение приближает тебя к мечте!|Лучше устать после тренировки, чем жалеть, что пропустил её!|Сделай это ради себя, а не ради кого-то!|Ты заслуживаешь быть сильным и здоровым!|Жизнь – это движение, не стой на месте!|Бегом к лучшей версии себя!
 </Value>
+    </Setting>
+    <Setting Name="GamesJson" Type="System.String" Scope="User">
+      <Value Profile="(Default)">[{
+		"PullHour": 22,
+		"PullMinute": 0,
+		"GameDay": 1,
+		"PullBeforeDay": 3,
+		"GameStartHour": 20,
+		"GameStartMinute": 0,
+		"Location": "https://maps.example.com/location1",
+		"Title": "Понедельник, @GameDayName Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера."
+	},
+	{
+		"PullHour": 22,
+		"PullMinute": 0,
+		"GameDay": 2,
+		"PullBeforeDay": 3,
+		"GameStartHour": 20,
+		"GameStartMinute": 0,
+		"Location": "https://maps.example.com/location2",
+		"Title": "Вторник, @GameDayName! Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера."
+	},
+	{
+		"PullHour": 22,
+		"PullMinute": 0,
+		"GameDay": 4,
+		"PullBeforeDay": 3,
+		"GameStartHour": 21,
+		"GameStartMinute": 0,
+		"Location": "https://maps.example.com/location2",
+		"Title": "Четверг, @GameDayName! Волейбол в ЗАЛЕ(Нибрас) с 9 до 11 вечера."
+	},
+	{
+		"PullHour": 22,
+		"PullMinute": 0,
+		"GameDay": 5,
+		"PullBeforeDay": 3,
+		"GameStartHour": 20,
+		"GameStartMinute": 0,
+		"Location": "https://maps.example.com/location1",
+		"Title": "Пятница, @GameDayName Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера."
+	},
+	{
+		"PullHour": 22,
+		"PullMinute": 15,
+		"GameDay": 7,
+		"PullBeforeDay": 3,
+		"GameStartHour": 20,
+		"GameStartMinute": 0,
+		"Location": "https://maps.example.com/location2",
+		"Title": "Воскресенье, @GameDayName! Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера."
+	},
+	{
+		"PullHour": 22,
+		"PullMinute": 0,
+		"GameDay": 6,
+		"PullBeforeDay": 3,
+		"GameStartHour": 19,
+		"GameStartMinute": 0,
+		"ActiveGame": false,
+		"Location": "https://maps.example.com/location1",
+		"Title": "Суббота, @GameDayName Волейбол в ЗАЛЕ(Нибрас) с 7 до 9 вечера."
+	}
+	]</Value>
     </Setting>
   </Settings>
 </SettingsFile>

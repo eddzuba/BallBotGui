@@ -82,7 +82,7 @@ namespace BallBotGui
                         {
                             if (!players.Any(p => p.id == player.id))
                             {
-                                players.Add(new Player(player.id, player.name, player.firstName, player.firstName));
+                                players.Add(new Player(player.id, player.name, player.firstName, player.firstName, false));
                             }
                         }
                     }
@@ -114,7 +114,7 @@ namespace BallBotGui
                     // Получение списка игроков с их рейтингами
                     var playersWithRatings = votedPlayersLimited
                         .Join(this.players, p => p.id, pr => pr.id, (p, pr) =>
-                        new { Player = p, Rating = pr.group, NormalName = pr.normalName }).ToList();
+                        new { Player = p, Rating = pr.group, NormalName = pr.normalName, pr.isFemale }).ToList();
 
 
 
@@ -127,7 +127,7 @@ namespace BallBotGui
                     {
                         // Случайное перемешивание порядка игроков в группе и конвертация в List<(Player, int)>
                         var shuffledGroup = group.OrderBy(x => random.Next())
-                                            .Select(x => (new Player(x.Player.id, x.Player.name, x.Player.firstName, x.NormalName), x.Rating))
+                                            .Select(x => (new Player(x.Player.id, x.Player.name, x.Player.firstName, x.NormalName, x.isFemale), x.Rating))
                                             .ToList();
                         groupedPlayersDictionary[group.Key] = shuffledGroup;
                     }
@@ -144,7 +144,7 @@ namespace BallBotGui
                         }
                     }
 
-                    for (int i = 0; i < topPlayers.Count; i++)
+                    for (int i = 0; i < topPlayers.Count; i++) 
                     {
                         if (i % 2 == 0)
                         {
@@ -155,9 +155,10 @@ namespace BallBotGui
                             teams.Team2.Add(topPlayers[i].player);
                         }
                     }
-
-                    FixConflicts(teams, playersWithRatings.Select(p => 
-                    (new Player(p.Player.id, p.Player.name, p.Player.firstName, p.NormalName), p.Rating)).ToList());
+                    var pList = playersWithRatings.Select(p =>
+                    (new Player(p.Player.id, p.Player.name, p.Player.firstName, p.NormalName, p.isFemale), p.Rating)).ToList();
+                    FixConflicts(teams, pList);
+                    DistributeFemalesEvenly(teams, pList);
 
                     // Перемешивание игроков в команде 1
                     teams.Team1 = teams.Team1.OrderBy(x => random.Next()).ToList();
@@ -229,6 +230,50 @@ namespace BallBotGui
             } 
             while (changesMade); // Repeat until no more improvements
         }
+        private void DistributeFemalesEvenly(Teams teams, List<(Player player, int rating)> playersWithRatings)
+        {
+            var dislikedTeammates = state.dislikedTeammates;
+
+            var femalesInTeam1 = teams.Team1.Where(p => p.isFemale).ToList();
+            var femalesInTeam2 = teams.Team2.Where(p => p.isFemale).ToList();
+
+            int diff = femalesInTeam1.Count - femalesInTeam2.Count;
+
+            if (Math.Abs(diff) <= 1)
+                return; // already balanced
+
+            var fromTeam = diff > 0 ? teams.Team1 : teams.Team2;
+            var toTeam = diff > 0 ? teams.Team2 : teams.Team1;
+
+            var femaleCandidates = fromTeam
+                .Where(p => p.isFemale)
+                .OrderBy(p => Guid.NewGuid()) // randomize
+                .ToList();
+
+            foreach (var female in femaleCandidates)
+            {
+                var rating = playersWithRatings.FirstOrDefault(pr => pr.player.id == female.id).rating;
+
+                var swapCandidate = toTeam.FirstOrDefault(p =>
+                    p.isFemale == false &&
+                    playersWithRatings.Any(tp => tp.player.id == p.id && tp.rating == rating) &&
+                    !dislikedTeammates.Any(dt =>
+                        (dt.idPlayer == p.id && dt.dislikedPlayers.Contains(female.id)) ||
+                        (dt.idPlayer == female.id && dt.dislikedPlayers.Contains(p.id))
+                    ));
+
+                if (swapCandidate != null)
+                {
+                    fromTeam.Remove(female);
+                    toTeam.Remove(swapCandidate);
+
+                    fromTeam.Add(swapCandidate);
+                    toTeam.Add(female);
+
+                    break; // Try just one swap for now
+                }
+            }
+        }
 
 
         public Teams Take4Teams(Update update)
@@ -247,7 +292,7 @@ namespace BallBotGui
 
                 // Получаем список игроков, которые проголосовали и переводим в список игроков
                 var playersWithRatings = votedPlayersLimited
-                    .Join(this.players, p => p.id, pr => pr.id, (p, pr) => new { Player = p, Rating = pr.group, NormalName = pr.normalName });
+                    .Join(this.players, p => p.id, pr => pr.id, (p, pr) => new { Player = p, Rating = pr.group, NormalName = pr.normalName, pr.isFemale });
 
                 // Группировка игроков по уровню рейтинга
                 var groupedPlayersWithRatings = playersWithRatings.GroupBy(p => p.Rating);
@@ -258,7 +303,7 @@ namespace BallBotGui
                 {
                     // Случайное перемешивание порядка игроков в группе
                     var shuffledGroup = group.OrderBy(x => random.Next())
-                                             .Select(x => (new Player(x.Player.id, x.Player.name, x.Player.firstName, x.NormalName), x.Rating))
+                                             .Select(x => (new Player(x.Player.id, x.Player.name, x.Player.firstName, x.NormalName, x.isFemale), x.Rating))
                                              .ToList();
                     groupedPlayersDictionary[group.Key] = shuffledGroup;
                 }

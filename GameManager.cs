@@ -22,9 +22,13 @@ internal class GameManager
         try
         {
             Games =  JsonSerializer.Deserialize<List<VolleybollGame>>(json) ?? new List<VolleybollGame>();
+            Games.RemoveAll(game => !game.ActiveGame);
+
         }
-        catch
+        catch (Exception ex)
         {
+            // Показываем сообщение об ошибке
+            MessageBox.Show($"GamesJson неверный: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             // Если формат JSON неверный, вернуть пустой список
             Games = new();
         }

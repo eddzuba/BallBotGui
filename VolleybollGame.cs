@@ -18,6 +18,8 @@ namespace BallBotGui
         public int GameStartHour { get; set; } // час когда играем 20
         public int GameStartMinute { get; set; } // минуты времени когда начинаем играть 00
 
+        public bool ActiveGame { get; set; } = true;
+
 
         public string? Location { get; set; } // Место где играем, ссылка на карте
         public string? Title { get; set; } // Шаблон Заголовка в голосовалке

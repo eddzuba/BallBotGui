@@ -13,11 +13,12 @@ namespace BallBotGui
     }
     public class Player
     {
-        public Player(long id, string name, string firstName, string normalName) { 
+        public Player(long id, string name, string firstName, string normalName, bool isFemale) { 
             this.id = id;
             this.name = name;
             this.firstName = firstName;
             this.normalName = normalName;
+            this.isFemale = isFemale;
         }
         public long id { get; set; }  // уникальный код игрока
         public string name { get; set; }  // имя линка
@@ -31,6 +32,8 @@ namespace BallBotGui
            2 средние
            3 начинающие
         */
+
+        public bool isFemale = false;
         public override bool Equals(object obj)
         {
             if (obj == null || GetType() != obj.GetType())

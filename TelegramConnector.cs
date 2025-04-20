@@ -59,7 +59,7 @@ namespace BallBotGui
             };
 
             botClient.OnError += OnError;
-           /* botClient.OnMessage += OnMessage;*/
+            // botClient.OnMessage += OnMessage;
             botClient.OnUpdate += OnUpdate;
 
             /*    botClient.StartReceiving(
@@ -74,6 +74,13 @@ namespace BallBotGui
             /*async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)*/
             
         }
+
+        private async Task OnMessage(Telegram.Bot.Types.Message message, UpdateType type)
+        {
+            throw new NotImplementedException();
+        }
+
+      
        
         async Task OnUpdate(Update update)
         {
@@ -564,7 +571,7 @@ namespace BallBotGui
                 string team2Players = string.Join("\n", teams.Team2.Select(p => $"@{p.name} {(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)}"));
 
 
-                string message = $"Предлагаются следующие составы команд:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}";
+                string message = $"!Предлагаются следующие составы команд:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}";
                 await botClient.SendMessage(chatId, message);
             }
         }
@@ -581,7 +588,7 @@ namespace BallBotGui
                 string team3Players = string.Join("\n", teams.Team3.Select(p => $"@{p.name} {p.firstName}"));
                 string team4Players = string.Join("\n", teams.Team4.Select(p => $"@{p.name} {p.firstName}"));
 
-                string message = $"Предлагаются следующие составы команд:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}\n\nКоманда 3:\n{team3Players}\n\nКоманда 4:\n{team4Players}";
+                string message = $"!Предлагаются следующие составы команд:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}\n\nКоманда 3:\n{team3Players}\n\nКоманда 4:\n{team4Players}";
                 await botClient.SendMessage(chatId, message);
             }
         }
@@ -603,7 +610,12 @@ namespace BallBotGui
             for (int i = 0; i < inviteCount; i++)
             {
                 PlayerVote voter = todayApprovedGamePoll.playrsList[i];
-                string message = $"Игрок # {i + 1} @{voter.name} {voter.firstName}";
+
+                var normalName = stateManager.players.FirstOrDefault(p => p.id == voter.id)?.normalName ?? string.Empty;
+
+               
+                string message = $"# {i + 1} {(string.IsNullOrWhiteSpace(normalName) ? voter.firstName : normalName)} @{voter.name}";
+
 
                 await botClient.SendMessage(chatId, message);
             }
@@ -834,8 +846,8 @@ namespace BallBotGui
 
         internal async Task sendTestMessageAsync()
         {
-            // ID пользователя, которого вы хотите упомянуть
-            int userId = 348518374;
+            // ID пользователя, к3оторого вы хотите упомянуть
+            int userId = 3485184;
          //string message = $"<a href=\"tg://user?id={userId}\"> inline mention of a user</a>";
             string username = "[" + "Sergey" + "](tg://user?id=" + userId + ")";
             string message = $"Hello {username}";
