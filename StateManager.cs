@@ -30,7 +30,7 @@ namespace BallBotGui
                 if (json != null)
                 {
                     var newState = JsonConvert.DeserializeObject<State>(json);
-                    if(newState != null)
+                    if (newState != null)
                     {
                         state = newState;
 
@@ -41,7 +41,7 @@ namespace BallBotGui
             {
 
             }
-            
+
 
         }
         public void LoadPlayers()
@@ -73,10 +73,11 @@ namespace BallBotGui
 
         public void AddPlayersToRating(Poll poll)
         {
-            try { 
-                if(poll != null)
+            try
+            {
+                if (poll != null)
                 {
-                    if(poll.playrsList.Count > 0)
+                    if (poll.playrsList.Count > 0)
                     {
                         foreach (var player in poll.playrsList)
                         {
@@ -89,14 +90,14 @@ namespace BallBotGui
 
                     this.SavePlayers();
                 }
-            } 
-            catch { }   
+            }
+            catch { }
         }
 
         public Teams Take2Teams(Update update)
         {
-            // получает опрос на сегодняшний день
-            Poll? poll = getTodayApprovedGamePoll();
+            // получает ближайщий опрос на сегодняшний день
+            Poll? poll = GetClosestApprovedPollForToday();
             Teams teams = new();
 
             if (poll != null)
@@ -144,7 +145,7 @@ namespace BallBotGui
                         }
                     }
 
-                    for (int i = 0; i < topPlayers.Count; i++) 
+                    for (int i = 0; i < topPlayers.Count; i++)
                     {
                         if (i % 2 == 0)
                         {
@@ -227,132 +228,144 @@ namespace BallBotGui
                         changesMade = true; // Mark that a swap was made
                     }
                 }
-            } 
+            }
             while (changesMade); // Repeat until no more improvements
         }
         private void DistributeFemalesEvenly(Teams teams, List<(Player player, int rating)> playersWithRatings)
         {
             var dislikedTeammates = state.dislikedTeammates;
 
-            var femalesInTeam1 = teams.Team1.Where(p => p.isFemale).ToList();
-            var femalesInTeam2 = teams.Team2.Where(p => p.isFemale).ToList();
-
-            int diff = femalesInTeam1.Count - femalesInTeam2.Count;
-
-            if (Math.Abs(diff) <= 1)
-                return; // already balanced
-
-            var fromTeam = diff > 0 ? teams.Team1 : teams.Team2;
-            var toTeam = diff > 0 ? teams.Team2 : teams.Team1;
-
-            var femaleCandidates = fromTeam
-                .Where(p => p.isFemale)
-                .OrderBy(p => Guid.NewGuid()) // randomize
-                .ToList();
-
-            foreach (var female in femaleCandidates)
+            while (true)
             {
-                var rating = playersWithRatings.FirstOrDefault(pr => pr.player.id == female.id).rating;
+                var femalesInTeam1 = teams.Team1.Where(p => p.isFemale).ToList();
+                var femalesInTeam2 = teams.Team2.Where(p => p.isFemale).ToList();
 
-                var swapCandidate = toTeam.FirstOrDefault(p =>
-                    p.isFemale == false &&
-                    playersWithRatings.Any(tp => tp.player.id == p.id && tp.rating == rating) &&
-                    !dislikedTeammates.Any(dt =>
-                        (dt.idPlayer == p.id && dt.dislikedPlayers.Contains(female.id)) ||
-                        (dt.idPlayer == female.id && dt.dislikedPlayers.Contains(p.id))
-                    ));
+                int diff = femalesInTeam1.Count - femalesInTeam2.Count;
 
-                if (swapCandidate != null)
+                if (Math.Abs(diff) <= 1)
+                    return; // already balanced
+
+                var fromTeam = diff > 0 ? teams.Team1 : teams.Team2;
+                var toTeam = diff > 0 ? teams.Team2 : teams.Team1;
+
+                var femaleCandidates = fromTeam
+                    .Where(p => p.isFemale)
+                    .OrderBy(p => Guid.NewGuid()) // randomize
+                    .ToList();
+
+                bool swapped = false;
+
+                foreach (var female in femaleCandidates)
                 {
-                    fromTeam.Remove(female);
-                    toTeam.Remove(swapCandidate);
+                    var rating = playersWithRatings.FirstOrDefault(pr => pr.player.id == female.id).rating;
 
-                    fromTeam.Add(swapCandidate);
-                    toTeam.Add(female);
+                    var swapCandidate = toTeam.FirstOrDefault(p =>
+                        !p.isFemale &&
+                        playersWithRatings.Any(tp => tp.player.id == p.id && tp.rating == rating) &&
+                        !dislikedTeammates.Any(dt =>
+                            (dt.idPlayer == p.id && dt.dislikedPlayers.Contains(female.id)) ||
+                            (dt.idPlayer == female.id && dt.dislikedPlayers.Contains(p.id))
+                        ));
 
-                    break; // Try just one swap for now
+                    if (swapCandidate != null)
+                    {
+                        fromTeam.Remove(female);
+                        toTeam.Remove(swapCandidate);
+
+                        fromTeam.Add(swapCandidate);
+                        toTeam.Add(female);
+
+                        swapped = true;
+                        break; // Только одну девушку за раз, но цикл while повторит проверку
+                    }
                 }
+
+                if (!swapped)
+                    break; // Больше нет подходящих кандидатов для обмена
             }
         }
+
 
 
         public Teams Take4Teams(Update update)
         {
-            // получает опрос на сегодняшний день
-            Poll? poll = getTodayApprovedGamePoll();
-            bool playerExistsInTopPlayers = poll.playrsList.Take(poll.maxPlayersCount).Any(p => p.id == update?.Message?.From?.Id || update.Message.From.Id == 245566701);
 
-            Random random = new();
-            Teams teams = new();
+            /* // получает опрос на сегодняшний день
+             Poll? poll = getTodayApprovedGamePoll();
+             bool playerExistsInTopPlayers = poll.playrsList.Take(poll.maxPlayersCount).Any(p => p.id == update?.Message?.From?.Id || update.Message.From.Id == 245566701);
 
-            if (poll != null && poll.playrsList.Count >= 20 && playerExistsInTopPlayers)
-            {
-                // Ограничение списка проголосовавших игроков до максимум maxPlayersCount
-                var votedPlayersLimited = poll.playrsList.Take(poll.maxPlayersCount).ToList();
+             Random random = new();
+             Teams teams = new();
 
-                // Получаем список игроков, которые проголосовали и переводим в список игроков
-                var playersWithRatings = votedPlayersLimited
-                    .Join(this.players, p => p.id, pr => pr.id, (p, pr) => new { Player = p, Rating = pr.group, NormalName = pr.normalName, pr.isFemale });
+             if (poll != null && poll.playrsList.Count >= 20 && playerExistsInTopPlayers)
+             {
+                 // Ограничение списка проголосовавших игроков до максимум maxPlayersCount
+                 var votedPlayersLimited = poll.playrsList.Take(poll.maxPlayersCount).ToList();
 
-                // Группировка игроков по уровню рейтинга
-                var groupedPlayersWithRatings = playersWithRatings.GroupBy(p => p.Rating);
+                 // Получаем список игроков, которые проголосовали и переводим в список игроков
+                 var playersWithRatings = votedPlayersLimited
+                     .Join(this.players, p => p.id, pr => pr.id, (p, pr) => new { Player = p, Rating = pr.group, NormalName = pr.normalName, pr.isFemale });
 
-                // Создание словаря для хранения игроков каждой группы
-                Dictionary<int, List<(Player player, int Rating)>> groupedPlayersDictionary = new();
-                foreach (var group in groupedPlayersWithRatings.OrderBy(g => g.Key))
-                {
-                    // Случайное перемешивание порядка игроков в группе
-                    var shuffledGroup = group.OrderBy(x => random.Next())
-                                             .Select(x => (new Player(x.Player.id, x.Player.name, x.Player.firstName, x.NormalName, x.isFemale), x.Rating))
-                                             .ToList();
-                    groupedPlayersDictionary[group.Key] = shuffledGroup;
-                }
+                 // Группировка игроков по уровню рейтинга
+                 var groupedPlayersWithRatings = playersWithRatings.GroupBy(p => p.Rating);
 
-                // Создание списка первых poll.maxPlayersCount игроков с учетом рейтинга и порядка в группе
-                List<(Player player, int rating)> topPlayers = new();
-                foreach (var group in groupedPlayersDictionary.Values)
-                {
-                    int countToAdd = Math.Min(group.Count, poll.maxPlayersCount - topPlayers.Count);
-                    topPlayers.AddRange(group.Take(countToAdd));
-                    if (topPlayers.Count >= poll.maxPlayersCount)
-                    {
-                        break;
-                    }
-                }
+                 // Создание словаря для хранения игроков каждой группы
+                 Dictionary<int, List<(Player player, int Rating)>> groupedPlayersDictionary = new();
+                 foreach (var group in groupedPlayersWithRatings.OrderBy(g => g.Key))
+                 {
+                     // Случайное перемешивание порядка игроков в группе
+                     var shuffledGroup = group.OrderBy(x => random.Next())
+                                              .Select(x => (new Player(x.Player.id, x.Player.name, x.Player.firstName, x.NormalName, x.isFemale), x.Rating))
+                                              .ToList();
+                     groupedPlayersDictionary[group.Key] = shuffledGroup;
+                 }
 
-                // Распределение игроков по четырем командам
-                for (int i = 0; i < topPlayers.Count; i++)
-                {
-                    switch (i % 4)
-                    {
-                        case 0:
-                            teams.Team1.Add(topPlayers[i].player);
-                            break;
-                        case 1:
-                            teams.Team2.Add(topPlayers[i].player);
-                            break;
-                        case 2:
-                            teams.Team3.Add(topPlayers[i].player);
-                            break;
-                        case 3:
-                            teams.Team4.Add(topPlayers[i].player);
-                            break;
-                    }
-                }
+                 // Создание списка первых poll.maxPlayersCount игроков с учетом рейтинга и порядка в группе
+                 List<(Player player, int rating)> topPlayers = new();
+                 foreach (var group in groupedPlayersDictionary.Values)
+                 {
+                     int countToAdd = Math.Min(group.Count, poll.maxPlayersCount - topPlayers.Count);
+                     topPlayers.AddRange(group.Take(countToAdd));
+                     if (topPlayers.Count >= poll.maxPlayersCount)
+                     {
+                         break;
+                     }
+                 }
 
-                // Перемешивание игроков в каждой команде
-                teams.Team1 = teams.Team1.OrderBy(x => random.Next()).ToList();
-                teams.Team2 = teams.Team2.OrderBy(x => random.Next()).ToList();
-                teams.Team3 = teams.Team3.OrderBy(x => random.Next()).ToList();
-                teams.Team4 = teams.Team4.OrderBy(x => random.Next()).ToList();
-            }
+                 // Распределение игроков по четырем командам
+                 for (int i = 0; i < topPlayers.Count; i++)
+                 {
+                     switch (i % 4)
+                     {
+                         case 0:
+                             teams.Team1.Add(topPlayers[i].player);
+                             break;
+                         case 1:
+                             teams.Team2.Add(topPlayers[i].player);
+                             break;
+                         case 2:
+                             teams.Team3.Add(topPlayers[i].player);
+                             break;
+                         case 3:
+                             teams.Team4.Add(topPlayers[i].player);
+                             break;
+                     }
+                 }
 
-            return teams;
+                 // Перемешивание игроков в каждой команде
+                 teams.Team1 = teams.Team1.OrderBy(x => random.Next()).ToList();
+                 teams.Team2 = teams.Team2.OrderBy(x => random.Next()).ToList();
+                 teams.Team3 = teams.Team3.OrderBy(x => random.Next()).ToList();
+                 teams.Team4 = teams.Team4.OrderBy(x => random.Next()).ToList();
+             }
+
+             return teams;*/
+            return null;
         }
         public void AddVote(string IdPoll, long idPlayer, string name, string lastName, long idVoute)
         {
             var curPoll = state.pollList.FirstOrDefault(x => x.idPoll == IdPoll);
-            if(curPoll != null)
+            if (curPoll != null)
             {
                 curPoll.AddPlayerToList(idPlayer, name, lastName, idVoute);
                 AddPlayersToRating(curPoll);
@@ -365,7 +378,7 @@ namespace BallBotGui
             if (curPoll != null)
             {
                 return curPoll.DeletePlayerFromList(idPlayer);
-            
+
             }
             return false;
         }
@@ -378,15 +391,15 @@ namespace BallBotGui
             {
                 ArchivePoll(poll);
                 state.pollList.Remove(poll);
-                if(poll.idMessage > 0)
+                if (poll.idMessage > 0)
                 {
                     botClient.UnpinChatMessage(Properties.Settings.Default.chatId, poll.idMessage);
                 }
-                
+
             }
 
             SaveState();
-            
+
         }
 
         private void ArchivePoll(Poll poll)
@@ -408,13 +421,40 @@ namespace BallBotGui
 
         }
 
-        internal Poll? getTodayApprovedGamePoll()
+        internal List<Poll> getTodayApprovedGamePoll()
         {
             var now = DateTime.Now.ToString("dd.MM");
-            // TODO Uncomment!!!!
-            Poll ?poll = state.pollList.FirstOrDefault(x =>  x.date == now &&  x.approved);
+            // Возвращаем все опросы, которые соответствуют сегодняшней дате и одобрены
+            var polls = state.pollList.Where(x => x.date == now && x.approved).ToList();
+            return polls;
+        }
 
-            return poll;
+        internal Poll? GetClosestApprovedPollForToday()
+        {
+            var now = DateTime.Now;
+
+            // Получаем все опросы, которые соответствуют сегодняшней дате и одобрены
+            var todayPolls = state.pollList
+                .Where(x => x.date == now.ToString("dd.MM") && x.approved)
+                .OrderBy(p => new DateTime(now.Year, now.Month, now.Day, p.curGame.GameStartHour, p.curGame.GameStartMinute, 0)) // Сортируем по времени начала игры
+                .ToList();
+
+            if (!todayPolls.Any())
+                return null; // Если опросов нет, возвращаем null
+
+            // Проверяем, есть ли игры, которые уже начались
+            // TODO: нужно не отнимать один час, это должна быть настройка, для разных часовых поясов
+            var startedPolls = todayPolls.Where(p =>
+                  new DateTime(now.Year, now.Month, now.Day, p.curGame.GameStartHour - 1, p.curGame.GameStartMinute, 0) <= now).ToList();
+
+            if (startedPolls.Any())
+            {
+                // Если есть начавшиеся игры, возвращаем последнюю из них
+                return startedPolls.Last();
+            }
+
+            // Если ни одна игра ещё не началась, возвращаем самую раннюю из всех
+            return todayPolls.First();
         }
     }
 }

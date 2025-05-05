@@ -45,7 +45,7 @@
       <Value Profile="(Default)">{dayName} 19.00-21.00</Value>
     </Setting>
     <Setting Name="curBotKey" Type="System.String" Scope="User">
-      <Value Profile="(Default)">7109057711:111111123упNCnphiUD7U</Value>
+      <Value Profile="(Default)">7109057711:AAG77413AFyPUhjydprfAmMXqNCnphiUD7U</Value>
     </Setting>
     <Setting Name="inviteMessage" Type="System.String" Scope="User">
       <Value Profile="(Default)">Приветствуем, @Player!

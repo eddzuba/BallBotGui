@@ -40,6 +40,7 @@ internal class GameManager
         BallBotGui.Properties.Settings.Default.GamesJson = json;
         BallBotGui.Properties.Settings.Default.Save();
     }
+
     public  async Task<bool> CheckScheduleAndCreatePollAsync(DateTime currentTime)
     {
 

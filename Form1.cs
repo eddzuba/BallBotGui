@@ -128,12 +128,26 @@ namespace BallBotGui
 
             if (curTime.Hour == 11 && curTime.Minute == 00)
             {
-                sendInvitation();
-                await Task.Delay(20000); // ждем 20 секунд, чтобы сообщение было после
-                sendCarsInfo();
-                await Task.Delay(20000); // ждем 20 секунд, чтобы сообщение было после
+                await sendInvitationAsync();
+               /*  await sendCarsInfo(); */
                 await askNewPlayesrsAsync();
             }
+
+
+            var polls = stateManager.getTodayApprovedGamePoll();
+            if (polls != null)
+            {
+                foreach (var poll in polls)
+                {
+                    if(telConnector != null && poll.isTimeToSendBeforeGameInvite(curTime) )
+                    {
+                        await telConnector.sendBeforeGameInvite(poll);
+                        break;
+                    }
+                }
+            }
+
+
 
             if ((curTime.Hour == 10 && curTime.Minute == 00))
             {
@@ -149,10 +163,10 @@ namespace BallBotGui
 
         private async Task askNewPlayesrsAsync()
         {
-            Poll? todayApprovedGamePoll = stateManager.getTodayApprovedGamePoll();
-            if (todayApprovedGamePoll != null)
-            {
-                var newPlayes = telConnector.askNewPlayers(todayApprovedGamePoll);
+            var todayApprovedGamePolls = stateManager.getTodayApprovedGamePoll();
+            if (todayApprovedGamePolls != null && todayApprovedGamePolls.Any())
+            { 
+             var newPlayes = telConnector.askNewPlayers(todayApprovedGamePolls);
                 if (newPlayes != null)
                 {
                     foreach (var player in newPlayes)
@@ -189,18 +203,18 @@ namespace BallBotGui
         {
             //  createNewPoll();
             DateTime now = DateTime.Now; // Текущее время
-            int targetDay = 2; // День недели (1 = понедельник, 2 = вторник, ..., 7 = воскресенье). Например, 4 = четверг.
+            int targetDay = 4; // День недели (1 = понедельник, 2 = вторник, ..., 7 = воскресенье). Например, 4 = четверг.
 
             int currentDay = (int)now.DayOfWeek == 0 ? 7 : (int)now.DayOfWeek; // Преобразуем DayOfWeek (0 = воскресенье) в систему, где 1 = понедельник
             int daysUntilTarget = (targetDay - currentDay + 7) % 7; // Количество дней до цели
 
-            if (daysUntilTarget == 0 && now.TimeOfDay > new TimeSpan(23, 0, 0))
+            if (daysUntilTarget == 0 && now.TimeOfDay > new TimeSpan(23, 15, 0))
             {
                 // Если сегодня целевой день, но время уже больше 23:00, берём следующий такой день
                 daysUntilTarget = 7;
             }
 
-            DateTime nextTargetDayAt23 = now.Date.AddDays(daysUntilTarget).AddHours(23);
+            DateTime nextTargetDayAt23 = now.Date.AddDays(daysUntilTarget).AddHours(22).AddMinutes(15);
             if (gameManager != null)
             {
                 var pullCreated = await gameManager.CheckScheduleAndCreatePollAsync(nextTargetDayAt23);
@@ -304,26 +318,33 @@ namespace BallBotGui
         private void clickSendInvitation(object sender, EventArgs e)
         {
             // sendInvitation();
-            sendCarsInfo();
+            // sendCarsInfo();
         }
 
-        private void sendInvitation()
+        private async Task sendInvitationAsync()
         {
-            Poll? todayApprovedGamePoll = stateManager.getTodayApprovedGamePoll();
-            if (todayApprovedGamePoll != null)
+            var todayApprovedGamePolls = stateManager.getTodayApprovedGamePoll();
+            if (todayApprovedGamePolls != null && todayApprovedGamePolls.Any())
             {
-                telConnector?.sendInvitation(todayApprovedGamePoll);
+                foreach (var poll in todayApprovedGamePolls)
+                {
+                    await telConnector?.sendInvitation(poll);
+                    await telConnector.sendCarsMessage(poll);
+                }
             }
         }
 
-        private void sendCarsInfo()
+        /*private async Task sendCarsInfo()
         {
-            Poll? todayApprovedGamePoll = stateManager.getTodayApprovedGamePoll();
-            if (todayApprovedGamePoll != null)
+            var todayApprovedGamePolls = stateManager.getTodayApprovedGamePoll();
+            if (todayApprovedGamePolls != null && todayApprovedGamePolls.Any())
             {
-                telConnector.sendCarsMessage(todayApprovedGamePoll);
+                foreach (var poll in todayApprovedGamePolls)
+                {
+                    await telConnector.sendCarsMessage(poll);
+                }
             }
-        }
+        }*/
 
 
 
@@ -457,7 +478,7 @@ namespace BallBotGui
 
         private void button11_ClickAsync(object sender, EventArgs e)
         {
-            sendInvitation();
+            sendInvitationAsync();
             // sendCarsInfo();
             // askNewPlayesrsAsync();
         }

@@ -193,7 +193,7 @@ namespace BallBotGui.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("7109057711:111111123упNCnphiUD7U")]
+        [global::System.Configuration.DefaultSettingValueAttribute("7109057711:AAG77413AFyPUhjydprfAmMXqNCnphiUD7U")]
         public string curBotKey {
             get {
                 return ((string)(this["curBotKey"]));

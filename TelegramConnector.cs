@@ -39,12 +39,14 @@ namespace BallBotGui
 
         struct StopInfo
         {
+            public string IdPoll;
             public long DriverCode;
             public int StopNumber;
             public int SequentialNumber;
 
-            public StopInfo(long driverCode, int stopNumber, int sequentialNumber)
+            public StopInfo(string idPoll, long driverCode, int stopNumber, int sequentialNumber)
             {
+                IdPoll = idPoll;
                 DriverCode = driverCode;
                 StopNumber = stopNumber;
                 SequentialNumber = sequentialNumber;
@@ -145,7 +147,7 @@ namespace BallBotGui
             // сохранение опроса в статусе
             stateManager.state.AddNewPoll(poll.Poll.Id, gameTime.ToString("dd.MM", new CultureInfo("ru-RU")), curQuest, poll.MessageId, curGame);
             stateManager.SaveState();
-            await Task.Delay(60000); // ждем минуту, чтобы не прыгал чат
+            await Task.Delay(30000); // ждем 30 секунд, чтобы не прыгал чат
             // Закрепление опроса
             await botClient.PinChatMessage(
                         chatId: chatId,
@@ -301,7 +303,7 @@ namespace BallBotGui
             var curPoll = stateManager.state.pollList.FirstOrDefault(x => x.idPoll == idPoll);
             if (curPoll != null)
             {
-                Poll? todayApprovedGamePoll = stateManager.getTodayApprovedGamePoll();
+                Poll? todayApprovedGamePoll = stateManager.getTodayApprovedGamePoll().FirstOrDefault(poll => poll.idPoll == idPoll);
                 if (todayApprovedGamePoll != null)
                 {
                     // сегодняшний опрос и снялся человек и было уже сообщение
@@ -333,11 +335,12 @@ namespace BallBotGui
 
             if (poll != null)
             {
+                string gameTime = $"{poll.curGame.GameStartHour}:{poll.curGame.GameStartMinute:D2}";
                 int maxGameSpots = poll.maxPlayersCount;
                 if ( poll.playrsList.Count >= maxGameSpots)
                 {
                     PlayerVote voter = poll.playrsList[maxGameSpots - 1]; // берем последнего игрока
-                    string message = $"Снялся @{oldUser.Username}. В игру вступает @{voter.name} {voter.firstName}!";
+                    string message = $"Игра в {gameTime}. Снялся @{oldUser.Username}. В игру вступает @{voter.name} {voter.firstName}!";
 
                     await botClient.SendMessage(chatId, message);
                     await sendPlayerInvitation(poll, voter);
@@ -345,13 +348,13 @@ namespace BallBotGui
                 else
                 {
                     int freeSpots = maxGameSpots - poll.playrsList.Count;
-                    string message = $"Снялся @{oldUser.Username}. Свободных мест: {freeSpots} ";
+                    string message = $"Игра в {gameTime}. Снялся @{oldUser.Username}. Свободных мест: {freeSpots} ";
                     await botClient.SendMessage(chatId, message);
                 }
 
                 if( poll.playrsList.Count < 12 )
                 {
-                    string message = $"После снятия  @{oldUser.Username} игроков осталось меньше 12. Штрафные санкции! ";
+                    string message = $"Игра в {gameTime}. После снятия  @{oldUser.Username} игроков осталось меньше 12. Штрафные санкции! ";
                     await botClient.SendMessage(chatId, message);
                 }
             }
@@ -463,12 +466,26 @@ namespace BallBotGui
 
         private void takeSeat(Update update)
         {
-            Poll? todayApprovedGamePoll = stateManager.getTodayApprovedGamePoll();
-            if (todayApprovedGamePoll != null)  // сегодня есть игра....
+            if (update.CallbackQuery?.Data == null)
             {
-                var idCurUser = update.CallbackQuery.From.Id;
+                // Handle the case where Data is null, or simply return if it's not expected
+                return;
+            }
 
-                if (update.CallbackQuery.Data.StartsWith("takeaseat:0:0"))
+            var todayApprovedGamePollList = stateManager.getTodayApprovedGamePoll();
+            foreach (var todayApprovedGamePoll in todayApprovedGamePollList) { 
+                if (todayApprovedGamePoll != null)  // сегодня есть игра....
+                {
+                // Разделяем строку по символу ':'
+                // проверяем что у нас строка в правильном формате
+                var values = update.CallbackQuery.Data.Split(":");
+                // проверяем, что это текущее голосование
+                if (values.Length != 4 || values[3] != todayApprovedGamePoll.idPoll)
+                {
+                    continue;
+                }
+                var idCurUser = update.CallbackQuery.From.Id;
+                if (update.CallbackQuery.Data.StartsWith("takeaseat:0:0:"))
                 {
                     // если просящий есть среди тех кто уже занял место то удаляем его 
                     if (freeSeat(idCurUser, todayApprovedGamePoll) > 0)
@@ -481,62 +498,52 @@ namespace BallBotGui
                     return;
                 }
 
+                long driverId = 0;
+                int stopIdx = 0;
 
+                var firstMaxPlayersCountIds = todayApprovedGamePoll.playrsList.OrderBy(player => player.idVote)
+                                  .Take(todayApprovedGamePoll.maxPlayersCount)
+                                  .Select(player => player.id);
 
-                // проверяем что у нас трока в проавильно формате
-                var values = update.CallbackQuery.Data.Split(":");
-                if (values.Length == 3 )
+                // проверяем что остановка это число
+                if (!int.TryParse(values[2], out stopIdx) || !long.TryParse(values[1], out driverId)) { return; }
+
+                // проверяем что тот что просится тоже среди первых todayApprovedGamePoll.maxPlayersCount
+                if (update.CallbackQuery.From != null && idCurUser > 0)
                 {
-                    long driverId = 0;
-                    int stopIdx = 0;
-
-                    var firstMaxPlayersCountIds = todayApprovedGamePoll.playrsList.OrderBy(player => player.idVote)
-                                      .Take(todayApprovedGamePoll.maxPlayersCount)
-                                      .Select(player => player.id);
-
-                    // проверяем что остановка это число
-                    if (!int.TryParse(values[2], out stopIdx) || !long.TryParse(values[1], out driverId)) { return; }
-
-                    // проверяем что тот что просится тоже срежи первых todayApprovedGamePoll.maxPlayersCount
-                    if (update.CallbackQuery.From != null && idCurUser > 0)
-                    {
-                        if (!firstMaxPlayersCountIds.Contains(idCurUser)) { return; }
-                    }
-
-                    // проверяем что водитель есть среди первых todayApprovedGamePoll.maxPlayersCount
-                    if (!firstMaxPlayersCountIds.Contains(driverId)) { return; }
-
-                    
-
-                    // проверяем что данного водителя ещё есть места, без учета просящегося
-                    // Подсчет количества записей для конкретного пользователя
-                    int count = todayApprovedGamePoll.occupiedPlaces.Count(place => place.idCarOwner == driverId);
-                    Car foundCar = stateManager.state.carList.FirstOrDefault(car => car.idPlayer == driverId);
-                    if (foundCar == null || count >= foundCar.placeCount)
-                    {
-                        return;
-                    }
-
-                    // проверяем что он ещё не занял место в данной точке
-                    if (todayApprovedGamePoll.occupiedPlaces.Any(o => o.idCarOwner == driverId && o.stopIdx == stopIdx && o.idPlayer == idCurUser) ) {
-                        return;
-                    }
-                 
-
-                    // если просящий есть среди тех кто уже занял место то удаляем его 
-                    freeSeat(idCurUser, todayApprovedGamePoll);
-
-                    // записываем просящегося 
-                    var newTake = new OccupiedPlace(idCurUser, driverId, stopIdx, nickname: update.CallbackQuery.From.Username, update.CallbackQuery.From.FirstName);
-                    todayApprovedGamePoll.occupiedPlaces.Add(newTake);
-                    stateManager.SaveState();
-
-                    // обновляем сообщение с машинами
-                    sendCarsMessage(todayApprovedGamePoll);
+                    if (!firstMaxPlayersCountIds.Contains(idCurUser) && 245566701 != idCurUser) { return; }
                 }
 
+                // проверяем что водитель есть среди первых todayApprovedGamePoll.maxPlayersCount
+                if (!firstMaxPlayersCountIds.Contains(driverId)) { return; }
 
+                // проверяем что данного водителя ещё есть места, без учета просящегося
+                // Подсчет количества записей для конкретного пользователя
+                int count = todayApprovedGamePoll.occupiedPlaces.Count(place => place.idCarOwner == driverId);
+                Car foundCar = stateManager.state.carList.FirstOrDefault(car => car.idPlayer == driverId);
+                if (foundCar == null || count >= foundCar.placeCount)
+                {
+                    return;
+                }
 
+                // проверяем что он ещё не занял место в данной точке
+                if (todayApprovedGamePoll.occupiedPlaces.Any(o => o.idCarOwner == driverId && o.stopIdx == stopIdx && o.idPlayer == idCurUser))
+                {
+                    return;
+                }
+
+                // если просящий есть среди тех кто уже занял место то удаляем его 
+                freeSeat(idCurUser, todayApprovedGamePoll);
+
+                // записываем просящегося 
+                var newTake = new OccupiedPlace(idCurUser, driverId, stopIdx, nickname: update.CallbackQuery.From.Username, update.CallbackQuery.From.FirstName);
+                todayApprovedGamePoll.occupiedPlaces.Add(newTake);
+                stateManager.SaveState();
+
+                // обновляем сообщение с машинами
+                sendCarsMessage(todayApprovedGamePoll);
+
+            }
             }
         }
 
@@ -603,20 +610,24 @@ namespace BallBotGui
             }
         }
 
-        internal async void sendInvitation(Poll todayApprovedGamePoll)
+        internal async Task sendInvitation(Poll todayApprovedGamePoll)
         {
             int inviteCount = Math.Min(todayApprovedGamePoll.playrsList.Count, todayApprovedGamePoll.maxPlayersCount);
-            await botClient.SendMessage(chatId, "Сегодня на игру приглашаются: ");
-            for (int i = 0; i < inviteCount; i++)
+            string gameTime = $"{todayApprovedGamePoll.curGame.GameStartHour}:{todayApprovedGamePoll.curGame.GameStartMinute:D2}";
+
+            await botClient.SendMessage(chatId, $"Игра в {gameTime} ");
+            for (int i = 0; i < inviteCount; i += 5)
             {
-                PlayerVote voter = todayApprovedGamePoll.playrsList[i];
+                StringBuilder messageBuilder = new StringBuilder();
 
-                var normalName = stateManager.players.FirstOrDefault(p => p.id == voter.id)?.normalName ?? string.Empty;
+                for (int j = 0; j < 5 && (i + j) < inviteCount; j++)
+                {
+                    PlayerVote voter = todayApprovedGamePoll.playrsList[i + j];
+                    var normalName = stateManager.players.FirstOrDefault(p => p.id == voter.id)?.normalName ?? string.Empty;
+                    messageBuilder.AppendLine($"# {i + j + 1} {(string.IsNullOrWhiteSpace(normalName) ? voter.firstName : normalName)} @{voter.name}");
+                }
 
-               
-                string message = $"# {i + 1} {(string.IsNullOrWhiteSpace(normalName) ? voter.firstName : normalName)} @{voter.name}";
-
-
+                string message = messageBuilder.ToString();
                 await botClient.SendMessage(chatId, message);
             }
 
@@ -651,7 +662,7 @@ namespace BallBotGui
 
 
 
-        internal async void sendCarsMessage(Poll todayApprovedGamePoll)
+        internal async Task sendCarsMessage(Poll todayApprovedGamePoll)
         {
 
             var stops = new List<StopInfo>();
@@ -667,8 +678,8 @@ namespace BallBotGui
             if (carsWithOwnersInFirstMaxPlayersCount.Count > 0)
             {
                 StringBuilder messageBuilder = new StringBuilder();
-
-                messageBuilder.AppendLine("Сегодня нам помогают добраться:");
+                string gameTime = $"{todayApprovedGamePoll.curGame.GameStartHour}:{todayApprovedGamePoll.curGame.GameStartMinute:D2}";
+                messageBuilder.AppendLine($"К {gameTime}  помогают добраться:");
 
                 int stopIdx = 1;
                 foreach (var car in carsWithOwnersInFirstMaxPlayersCount)
@@ -764,7 +775,7 @@ namespace BallBotGui
 
                 foreach (var stop in car.carStops)
                 {
-                    var newPoint = new StopInfo(owner.id, curDriverStopIdx, stopIdx);
+                    var newPoint = new StopInfo(todayApprovedGamePoll.idPoll, owner.id, curDriverStopIdx, stopIdx);
                     stops.Add(newPoint);
 
                     TimeSpan gameTime = new TimeSpan(20, 0, 0); // Время игры: 20:00
@@ -832,13 +843,13 @@ namespace BallBotGui
             for (int i = 0; i < stops.Count; i += 4)
             {
                 var rowButtons = stops.Skip(i).Take(4)
-                                    .Select(stop => InlineKeyboardButton.WithCallbackData(stop.SequentialNumber.ToString(), $"takeaseat:{stop.DriverCode}:{stop.StopNumber}"))
+                                    .Select(stop => InlineKeyboardButton.WithCallbackData(stop.SequentialNumber.ToString(), $"takeaseat:{stop.DriverCode}:{stop.StopNumber}:{stop.IdPoll}"))
                                     .ToArray();
                 buttons.Add(rowButtons);
             }
 
             // добовляем последнюю кнопку
-            var byMySelf = InlineKeyboardButton.WithCallbackData("Добираюсь самостоятельно", "takeaseat:0:0");
+            var byMySelf = InlineKeyboardButton.WithCallbackData("Добираюсь самостоятельно", $"takeaseat:0:0:{stops.First().IdPoll}");
             buttons.Add(new[] { byMySelf });
             return new InlineKeyboardMarkup(buttons);
 
@@ -863,11 +874,37 @@ namespace BallBotGui
            
 
         }
-
-        internal List<PlayerVote> askNewPlayers(Poll todayApprovedGamePoll)
+        /*
+         
+         
+          internal List<PlayerVote> GetFirstTimePlayers(List<Poll> polls, Poll todayApprovedGamePoll)
         {
             var previousPlayerIds = new HashSet<long>();
 
+            // Iterate through all polls to collect unique player IDs  
+            foreach (var poll in polls)
+            {
+                if (poll != null && poll.approved)
+                {
+                    foreach (var player in poll.playrsList.Take(poll.maxPlayersCount))
+                    {
+                        previousPlayerIds.Add(player.id);
+                    }
+                }
+            }
+
+            // Find players in today's poll who are not in the previousPlayerIds set  
+            var curPlayersList = todayApprovedGamePoll.playrsList.Take(todayApprovedGamePoll.maxPlayersCount);
+            var newPlayers = curPlayersList.Where(p => !previousPlayerIds.Contains(p.id)).ToList();
+
+            return newPlayers;
+        }
+         
+         */
+
+        internal List<PlayerVote> askNewPlayers(List<Poll> todayApprovedGamePoll)
+        {
+            var previousPlayerIds = new HashSet<long>();
 
             // Получаем все архивные файлы
             var archiveFolderName = "Arch";
@@ -891,8 +928,15 @@ namespace BallBotGui
 
             // Находим новых игроков
 
-            var curPlayersList = todayApprovedGamePoll.playrsList.Take(todayApprovedGamePoll.maxPlayersCount);
-            var newPlayers = curPlayersList.Where(p => !previousPlayerIds.Contains(p.id)).ToList();
+           //  var curPlayersList = todayApprovedGamePoll.playrsList.Take(todayApprovedGamePoll.maxPlayersCount);
+            var uniquePlayers = todayApprovedGamePoll
+                .SelectMany(poll => poll.playrsList.Take(poll.maxPlayersCount))
+                .GroupBy(player => player.id)
+                .Select(group => group.First())
+                .ToList();
+
+            var newPlayers = uniquePlayers.Where(player => !previousPlayerIds.Contains(player.id)).ToList();
+           // var newPlayers = curPlayersList.Where(p => !previousPlayerIds.Contains(p.id)).ToList();
             return newPlayers;
         }
 
@@ -901,6 +945,25 @@ namespace BallBotGui
             string message = $"Добрый день, @{player.name} {player.firstName}. Вы сегодня первый раз с нами играете! Как добираетесь? ";
 
             await botClient.SendMessage(chatId, message);
+        }
+
+        internal async Task sendBeforeGameInvite(Poll poll)
+        {
+            int inviteCount = Math.Min(poll.playrsList.Count, poll.maxPlayersCount);
+            
+
+            for (int i = 0; i < inviteCount; i++)
+            {
+                PlayerVote voter = poll.playrsList[i];
+                await sendPlayerBeforeGameInvitation(poll, voter);
+            }
+        }
+
+        private async Task sendPlayerBeforeGameInvitation(Poll poll, PlayerVote voter)
+        {
+           
+            string message = $"Через час волейбол! Пора собираться!";
+            await botClient.SendMessage(voter.id, message);
         }
     }
     

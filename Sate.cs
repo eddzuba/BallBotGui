@@ -139,6 +139,13 @@ namespace BallBotGui
 
         public List<OccupiedPlace> occupiedPlaces { get; set; } = new List<OccupiedPlace>(); // доставка, брони
 
+       
+        public bool isTimeToSendBeforeGameInvite(DateTime currentTime)
+        {
+            return (currentTime.Minute == curGame.GameStartMinute
+                    && currentTime.Hour == curGame.GameStartHour - 2); // 1 час это смещение часового пояса и ещё один час это за сколько предупреждать
+                       
+        }
         public Poll(string idPoll, string date, string question, int idMessage, VolleybollGame curGame) {
             this.idPoll = idPoll;
             this.question = question;

@@ -67,5 +67,10 @@ namespace BallBotGui
            string curQuest = formattedDate + "! " + Properties.Settings.Default.pollQuestion;
 */
         }
+
+        internal bool IsTimeToInviteBeforeGame(DateTime currentTime)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
