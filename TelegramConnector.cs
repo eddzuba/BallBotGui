@@ -8,6 +8,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Newtonsoft.Json;
 using System.Windows.Forms;
 using System.Linq;
+using System.Numerics;
 
 
 namespace BallBotGui
@@ -656,7 +657,8 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                var dd = ex;
+                string message1 = $"Добрый день, @{voter.name} {voter.firstName}.Я ( @GadensVolleyballBot ) скучаю, начни со мной общаться, пожалуйста!";
+                await botClient.SendMessage(chatId, message1);
             }
         }
 
@@ -961,9 +963,16 @@ namespace BallBotGui
 
         private async Task sendPlayerBeforeGameInvitation(Poll poll, PlayerVote voter)
         {
-           
-            string message = $"Через час волейбол! Пора собираться!";
-            await botClient.SendMessage(voter.id, message);
+            try
+            {
+                string message = $"Через час волейбол! Пора собираться!";
+                await botClient.SendMessage(voter.id, message);
+            }
+            catch (Exception)
+            {
+                string message = $"Добрый день, @{voter.name} {voter.firstName}.Я ( @GadensVolleyballBot ) скучаю, начни со мной общаться, пожалуйста!";
+                await botClient.SendMessage(chatId, message);
+            }
         }
     }
     

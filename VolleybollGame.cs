@@ -68,9 +68,6 @@ namespace BallBotGui
 */
         }
 
-        internal bool IsTimeToInviteBeforeGame(DateTime currentTime)
-        {
-            throw new NotImplementedException();
-        }
+    
     }
 }
