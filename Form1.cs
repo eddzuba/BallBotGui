@@ -1,6 +1,9 @@
 ﻿using Newtonsoft.Json;
+using System.ComponentModel;
 using System.Linq;
+using System.Windows.Forms;
 using Telegram.Bot;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BallBotGui
 {
@@ -79,7 +82,7 @@ namespace BallBotGui
             dataGridViewPlayers.DataSource = bsPlayer;
             dataGridViewPlayers.AutoGenerateColumns = true;
 
-            bsRating.DataSource = stateManager.players;
+            bsRating.DataSource = new BindingList<Player>(stateManager.players);
             dataGridViewRating.DataSource = bsRating;
             dataGridViewRating.AutoGenerateColumns = true;
 
@@ -129,7 +132,7 @@ namespace BallBotGui
             if (curTime.Hour == 11 && curTime.Minute == 00)
             {
                 await sendInvitationAsync();
-               /*  await sendCarsInfo(); */
+                /*  await sendCarsInfo(); */
                 await askNewPlayesrsAsync();
             }
 
@@ -139,7 +142,7 @@ namespace BallBotGui
             {
                 foreach (var poll in polls)
                 {
-                    if(telConnector != null && poll.isTimeToSendBeforeGameInvite(curTime) )
+                    if (telConnector != null && poll.isTimeToSendBeforeGameInvite(curTime))
                     {
                         await telConnector.sendBeforeGameInvite(poll);
                         break;
@@ -165,8 +168,8 @@ namespace BallBotGui
         {
             var todayApprovedGamePolls = stateManager.getTodayApprovedGamePoll();
             if (todayApprovedGamePolls != null && todayApprovedGamePolls.Any())
-            { 
-             var newPlayes = telConnector.askNewPlayers(todayApprovedGamePolls);
+            {
+                var newPlayes = telConnector.askNewPlayers(todayApprovedGamePolls);
                 if (newPlayes != null)
                 {
                     foreach (var player in newPlayes)
@@ -483,9 +486,49 @@ namespace BallBotGui
             // askNewPlayesrsAsync();
         }
 
-        private void dataGridViewRating_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private void filter_TextChanged(object sender, EventArgs e)
         {
+            string filterText = (sender as TextBox)?.Text?.Trim().ToLower() ?? "";
 
+            CurrencyManager cm = (CurrencyManager)BindingContext[dataGridViewRating.DataSource];
+            cm.SuspendBinding();
+
+            // Предварительно убираем текущую ячейку и выделение
+            dataGridViewRating.ClearSelection();
+            dataGridViewRating.CurrentCell = null;
+
+            bool anyVisible = false;
+
+            foreach (DataGridViewRow row in dataGridViewRating.Rows)
+            {
+                if (row.DataBoundItem is Player player)
+                {
+                    bool visible = string.IsNullOrEmpty(filterText) ||
+                                   (player.name != null && player.name.ToLower().Contains(filterText))
+                                   || player.id.ToString().Contains(filterText)
+                    || (player.firstName != null && player.firstName.ToLower().Contains(filterText));
+                    row.Visible = visible;
+
+                    if (visible) anyVisible = true;
+                }
+            }
+
+            cm.ResumeBinding();
+
+            // Если остались видимые строки — выделим первую
+            if (anyVisible)
+            {
+                foreach (DataGridViewRow row in dataGridViewRating.Rows)
+                {
+                    if (row.Visible)
+                    {
+                        row.Selected = true;
+                        dataGridViewRating.CurrentCell = row.Cells[0];
+                        break;
+                    }
+                }
+            }
         }
+
     }
 }

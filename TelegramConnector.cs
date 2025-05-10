@@ -364,7 +364,7 @@ namespace BallBotGui
                     await botClient.SendMessage(chatId, message);
                 }
 
-                if( poll.playrsList.Count < 12 )
+                if( poll?.playrsList.Count < 12 )
                 {
                     string message = $"Игра в {gameTime}. После снятия  @{oldUser.Username} игроков осталось меньше 12. Штрафные санкции! ";
                     await botClient.SendMessage(chatId, message);
@@ -590,7 +590,7 @@ namespace BallBotGui
                 string team2Players = string.Join("\n", teams.Team2.Select(p => $"@{p.name} {(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)}"));
 
 
-                string message = $"!Предлагаются следующие составы команд:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}";
+                string message = $"Предлагаются следующие составы команд:\n\nКоманда 1:\n{team1Players}\n----------------\n\nКоманда 2:\n{team2Players}";
                 await botClient.SendMessage(chatId, message);
             }
         }
@@ -614,12 +614,13 @@ namespace BallBotGui
 
         internal void ArchPolls()
         {
-            stateManager.ArchPolls(botClient);
             foreach (var poll in stateManager.state.pollList.Where(p => p.idCarsMessage > 0).ToList())
             {
                 deleteCarMessage(poll);
 
             }
+            stateManager.ArchPolls(botClient);
+            
         }
 
         internal async Task sendInvitation(Poll todayApprovedGamePoll)
