@@ -298,7 +298,7 @@ namespace BallBotGui
             }
         }
 
-        private void removeFromCars(string idPoll, long idPlayer)
+        private async void removeFromCars(string idPoll, long idPlayer)
         {
             // удаляем как пасажира
             var curPoll = stateManager.state.pollList.FirstOrDefault(x => x.idPoll == idPoll);
@@ -311,7 +311,7 @@ namespace BallBotGui
                     if(curPoll.idPoll == todayApprovedGamePoll.idPoll && todayApprovedGamePoll.idCarsMessage > 0) { 
                         freeSeat(idPlayer, todayApprovedGamePoll);
                         // обновляем сообщение с машинами
-                        sendCarsMessage(todayApprovedGamePoll);
+                        await sendCarsMessage(todayApprovedGamePoll);
                     }
                 }
                 
@@ -345,6 +345,17 @@ namespace BallBotGui
 
                     await botClient.SendMessage(chatId, message);
                     await sendPlayerInvitation(poll, voter);
+
+                    if (poll != null)
+                    {
+                        // сегодняшний опрос и снялся человек и было уже сообщение
+                        if (poll.idCarsMessage > 0)
+                        {
+                            // обновляем сообщение с машинами
+                            await sendCarsMessage(poll);
+                        }
+                    }
+
                 }
                 else
                 {
@@ -657,8 +668,8 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                string message1 = $"Добрый день, @{voter.name} {voter.firstName}.Я ( @GadensVolleyballBot ) скучаю, начни со мной общаться, пожалуйста!";
-                await botClient.SendMessage(chatId, message1);
+                message = $"Добрый день, @{voter.name} {voter.firstName}.Я ( @GadensVolleyballBot ) скучаю, начни со мной общаться, пожалуйста!";
+                await botClient.SendMessage(chatId, message);
             }
         }
 
@@ -970,8 +981,8 @@ namespace BallBotGui
             }
             catch (Exception)
             {
-                string message = $"Добрый день, @{voter.name} {voter.firstName}.Я ( @GadensVolleyballBot ) скучаю, начни со мной общаться, пожалуйста!";
-                await botClient.SendMessage(chatId, message);
+                /*string message = $"Добрый день, @{voter.name} {voter.firstName}.Я ( @GadensVolleyballBot ) скучаю, начни со мной общаться, пожалуйста!";
+                await botClient.SendMessage(chatId, message);*/
             }
         }
     }
