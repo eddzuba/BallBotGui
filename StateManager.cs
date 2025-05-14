@@ -180,57 +180,48 @@ namespace BallBotGui
         {
             bool changesMade;
             List<DislikedTeammates> dislikedTeammates = state.dislikedTeammates;
+
             do
             {
                 changesMade = false;
 
-                // Create a copy of the list to iterate without issues when modifying
-                var playersToCheck = playersWithRatings.ToList();
-
-                foreach (var (player, rating) in playersToCheck)
+                foreach (var (player, rating) in playersWithRatings.ToList()) // копия списка для безопасного перебора
                 {
-                    var team1Contains = teams.Team1.Contains(player);
-                    var team2Contains = teams.Team2.Contains(player);
+                    var isInTeam1 = teams.Team1.Contains(player);
+                    var isInTeam2 = teams.Team2.Contains(player);
 
-                    if (!team1Contains && !team2Contains)
-                        continue; // Player is no longer in teams (possibly replaced earlier)
+                    if (!isInTeam1 && !isInTeam2)
+                        continue; // игрок уже не в командах
 
-                    var currentTeam = team1Contains ? teams.Team1 : teams.Team2;
-                    var oppositeTeam = team1Contains ? teams.Team2 : teams.Team1;
+                    var currentTeam = isInTeam1 ? teams.Team1 : teams.Team2;
+                    var oppositeTeam = isInTeam1 ? teams.Team2 : teams.Team1;
 
-                    var dislikedPlayer = dislikedTeammates.FirstOrDefault(dt => dt.idPlayer == player.id);
-                    var dislikedIds = dislikedPlayer != null ? dislikedPlayer.dislikedPlayers : new List<long>();
+                    // Проверяем конфликт игрока с текущей командой
+                    if (!HasConflictWithTeam(player, currentTeam.Where(p => p.id != player.id), dislikedTeammates))
+                        continue;
 
-                    // Check if the player has conflicts in the current team
-                    bool hasConflict = currentTeam.Any(p => dislikedIds.Contains(p.id));
-
-                    if (!hasConflict)
-                        continue; // If no conflicts, move to the next player
-
-                    // Find a player to swap with the same rating who doesn't conflict with the new team
+                    // Ищем кандидата на обмен с таким же рейтингом
                     var swapCandidate = oppositeTeam.FirstOrDefault(p =>
-                             playersWithRatings.Any(tp => tp.player.id == p.id && tp.rating == rating) && // тот же рейтинг
-                              !dislikedTeammates.Any(dt =>
-                                  (dt.idPlayer == p.id && dt.dislikedPlayers.Intersect(currentTeam.Select(tp => tp.id)).Any()) || // кандидат конфликтует с текущей командой
-                                  (dt.idPlayer == player.id && dt.dislikedPlayers.Intersect(oppositeTeam.Select(tp => tp.id).Where(id => id != p.id)).Any()) // исходный игрок конфликтует с новой командой, исключая игрока, которого убираем
-                              )
+                        playersWithRatings.Any(tp => tp.player.id == p.id && tp.rating == rating) &&
+                        !HasConflictWithTeam(player, oppositeTeam.Where(x => x.id != p.id).Append(p), dislikedTeammates) &&
+                        !HasConflictWithTeam(p, currentTeam.Where(x => x.id != player.id).Append(player), dislikedTeammates)
                     );
 
                     if (swapCandidate != null)
                     {
-                        // Swap players
+                        // Обмен
                         currentTeam.Remove(player);
                         oppositeTeam.Remove(swapCandidate);
 
                         currentTeam.Add(swapCandidate);
                         oppositeTeam.Add(player);
 
-                        changesMade = true; // Mark that a swap was made
+                        changesMade = true;
                     }
                 }
-            }
-            while (changesMade); // Repeat until no more improvements
+            } while (changesMade);
         }
+
         private void DistributeFemalesEvenly(Teams teams, List<(Player player, int rating)> playersWithRatings)
         {
             var dislikedTeammates = state.dislikedTeammates;
@@ -243,14 +234,14 @@ namespace BallBotGui
                 int diff = femalesInTeam1.Count - femalesInTeam2.Count;
 
                 if (Math.Abs(diff) <= 1)
-                    return; // already balanced
+                    return;
 
                 var fromTeam = diff > 0 ? teams.Team1 : teams.Team2;
                 var toTeam = diff > 0 ? teams.Team2 : teams.Team1;
 
                 var femaleCandidates = fromTeam
                     .Where(p => p.isFemale)
-                    .OrderBy(p => Guid.NewGuid()) // randomize
+                    .OrderBy(_ => Guid.NewGuid())
                     .ToList();
 
                 bool swapped = false;
@@ -267,24 +258,46 @@ namespace BallBotGui
                             (dt.idPlayer == female.id && dt.dislikedPlayers.Contains(p.id))
                         ));
 
-                    if (swapCandidate != null)
-                    {
-                        fromTeam.Remove(female);
-                        toTeam.Remove(swapCandidate);
+                    if (swapCandidate == null)
+                        continue;
 
-                        fromTeam.Add(swapCandidate);
-                        toTeam.Add(female);
+                    // Исключаем игроков, которых заменяют
+                    var futureToTeam = toTeam.Where(p => p.id != swapCandidate.id).Append(female);
+                    var futureFromTeam = fromTeam.Where(p => p.id != female.id).Append(swapCandidate);
 
-                        swapped = true;
-                        break; // Только одну девушку за раз, но цикл while повторит проверку
-                    }
+                    // Проверяем отсутствие конфликтов в обеих новых командах
+                    if (HasConflictWithTeam(female, futureToTeam, dislikedTeammates))
+                        continue;
+
+                    if (HasConflictWithTeam(swapCandidate, futureFromTeam, dislikedTeammates))
+                        continue;
+
+                    // Выполняем обмен
+                    fromTeam.Remove(female);
+                    toTeam.Remove(swapCandidate);
+
+                    fromTeam.Add(swapCandidate);
+                    toTeam.Add(female);
+
+                    swapped = true;
+                    break;
                 }
 
                 if (!swapped)
-                    break; // Больше нет подходящих кандидатов для обмена
+                    break;
             }
         }
 
+        private bool HasConflictWithTeam(Player player, IEnumerable<Player> team, List<DislikedTeammates> dislikedTeammates)
+        {
+            return team.Any(other =>
+                other.id != player.id &&
+                dislikedTeammates.Any(dt =>
+                    (dt.idPlayer == player.id && dt.dislikedPlayers.Contains(other.id)) ||
+                    (dt.idPlayer == other.id && dt.dislikedPlayers.Contains(player.id))
+                )
+            );
+        }
 
 
         public Teams Take4Teams(Update update)
