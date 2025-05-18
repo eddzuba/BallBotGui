@@ -586,11 +586,11 @@ namespace BallBotGui
             {
 
 
-                string team1Players = string.Join("\n", teams.Team1.Select(p => $"@{p.name} {(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)}"));
-                string team2Players = string.Join("\n", teams.Team2.Select(p => $"@{p.name} {(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)}"));
+                string team1Players = string.Join("\n", teams.Team1.Select(p => $"{(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)} @{p.name}"));
+                string team2Players = string.Join("\n", teams.Team2.Select(p => $"{(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)} @{p.name}"));
 
 
-                string message = $"Предлагаются следующие составы команд:\n\nКоманда 1:\n{team1Players}\n----------------\n\nКоманда 2:\n{team2Players}";
+                string message = $"Предлагаются команды:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}";
                 await botClient.SendMessage(chatId, message);
             }
         }
@@ -669,7 +669,7 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                message = $"Добрый день, @{voter.name} {voter.firstName}.Я ( @GadensVolleyballBot ) скучаю, начни со мной общаться, пожалуйста!";
+                message = $"Привет, @{voter.name} {voter.firstName}. Я скучаю, начни со мной общаться, пожалуйста! \n\nТвой @GadensVolleyballBot";
                 await botClient.SendMessage(chatId, message);
             }
         }
