@@ -26,6 +26,8 @@ namespace BallBotGui
 
         public string normalName { get; set; } // Нормальное имя игрока
 
+        public int rating { get; set; } // Открыгый рейтинг игрока,для рейтинговых игр
+
         public int group { get; set; } = 2;// Группа , по уровню игры
 
         /* 1 самые сильные
@@ -263,12 +265,18 @@ namespace BallBotGui
             }
             return DateTime.MinValue;
         }
+
+        internal bool isTimeToSendAfterGameSurvey(DateTime curTime)
+        {
+            throw new NotImplementedException();
+        }
     }
     public class State
     {
         public List<Poll> pollList = new();
         public BindingList<Car> carList = new();
         public List<DislikedTeammates> dislikedTeammates = new();
+        public List<string> spamStopWords = new();
 
         public Poll AddNewPoll(string idPoll, string date, string question, int messageId, VolleybollGame? curGame)
         {

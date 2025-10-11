@@ -6,9 +6,7 @@ using Telegram.Bot.Polling;
 using System.Text;
 using Telegram.Bot.Types.ReplyMarkups;
 using Newtonsoft.Json;
-using System.Windows.Forms;
-using System.Linq;
-using System.Numerics;
+
 
 
 namespace BallBotGui
@@ -431,18 +429,38 @@ namespace BallBotGui
                         suggect4Teams(update);
                     }
 
-                    if ( (update.Message.Text == "#mystat" || update.Message.Text == "#mystats"))
+                    if ( (update.Message?.Text == "#mystat" || update.Message?.Text == "#mystats"))
                     {
                         writePlayerStat(update);
                     }
                     // TODO проверить
-                    if ( update.Message.Type == MessageType.NewChatMembers && update.Message.NewChatMembers != null)
+                    if (update.Message?.Type == MessageType.NewChatMembers && update.Message.NewChatMembers != null)
                     {
                         foreach (var member in update.Message.NewChatMembers)
                         {
                             sendWellcomeMessage(member);
                         }
                     }
+                }
+                // Banned words
+                if (update.Message?.Text != null && update.Message.Chat.Id.ToString() == chatId)
+                {
+                    string messageText = update.Message.Text.ToLower();
+                    long messChatId = update.Message.Chat.Id;
+
+                    if(update.Message.From != null ){
+                        long messUserId = update.Message.From.Id;
+                       
+                        if (stateManager.state.spamStopWords.Any(word => messageText.Contains(word)))
+                        {
+                            // удалить сообщение
+                            botClient.DeleteMessage(chatId, update.Message.MessageId);
+
+                            // удалить пользователя
+                            botClient.BanChatMember(chatId, messUserId);
+                        }
+                    }
+
                 }
                 return false;
             }
@@ -451,6 +469,8 @@ namespace BallBotGui
                 onNewPollAnswer(update);
                 return true;
             }
+            
+           
 
             
             return false;
@@ -470,7 +490,12 @@ namespace BallBotGui
             {
                 var statist = new StatisticsManager();
                 string message = statist.getPlayerStat(update);
-                await botClient.SendMessage(chatId, message);
+                // await botClient.SendMessage(chatId, message);
+                if (update.Message?.Chat.Id > 0)
+                {
+                    await botClient.SendMessage(update.Message.Chat.Id, message);
+                }
+               
 
             }
             
@@ -984,6 +1009,31 @@ namespace BallBotGui
             {
                 /*string message = $"Добрый день, @{voter.name} {voter.firstName}.Я ( @GadensVolleyballBot ) скучаю, начни со мной общаться, пожалуйста!";
                 await botClient.SendMessage(chatId, message);*/
+            }
+        }
+
+        internal async Task sendAfterGameSurvey(Poll poll)
+        {
+            int inviteCount = Math.Min(poll.playrsList.Count, poll.maxPlayersCount);
+
+
+            for (int i = 0; i < inviteCount; i++)
+            {
+                PlayerVote voter = poll.playrsList[i];
+                await sendPlayerAfterGameSurvey(poll, voter);
+            }
+        }
+
+        private async Task sendPlayerAfterGameSurvey(Poll poll, PlayerVote voter)
+        {
+            try
+            {
+                string message = $"Спасибо за игру!";
+                // await botClient.SendMessage(voter.id, message);
+            }
+            catch (Exception)
+            {
+               
             }
         }
     }
