@@ -1,11 +1,12 @@
-﻿using Telegram.Bot;
+﻿using Newtonsoft.Json;
 using System.Globalization;
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types;
-using Telegram.Bot.Polling;
 using System.Text;
+using System.Windows.Forms;
+using Telegram.Bot;
+using Telegram.Bot.Polling;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using Newtonsoft.Json;
 
 
 
@@ -398,15 +399,27 @@ namespace BallBotGui
             {
                 var d = update;
 
-
-
                 if (update.Message != null)
-                { 
+                {
+                    // Вызов обработки команды spam:... от админа
+                    if (update.Message.Text != null && update.Message.Text.Trim().StartsWith("spam:"))
+                    {
+                        ProcessAdminSpamWordMessage(update);
+                        return false;
+                    }
+
+                    // Вызов обработки команды rate:... от админа
+                    if (update.Message.Text != null && update.Message.Text.Trim().StartsWith("rate:"))
+                    {
+                        ProcessAdminRateMessage(update);
+                        return false;
+                    }
+
                     if (update.Message.Chat.Type == ChatType.Private)
                     {
                         try
                         {
-                            if(update.Message.Text?.Trim() == "/start")
+                            if (update.Message.Text?.Trim() == "/start")
                             {
                                 sendDirectMessage(update.Message.From, "Приветствую, я просто БОТ. Я буду напоминать вам о волейболе!");
                             }
@@ -429,11 +442,21 @@ namespace BallBotGui
                         suggect4Teams(update);
                     }
 
-                    if ( (update.Message?.Text == "#mystat" || update.Message?.Text == "#mystats"))
+                    if ( (update.Message?.Text == "#mystat" || update.Message?.Text == "#mystats" || update.Message?.Text == "/mystat"))
                     {
                         writePlayerStat(update);
                     }
-                    // TODO проверить
+
+                    if ((update.Message?.Text == "/rating"))
+                    {
+                        sendRatingMessage(update);
+                    }
+
+                    if ((update.Message?.Text == "/getrating"))
+                    {
+                        sendRatingRequestMessage(update);
+                    }
+
                     if (update.Message?.Type == MessageType.NewChatMembers && update.Message.NewChatMembers != null)
                     {
                         foreach (var member in update.Message.NewChatMembers)
@@ -445,22 +468,7 @@ namespace BallBotGui
                 // Banned words
                 if (update.Message?.Text != null && update.Message.Chat.Id.ToString() == chatId)
                 {
-                    string messageText = update.Message.Text.ToLower();
-                    long messChatId = update.Message.Chat.Id;
-
-                    if(update.Message.From != null ){
-                        long messUserId = update.Message.From.Id;
-                       
-                        if (stateManager.state.spamStopWords.Any(word => messageText.Contains(word)))
-                        {
-                            // удалить сообщение
-                            botClient.DeleteMessage(chatId, update.Message.MessageId);
-
-                            // удалить пользователя
-                            botClient.BanChatMember(chatId, messUserId);
-                        }
-                    }
-
+                    BanUser(update);
                 }
                 return false;
             }
@@ -474,6 +482,98 @@ namespace BallBotGui
 
             
             return false;
+        }
+
+        private async void sendRatingRequestMessage(Update update)
+        {
+            // Ensure update.Message and update.Message.Chat are not null before dereferencing
+            if (update.Message?.Chat?.Id > 0)
+            {
+                if (update.Message.Chat.Id.ToString() != chatId)
+                {
+                    var (message, type, player) = stateManager.getRatingRequestStatusText(update);
+
+                    if (type == "success" && player != null) {
+                        RequestPlayerRating(player);
+
+                    }
+
+                    botClient?.SendMessage(update.Message?.Chat?.Id, message);
+                }
+            }
+        }
+
+        // Заглушка для функции запроса рейтинга
+        private void RequestPlayerRating(Player player)
+        {
+            // ID администратора, которому отправлять уведомление
+            long adminId = 245566701;
+            string message = $"Пользователь запросил рейтинг:\nНик: @{player.name}\nID: {player.id}";
+
+            // Отправка сообщения через TelegramConnector (по-хорошему, через botClient)
+            try
+            {
+                        
+                botClient?.SendMessage(adminId, message);
+            }
+            catch
+            {
+                // Игнорируем ошибки отправки
+            }
+        }
+    
+
+        private async void sendRatingMessage(Update update)
+        {
+            // Ensure update.Message and update.Message.Chat are not null before dereferencing
+            if (update.Message?.Chat?.Id > 0)
+            {
+                if (update.Message.Chat.Id.ToString() != chatId)
+                {
+                    string message = "Ваш рейтинг: " + stateManager.getPlayerRatingText(update) + ". ( Справочно: A - сильный, D - начинающий )";
+                    await botClient.SendMessage(update.Message.Chat.Id, message);
+                }
+            }
+        }
+
+        private void BanUser(Update update)
+        {
+            // Ensure update.Message and update.Message.Text are not null before dereferencing
+            if (update.Message?.Text == null)
+                return;
+
+            string messageText = update.Message.Text.ToLower();
+            long messChatId = update.Message.Chat.Id;
+
+            if (update.Message.From != null)
+            {
+                long messUserId = update.Message.From.Id;
+
+                if (stateManager.state.spamStopWords.Any(word => messageText.Contains(word)))
+                {
+                    // удалить сообщение
+                    botClient.DeleteMessage(chatId, update.Message.MessageId);
+
+                    // удалить пользователя
+                    botClient.BanChatMember(chatId, messUserId);
+
+                    // уведомление администратору
+                    long adminId = 245566701;
+                    string userName = update.Message.From.Username ?? "";
+                    string firstName = update.Message.From.FirstName ?? "";
+                    string lastName = update.Message.From.LastName ?? "";
+                    string notify = $"Пользователь забанен: @{userName} ({firstName} {lastName}), id: {messUserId}";
+
+                    try
+                    {
+                        botClient.SendMessage(adminId, notify);
+                    }
+                    catch
+                    {
+                        // Игнорируем ошибку отправки админу
+                    }
+                }
+            }
         }
 
         private async void sendDirectMessage(User? from, string message)
@@ -887,7 +987,7 @@ namespace BallBotGui
                 buttons.Add(rowButtons);
             }
 
-            // добовляем последнюю кнопку
+            // добавляем последнюю кнопку
             var byMySelf = InlineKeyboardButton.WithCallbackData("Добираюсь самостоятельно", $"takeaseat:0:0:{stops.First().IdPoll}");
             buttons.Add(new[] { byMySelf });
             return new InlineKeyboardMarkup(buttons);
@@ -1034,6 +1134,117 @@ namespace BallBotGui
             catch (Exception)
             {
                
+            }
+        }
+
+        private string GetLetterRating(int rate)
+        {
+            return rate switch
+            {
+                1 => "A",
+                2 => "B",
+                3 => "C",
+                4 => "D",
+                _ => "Не задан"
+            };
+        }
+
+        private async void ProcessAdminRateMessage(Update update)
+        {
+            try
+            {
+                // Проверяем, что сообщение от администратора
+                if (update.Message?.From?.Id != 245566701)
+                    return;
+
+                var text = update.Message?.Text?.Trim();
+                if (string.IsNullOrEmpty(text) || !text.StartsWith("rate:"))
+                    return;
+
+                var parts = text.Split(':');
+                if (parts.Length != 3)
+                    return;
+
+                Player? player = null;
+                string playerParam = parts[1];
+
+                // Проверяем, что второй параметр - username (начинается с @)
+                if (playerParam.StartsWith("@"))
+                {
+                    string username = playerParam.Substring(1);
+                    player = stateManager.players
+                        .FirstOrDefault(p => !string.IsNullOrEmpty(p.name) && p.name.Equals(username, StringComparison.OrdinalIgnoreCase));
+                }
+                else if (long.TryParse(playerParam, out long playerId))
+                {
+                    player = stateManager.players.FirstOrDefault(p => p.id == playerId);
+                }
+
+                if (!int.TryParse(parts[2], out int rate))
+                    return;
+
+                if (player == null)
+                {
+                    string notFoundMsg = $"Ошибка: игрок с {(playerParam.StartsWith("@") ? "username" : "id")} {playerParam} не найден.";
+                    await botClient.SendMessage(update.Message.Chat.Id, notFoundMsg);
+
+                    // Дополнительно уведомляем администратора в личку
+                    try
+                    {
+                        await botClient.SendMessage(245566701, notFoundMsg);
+                    }
+                    catch { /* ignore */ }
+
+                    return;
+                }
+
+                player.rating = rate;
+                player.group = rate;
+                stateManager.SavePlayers();
+
+                string letterRating = GetLetterRating(rate);
+
+                await botClient.SendMessage(
+                    update.Message.Chat.Id,
+                    $"Рейтинг игрока @{player.name} ({player.id}) установлен: {rate} ({letterRating})"
+                );
+
+                // Уведомление игрока
+                await botClient.SendMessage(player.id, $"Ваш рейтинг установлен администратором: {letterRating} . ( Справочно: A - сильный, D - начинающий )");
+            }
+            catch
+            {
+                // Игнорируем ошибку, если не удалось отправить сообщение игроку
+            }
+        }
+
+        private async void ProcessAdminSpamWordMessage(Update update)
+        {
+            // Проверяем, что сообщение от администратора
+            if (update.Message?.From?.Id != 245566701)
+                return;
+
+            var text = update.Message?.Text?.Trim();
+            if (string.IsNullOrEmpty(text) || !text.StartsWith("spam:"))
+                return;
+
+            var parts = text.Split(':', 2);
+            if (parts.Length != 2)
+                return;
+
+            string word = parts[1].Trim().ToLower();
+            if (string.IsNullOrWhiteSpace(word))
+                return;
+
+            if (!stateManager.state.spamStopWords.Contains(word))
+            {
+                stateManager.state.spamStopWords.Add(word);
+                stateManager.SaveState();
+                await botClient.SendMessage(update.Message.Chat.Id, $"Слово \"{word}\" добавлено в список стоп-слов.");
+            }
+            else
+            {
+                await botClient.SendMessage(update.Message.Chat.Id, $"Слово \"{word}\" уже есть в списке стоп-слов.");
             }
         }
     }

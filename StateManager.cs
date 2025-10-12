@@ -93,6 +93,28 @@ namespace BallBotGui
             }
             catch { }
         }
+        public int getPlayerRating(Update update)
+        {
+            if (update?.Message?.From?.Id == null)
+                return 0;
+
+            long playerId = update.Message.From.Id;
+            var player = players.FirstOrDefault(p => p.id == playerId);
+            return player?.rating ?? 0;
+        }
+
+        public string getPlayerRatingText(Update update)
+        {
+            var rating = getPlayerRating(update);
+            return rating switch
+            {
+                1 => "A",
+                2 => "B",
+                3 => "C",
+                4 => "D",
+                _ => "Не задан."
+            };
+        }
 
         public Teams Take2Teams(Update update)
         {
@@ -469,5 +491,32 @@ namespace BallBotGui
             // Если ни одна игра ещё не началась, возвращаем самую раннюю из всех
             return todayPolls.First();
         }
+
+        internal (string message, string type, Player? player) getRatingRequestStatusText(Update update)
+        {
+            if (update?.Message?.From?.Id == null)
+                return ("Ошибка: не удалось определить пользователя.", "error", null);
+
+            long playerId = update.Message.From.Id;
+            var player = players.FirstOrDefault(p => p.id == playerId);
+
+            if (player == null)
+                return ("Ошибка: игрок не найден.", "error", null);
+
+            DateTime lastRequestDate;
+            bool hasDate = DateTime.TryParse(player.ratingRequestDate, out lastRequestDate);
+
+            if (hasDate && (DateTime.Now - lastRequestDate).TotalDays < 60)
+            {
+                return ($"Нельзя запрашивать чаще одного раза в два месяца. Последний запрос был: {lastRequestDate:dd.MM.yyyy}", "limit", player);
+            }
+
+            // Сохраняем новую дату запроса
+            player.ratingRequestDate = DateTime.Now.ToString("yyyy-MM-dd");
+            SavePlayers();
+
+            return ("Запрос на рейтинг отправлен", "success", player);
+        }
     }
+       
 }
