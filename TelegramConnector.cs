@@ -7,6 +7,7 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using static System.Windows.Forms.AxHost;
 
 
 
@@ -14,6 +15,9 @@ namespace BallBotGui
 {
     internal class TelegramConnector
     {
+        // Глобальная переменная для ID администратора
+        private const long AdminId = 245566701;
+
         private readonly TelegramBotClient botClient;
         private readonly StateManager stateManager;
         private Form1 curForm;
@@ -32,8 +36,19 @@ namespace BallBotGui
 
             ReadAllUpdates();
             /*****************************/
+            /* подписываем на изменения рейтинговых игр */
+            foreach (var curPoll in stateManager.state.pollList)
+            {
+                if (curPoll.curGame != null && curPoll.curGame.RatingGame)
+                {
+                    curPoll.PlayersUpdated = curPoll =>
+                    {
+                        updateRatingGameListMessage(curPoll);
+                    };
+                }
+            }
 
-            
+
 
         }
 
@@ -64,25 +79,11 @@ namespace BallBotGui
             // botClient.OnMessage += OnMessage;
             botClient.OnUpdate += OnUpdate;
 
-            /*    botClient.StartReceiving(
-                        updateHandler: HandleUpdateAsync,
-                        pollingErrorHandler: HandlePollingErrorAsync,
-                        receiverOptions: receiverOptions,
-                        cancellationToken: cts.Token
-                    );
-            }
-            */
-
-            /*async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)*/
+           
             
         }
 
-        private async Task OnMessage(Telegram.Bot.Types.Message message, UpdateType type)
-        {
-            throw new NotImplementedException();
-        }
-
-      
+            
        
         async Task OnUpdate(Update update)
         {
@@ -98,37 +99,11 @@ namespace BallBotGui
                 Console.WriteLine(exception); // just dump the exception to the console
         }
 
-        /* public void startGeneratePoll()
-         {
-
-             TriggerFunction3Poll();
-
-         }*/
-
-        /*  public async void TriggerFunction3Poll()
-         {
-             DateTime today = DateTime.Today;
-
-
-             // Вторник
-             await createOnePoll(GetNextWeekday(today, DayOfWeek.Tuesday));
-             // Пятница
-             await createOnePoll(GetNextWeekday(today.AddDays(4), DayOfWeek.Friday));
-             // Воскресенье
-             await createOnePoll(GetNextWeekday(today.AddDays(4), DayOfWeek.Sunday));
-
-             timerFirst.Stop();
-             return;
-         }*/
-
+       
         public async Task createOnePoll(DateTime curDay, VolleybollGame curGame)
         {
-           /* string formattedDate = curDay.ToString("dddd, dd.MM", new CultureInfo("ru-RU"));
+            int idRatingMsg = 0;
 
-            // Модифицируем строку, чтобы первая буква дня недели была заглавной
-            formattedDate = formattedDate.ToUpper();
-            string curQuest = formattedDate + "! " + Properties.Settings.Default.pollQuestion;
-*/
             string curQuest = curGame.GetQuest(curDay);
             var poll = await botClient.SendPoll(
                             chatId: chatId,
@@ -144,15 +119,113 @@ namespace BallBotGui
                         );
 
             var gameTime = curDay.AddDays(curGame.PullBeforeDay);
+
+            if (curGame != null && curGame.RatingGame)
+            {
+                // Создаем пустое сообщение с текстом-заглушкой для рейтингового списка
+                var ratingMsg = await botClient.SendMessage(
+                    chatId: chatId,
+                    text: "Здесь появится рейтинговый список.\n" + curGame.Title,
+                    parseMode: ParseMode.Html
+                );
+                idRatingMsg = ratingMsg.Id;
+            }
+              
+
+
             // сохранение опроса в статусе
-            stateManager.state.AddNewPoll(poll.Poll.Id, gameTime.ToString("dd.MM", new CultureInfo("ru-RU")), curQuest, poll.MessageId, curGame);
+            stateManager.state.AddNewPoll(poll.Poll.Id, gameTime.ToString("dd.MM", new CultureInfo("ru-RU")), curQuest, poll.MessageId, curGame, idRatingMsg);
             stateManager.SaveState();
+
+            if (curGame != null && curGame.RatingGame){
+                var curPollInstance = stateManager.state.pollList.Find(p => p.idPoll == poll.Poll.Id);
+                if (curPollInstance != null)
+                {
+                    curPollInstance.PlayersUpdated =  curPoll =>
+                    {
+                        updateRatingGameListMessage(curPoll);
+                    };
+                }
+            }
+       
             await Task.Delay(30000); // ждем 30 секунд, чтобы не прыгал чат
             // Закрепление опроса
             await botClient.PinChatMessage(
                         chatId: chatId,
                         messageId: poll.MessageId
                     );
+        }
+
+        private async void updateRatingGameListMessage(Poll curPoll)
+        {
+            if (curPoll == null) return;
+
+            var sb = new StringBuilder();
+            sb.AppendLine("<b>Рейтинговый список</b>");
+            if (curPoll.curGame != null && !string.IsNullOrWhiteSpace(curPoll.curGame.Title))
+            {
+                sb.AppendLine(curPoll.curGame.Title);
+            }
+            sb.AppendLine();
+
+            var players = curPoll.playrsList ?? new List<PlayerVote>();
+            if (!players.Any())
+            {
+                sb.AppendLine("Список пока пуст.");
+            }
+            else
+            {
+                int idx = 1;
+                foreach (var p in players.Take(curPoll.maxPlayersCount))
+                {
+                    var statePlayer = stateManager.players.FirstOrDefault(pl => pl.id == p.id);
+                    var displayName = !string.IsNullOrWhiteSpace(statePlayer?.normalName) ? statePlayer.normalName : p.firstName;
+                    var ratingText = p.rating > 0 ? $"{GetLetterRating(p.rating)} ({p.rating})" : "—";
+
+                    // Экранируем пользовательские строки для HTML
+                    string nameHtml = System.Net.WebUtility.HtmlEncode(displayName);
+                    string usernameHtml = System.Net.WebUtility.HtmlEncode(p.name);
+
+                    sb.AppendLine($"{idx}. {nameHtml} @{usernameHtml}");
+                    idx++;
+                }
+            }
+
+            sb.AppendLine();
+            sb.AppendLine(DateTime.Now.ToString("HH:mm"));
+
+            string text = sb.ToString();
+
+            try
+            {
+                if (curPoll.ratingMessageId > 0)
+                {
+                    await botClient.EditMessageText(
+                        chatId: chatId,
+                        messageId: curPoll.ratingMessageId,
+                        text: text,
+                        parseMode: ParseMode.Html
+                    );
+                }
+                else
+                {
+                    var sent = await botClient.SendMessage(
+                        chatId: chatId,
+                        text: text,
+                        parseMode: ParseMode.Html
+                    );
+
+                    if (sent != null)
+                    {
+                        curPoll.ratingMessageId = sent.MessageId;
+                        stateManager.SaveState();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                
+            }
         }
 
 
@@ -162,7 +235,7 @@ namespace BallBotGui
         /// </summary>
         /// <param name="curDay">Дата на которую создаем опрос</param>
         /// <returns></returns>
-        public async Task createOnePoll(DateTime curDay)
+       /* public async Task createOnePoll(DateTime curDay)
         {
             string formattedDate = curDay.ToString("dddd, dd.MM", new CultureInfo("ru-RU"));
             // Модифицируем строку, чтобы первая буква дня недели была заглавной
@@ -190,7 +263,7 @@ namespace BallBotGui
                         chatId: chatId,
                         messageId: poll.MessageId
                     );
-        }
+        }*/
 
       
 /*
@@ -495,7 +568,6 @@ namespace BallBotGui
 
                     if (type == "success" && player != null) {
                         RequestPlayerRating(player);
-
                     }
 
                     botClient?.SendMessage(update.Message?.Chat?.Id, message);
@@ -506,26 +578,21 @@ namespace BallBotGui
         // Заглушка для функции запроса рейтинга
         private void RequestPlayerRating(Player player)
         {
-            // ID администратора, которому отправлять уведомление
-            long adminId = 245566701;
+            // Используем глобальную переменную AdminId
             string message = $"Пользователь запросил рейтинг:\nНик: @{player.name}\nID: {player.id}";
 
-            // Отправка сообщения через TelegramConnector (по-хорошему, через botClient)
             try
             {
-                        
-                botClient?.SendMessage(adminId, message);
+                botClient?.SendMessage(AdminId, message);
             }
             catch
             {
                 // Игнорируем ошибки отправки
             }
         }
-    
 
         private async void sendRatingMessage(Update update)
         {
-            // Ensure update.Message and update.Message.Chat are not null before dereferencing
             if (update.Message?.Chat?.Id > 0)
             {
                 if (update.Message.Chat.Id.ToString() != chatId)
@@ -538,11 +605,10 @@ namespace BallBotGui
 
         private void BanUser(Update update)
         {
-            // Ensure update.Message and update.Message.Text are not null before dereferencing
             if (update.Message?.Text == null)
                 return;
 
-            string messageText = update.Message.Text.ToLower();
+            string messageText = update.Message.Text.ToLowerInvariant();
             long messChatId = update.Message.Chat.Id;
 
             if (update.Message.From != null)
@@ -551,14 +617,10 @@ namespace BallBotGui
 
                 if (stateManager.state.spamStopWords.Any(word => messageText.Contains(word)))
                 {
-                    // удалить сообщение
                     botClient.DeleteMessage(chatId, update.Message.MessageId);
-
-                    // удалить пользователя
                     botClient.BanChatMember(chatId, messUserId);
 
-                    // уведомление администратору
-                    long adminId = 245566701;
+                    // Используем глобальную переменную AdminId
                     string userName = update.Message.From.Username ?? "";
                     string firstName = update.Message.From.FirstName ?? "";
                     string lastName = update.Message.From.LastName ?? "";
@@ -566,7 +628,7 @@ namespace BallBotGui
 
                     try
                     {
-                        botClient.SendMessage(adminId, notify);
+                        botClient.SendMessage(AdminId, notify);
                     }
                     catch
                     {

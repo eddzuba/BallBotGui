@@ -206,18 +206,18 @@ namespace BallBotGui
         {
             //  createNewPoll();
             DateTime now = DateTime.Now; // Текущее время
-            int targetDay = 4; // День недели (1 = понедельник, 2 = вторник, ..., 7 = воскресенье). Например, 4 = четверг.
+            int targetDay = 0; // День недели (1 = понедельник, 2 = вторник, ..., 7 = воскресенье). Например, 4 = четверг.
 
             int currentDay = (int)now.DayOfWeek == 0 ? 7 : (int)now.DayOfWeek; // Преобразуем DayOfWeek (0 = воскресенье) в систему, где 1 = понедельник
             int daysUntilTarget = (targetDay - currentDay + 7) % 7; // Количество дней до цели
 
-            if (daysUntilTarget == 0 && now.TimeOfDay > new TimeSpan(23, 15, 0))
+            if (daysUntilTarget == 0 && now.TimeOfDay > new TimeSpan(23, 0, 0))
             {
                 // Если сегодня целевой день, но время уже больше 23:00, берём следующий такой день
                 daysUntilTarget = 7;
             }
 
-            DateTime nextTargetDayAt23 = now.Date.AddDays(daysUntilTarget).AddHours(22).AddMinutes(15);
+            DateTime nextTargetDayAt23 = now.Date.AddDays(daysUntilTarget).AddHours(22).AddMinutes(00);
             if (gameManager != null)
             {
                 var pullCreated = await gameManager.CheckScheduleAndCreatePollAsync(nextTargetDayAt23);
@@ -351,7 +351,7 @@ namespace BallBotGui
 
 
 
-        private async void createNewPoll() //
+       /* private async void createNewPoll() //
         {
 
             DateTime curTime = DateTime.Now;
@@ -360,7 +360,7 @@ namespace BallBotGui
             await telConnector.createOnePoll(curTime.AddDays(pollBeforeGame));
             bsPoll.ResetBindings(false);
             bsPlayer.ResetBindings(false);
-        }
+        }*/
 
         private void AddPlayers(object sender, EventArgs e)
         {

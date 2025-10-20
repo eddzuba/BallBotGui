@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Linq;
+using System.Numerics;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using File = System.IO.File;
@@ -32,10 +33,16 @@ namespace BallBotGui
                     var newState = JsonConvert.DeserializeObject<State>(json);
                     if (newState != null)
                     {
-                        state = newState;
+                        // Преобразуем все стоп-слова в нижний регистр (инвариантно)
+                        newState.spamStopWords = newState.spamStopWords
+                            .Select(w => w.ToLowerInvariant())
+                            .Distinct()
+                            .ToList();
 
+                        state = newState;
                     }
                 }
+
             }
             catch (Exception)
             {
@@ -61,7 +68,7 @@ namespace BallBotGui
             }
             catch (Exception)
             {
-
+                 
             }
         }
 
@@ -397,13 +404,30 @@ namespace BallBotGui
              return teams;*/
             return null;
         }
-        public void AddVote(string IdPoll, long idPlayer, string name, string lastName, long idVoute)
+        public void AddVote(string IdPoll, long idPlayer, string userName, string firstName, long idVoute)
         {
             var curPoll = state.pollList.FirstOrDefault(x => x.idPoll == IdPoll);
             if (curPoll != null)
             {
-                curPoll.AddPlayerToList(idPlayer, name, lastName, idVoute);
+                var curPlayer  = players.FirstOrDefault( x => x.id == idPlayer);
+                if (curPlayer == null) {
+                    curPlayer = new Player(idPlayer, firstName, userName, userName, false);
+                    players.Add(curPlayer);
+                }
+
+                if (curPlayer != null)
+                {
+                    curPoll.AddPlayerToList(idPlayer, userName, firstName, idVoute, curPlayer.rating);
+                    
+                    if(curPlayer.name !=  userName )
+                    {
+                        curPlayer.name = userName;
+                    }
+                   
+                }
                 AddPlayersToRating(curPoll);
+                SaveState();
+            
             }
         }
 
@@ -440,7 +464,7 @@ namespace BallBotGui
         private void ArchivePoll(Poll poll)
         {
             var archiveFolderName = "Arch";
-            var polDate = poll.GetGameDate().ToString("ddMMyyyy");
+            var pollDate = poll.GetGameDate().ToString("ddMMyyyy");
             var archiveFolderPath = Path.Combine(Directory.GetCurrentDirectory(), archiveFolderName);
 
             if (!Directory.Exists(archiveFolderPath))
@@ -449,7 +473,7 @@ namespace BallBotGui
             }
 
             string json = JsonConvert.SerializeObject(poll);
-            var fileName = $"Arch{polDate}.json";
+            var fileName = $"Arch{pollDate}.json";
             var filePath = Path.Combine(archiveFolderPath, fileName);
 
             File.WriteAllText(filePath, json);

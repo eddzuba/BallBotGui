@@ -15,6 +15,8 @@ namespace BallBotGui
 
         public bool ActiveGame { get; set; } = true;
 
+        public bool RatingGame { get; set; } = false; // признак того что это рейтинговая игра
+
 
         public string? Location { get; set; } // Место где играем, ссылка на карте
         public string? Title { get; set; } // Шаблон Заголовка в голосовалке
