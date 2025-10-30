@@ -1,1 +1,1070 @@
-{"pollList":[{"approved":true,"date":"25.02","question":"ВОСКРЕСЕНЬЕ, 25.02! Волейбол в ЗАЛЕ с 8 до 10 вечера.","idMessage":9681,"idPoll":"5386418842119440347","playrsList":[{"id":412536036,"name":"linataganova","firstName":"Лина","idVote":272670434},{"id":418964991,"name":"polinasole","firstName":"Polina","idVote":272670435},{"id":482553595,"name":"havendv","firstName":"Konstantin","idVote":272670436},{"id":33583555,"name":"Malamut","firstName":"Vadim","idVote":272670438},{"id":418743991,"name":"alexeynetic","firstName":"Alexey","idVote":272670439},{"id":511481237,"name":"vasnau","firstName":"Vasily","idVote":272670440},{"id":5828483124,"name":"egorpritotskii","firstName":"Egor","idVote":272670437},{"id":85336684,"name":"VadimBakanov","firstName":"Vadim","idVote":272670442},{"id":354976636,"name":"artemstep","firstName":"Artem","idVote":272670448},{"id":919066612,"name":"iuaksenova","firstName":"Юлия","idVote":272670449},{"id":128269687,"name":"unit37akasrd","firstName":"Aleksei","idVote":272670450},{"id":1092258032,"name":"Yakodan","firstName":"Daniil","idVote":272670454},{"id":169372650,"name":"qreset","firstName":"QRS","idVote":272670455},{"id":1402126342,"name":"asya_3d","firstName":"Asiiat","idVote":272670456},{"id":470002021,"name":"KatyaMitchie","firstName":"Katya","idVote":272670459},{"id":274531969,"name":"Wasyaphi","firstName":"Vasiliy","idVote":272670464},{"id":348518374,"name":null,"firstName":"Sergey","idVote":272670468},{"id":328516501,"name":"Korswain","firstName":"Pavel","idVote":272670471},{"id":245566701,"name":"edoldboy","firstName":"EdGard","idVote":272670473},{"id":599893167,"name":"ArhidemonLight","firstName":"Azrael","idVote":272670479},{"id":251583139,"name":"asbortsov","firstName":"Alex","idVote":272670481}]},{"approved":false,"date":"26.02","question":"ПОНЕДЕЛЬНИК, 26.02! Волейбол в ЗАЛЕ с 8 до 10 вечера.","idMessage":9735,"idPoll":"5388653749826750411","playrsList":[{"id":418743991,"name":"alexeynetic","firstName":"Alexey","idVote":272670529},{"id":328516501,"name":"Korswain","firstName":"Pavel","idVote":272670530},{"id":33583555,"name":"Malamut","firstName":"Vadim","idVote":272670546},{"id":169372650,"name":"qreset","firstName":"QRS","idVote":272670548},{"id":394983316,"name":"vladik737","firstName":"Vladyslav","idVote":272670554},{"id":354976636,"name":"artemstep","firstName":"Artem","idVote":272670570},{"id":1402126342,"name":"asya_3d","firstName":"Asiiat","idVote":272670588},{"id":274531969,"name":"Wasyaphi","firstName":"Vasiliy","idVote":272670606}]}]}
+{
+  "pollList": [
+    {
+      "maxPlayersCount": 14,
+      "approved": true,
+      "date": "24.10",
+      "question": "Пятница, 24.10 Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера.",
+      "idMessage": 55529,
+      "idPoll": "5458490888722321982",
+      "idCarsMessage": -1,
+      "idleDrivers": [],
+      "curGame": {
+        "PullHour": 22,
+        "PullMinute": 0,
+        "GameDay": 5,
+        "PullBeforeDay": 3,
+        "GameStartHour": 20,
+        "GameStartMinute": 0,
+        "ActiveGame": true,
+        "RatingGame": false,
+        "Location": "https://maps.example.com/location1",
+        "Title": "Пятница, @GameDayName Волейбол в ЗАЛЕ(Нибрас) с 8 до 10 вечера."
+      },
+      "ratingMessageId": 0,
+      "occupiedPlaces": [],
+      "PlayersUpdated": null,
+      "playrsList": [
+        {
+          "id": 354976636,
+          "name": "artemstep",
+          "firstName": "Artem",
+          "idVote": 272782612,
+          "rating": 3
+        },
+        {
+          "id": 154084543,
+          "name": "SlavaBelykh",
+          "firstName": "Slava",
+          "idVote": 272782613,
+          "rating": 2
+        },
+        {
+          "id": 296660968,
+          "name": "forevernuts",
+          "firstName": "Rustem",
+          "idVote": 272782614,
+          "rating": 4
+        },
+        {
+          "id": 7490142419,
+          "name": "Khalida_Kr",
+          "firstName": "Khalida",
+          "idVote": 272782615,
+          "rating": 3
+        },
+        {
+          "id": 1017746727,
+          "name": "LI_H_HH_E_H_E_P",
+          "firstName": "T80F",
+          "idVote": 272782616,
+          "rating": 2
+        },
+        {
+          "id": 2114345683,
+          "name": "amangeldinovel",
+          "firstName": "Yelaman",
+          "idVote": 272782617,
+          "rating": 0
+        },
+        {
+          "id": 240479249,
+          "name": "evnmb",
+          "firstName": "E",
+          "idVote": 272782618,
+          "rating": 3
+        },
+        {
+          "id": 418743991,
+          "name": "alexeynetic",
+          "firstName": "Alexey",
+          "idVote": 272782620,
+          "rating": 3
+        },
+        {
+          "id": 245566701,
+          "name": "edoldboy",
+          "firstName": "EdGard",
+          "idVote": 272782622,
+          "rating": 2
+        },
+        {
+          "id": 808996752,
+          "name": "ekaterinakukushkina",
+          "firstName": "Кейт",
+          "idVote": 272782631,
+          "rating": 4
+        },
+        {
+          "id": 302977694,
+          "name": "quackingknox",
+          "firstName": "QuackingKnox",
+          "idVote": 272782633,
+          "rating": 1
+        },
+        {
+          "id": 470020608,
+          "name": "obladel",
+          "firstName": "Daniil",
+          "idVote": 272782634,
+          "rating": 3
+        },
+        {
+          "id": 311737681,
+          "name": "hialek",
+          "firstName": "Aleksandra Koveshnikova",
+          "idVote": 272782637,
+          "rating": 3
+        },
+        {
+          "id": 5174807124,
+          "name": "igm4tm",
+          "firstName": "Igor",
+          "idVote": 272782644,
+          "rating": 0
+        },
+        {
+          "id": 2035001972,
+          "name": "Sergei_Belij",
+          "firstName": "Сергей",
+          "idVote": 272782697,
+          "rating": 0
+        },
+        {
+          "id": 505750053,
+          "name": "nlomagin",
+          "firstName": "Nikita",
+          "idVote": 272782704,
+          "rating": 1
+        },
+        {
+          "id": 167371301,
+          "name": "shchuk0",
+          "firstName": "Andrei Shchuko",
+          "idVote": 272782707,
+          "rating": 3
+        },
+        {
+          "id": 5033274926,
+          "name": "vet8d",
+          "firstName": "Alina 🕊️",
+          "idVote": 272782711,
+          "rating": 0
+        },
+        {
+          "id": 277184296,
+          "name": "A_BlackBackpack",
+          "firstName": "Anastasia",
+          "idVote": 272782723,
+          "rating": 0
+        },
+        {
+          "id": 799186961,
+          "name": "oohkayy",
+          "firstName": "Анна",
+          "idVote": 272782732,
+          "rating": 0
+        },
+        {
+          "id": 1625763707,
+          "name": "Kos_Russ",
+          "firstName": "Константин",
+          "idVote": 272782736,
+          "rating": 0
+        },
+        {
+          "id": 5241417491,
+          "name": "baria_rriss",
+          "firstName": "cami",
+          "idVote": 272782744,
+          "rating": 0
+        },
+        {
+          "id": 297878873,
+          "name": "dimicq",
+          "firstName": "Дмитрий",
+          "idVote": 272782755,
+          "rating": 3
+        },
+        {
+          "id": 607747728,
+          "name": "darya_rudz97",
+          "firstName": "Darya",
+          "idVote": 272782757,
+          "rating": 0
+        },
+        {
+          "id": 817294859,
+          "name": "Arslanov1989",
+          "firstName": "Ruslan",
+          "idVote": 272782820,
+          "rating": 1
+        },
+        {
+          "id": 348518374,
+          "name": "Sergey_Nevstruev",
+          "firstName": "Sergey",
+          "idVote": 272783013,
+          "rating": 0
+        },
+        {
+          "id": 600895876,
+          "name": "SAleksey7980",
+          "firstName": "Aлексей",
+          "idVote": 272783044,
+          "rating": 3
+        }
+      ]
+    },
+    {
+      "maxPlayersCount": 14,
+      "approved": true,
+      "date": "25.10",
+      "question": "Суббота, 25.10 Волейбол в ЗАЛЕ(Нибрас) 19.00 - 21.00",
+      "idMessage": 55768,
+      "idPoll": "5463196201488747980",
+      "idCarsMessage": -1,
+      "idleDrivers": [],
+      "curGame": {
+        "PullHour": 22,
+        "PullMinute": 14,
+        "GameDay": 6,
+        "PullBeforeDay": 2,
+        "GameStartHour": 19,
+        "GameStartMinute": 0,
+        "ActiveGame": true,
+        "RatingGame": true,
+        "Location": "https://maps.example.com/location1",
+        "Title": "Суббота, @GameDayName Волейбол в ЗАЛЕ(Нибрас) 19.00 - 21.00"
+      },
+      "ratingMessageId": 55769,
+      "occupiedPlaces": [],
+      "PlayersUpdated": null,
+      "playrsList": []
+    }
+  ],
+  "carList": [
+    {
+      "idPlayer": 245566701,
+      "name": "edoldboy",
+      "firstName": "EdGard",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "GVA @Time",
+          "link": "https://www.google.com/maps/place/25%C2%B002'27.7%22N+55%C2%B008'00.4%22E/@25.041035,55.1326875,18z/data=!3m1!4b1!4m4!3m3!8m2!3d25.041035!4d55.133453?entry=ttu",
+          "minBefore": 25
+        },
+        {
+          "name": "Ⓜ️ The Gardens @Time",
+          "link": "https://maps.app.goo.gl/pYCaCEnoWaAzgmE96",
+          "minBefore": 20
+        }
+      ]
+    },
+    {
+      "idPlayer": 444941564,
+      "name": "ethereal_tbt",
+      "firstName": "Turar",
+      "placeCount": 3,
+      "carStops": [
+        {
+          "name": "JVC @Time",
+          "link": "https://maps.app.goo.gl/YR4LsMkn7QeuExPG7",
+          "minBefore": 30
+        }
+      ]
+    },
+    {
+      "idPlayer": 328516501,
+      "name": "Korswain",
+      "firstName": "Pavel",
+      "placeCount": 3,
+      "carStops": [
+        {
+          "name": "GVA @Time",
+          "link": "https://www.google.com/maps/place/25%C2%B002'27.7%22N+55%C2%B008'00.4%22E/@25.041035,55.1326875,18z/data=!3m1!4b1!4m4!3m3!8m2!3d25.041035!4d55.133453?entry=ttu",
+          "minBefore": 25
+        },
+        {
+          "name": "Ⓜ️ The Gardens @Time",
+          "link": "https://maps.app.goo.gl/pYCaCEnoWaAzgmE96",
+          "minBefore": 20
+        }
+      ]
+    },
+    {
+      "idPlayer": 33583555,
+      "name": "Malamut",
+      "firstName": "Vadim",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "Ⓜ️ SOBXA @Time",
+          "link": "https://maps.yango.com?whatshere%5Bpoint%5D=55.14589874033044%2C25.080976337419667&whatshere%5Bzoom%5D=19.639936&ll=55.14589874033044%2C25.080931166747174&z=19.639936",
+          "minBefore": 30
+        },
+        {
+          "name": "Ⓜ️ DMCC @Time",
+          "link": "https://maps.yango.com/11499/dubai/?ll=55.138155%2C25.072094&mode=whatshere&whatshere%5Bpoint%5D=55.138232%2C25.072518&whatshere%5Bzoom%5D=18.710066&z=16.4",
+          "minBefore": 20
+        }
+      ]
+    },
+    {
+      "idPlayer": 128269687,
+      "name": "unit37akasrd",
+      "firstName": "Aleksei",
+      "placeCount": 5,
+      "carStops": [
+        {
+          "name": "Ⓜ️ The Gardens @Time",
+          "link": "https://maps.app.goo.gl/pYCaCEnoWaAzgmE96",
+          "minBefore": 20
+        }
+      ]
+    },
+    {
+      "idPlayer": 141658056,
+      "name": "Flyingvassily",
+      "firstName": "Vasily",
+      "placeCount": 3,
+      "carStops": [
+        {
+          "name": "Ⓜ️ DIC (по будням) @Time",
+          "link": "https://maps.google.com/?q=25.099694,55.172056&entry=gps",
+          "minBefore": 25
+        },
+        {
+          "name": "Ⓜ️ DIP 1 (по выходным) @Time",
+          "link": "https://maps.app.goo.gl/jaRKLBZUxD1JK6Qw5",
+          "minBefore": 5
+        }
+      ]
+    },
+    {
+      "idPlayer": 355393046,
+      "name": "Timur_Kalinichenko",
+      "firstName": "Timur",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "Тут @Time",
+          "link": "https://maps.app.goo.gl/HbCEnNfDfGYWEmxJ7",
+          "minBefore": 50
+        },
+        {
+          "name": "Ⓜ️ SOBHA @Time",
+          "link": "https://maps.app.goo.gl/sPWvYQxJhurz3X827",
+          "minBefore": 25
+        }
+      ]
+    },
+    {
+      "idPlayer": 251583139,
+      "name": "asbortsov",
+      "firstName": "Alex",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "Ⓜ️ city walk @Time",
+          "link": "https://goo.gl/maps/vKNaZpTVQbQdSdgu6",
+          "minBefore": 50
+        },
+        {
+          "name": "Ⓜ️ The Gardens @Time (по запросу)",
+          "link": "https://maps.app.goo.gl/pYCaCEnoWaAzgmE96",
+          "minBefore": 20
+        }
+      ]
+    },
+    {
+      "idPlayer": 511481237,
+      "name": "vasnau",
+      "firstName": "Vasily",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "GVA @Time",
+          "link": "https://www.google.com/maps/place/25%C2%B002'22.2%22N+55%C2%B007'52.4%22E/@25.0394077,55.1310808,177m/data=!3m1!1e3!4m4!3m3!8m2!3d25.039487!4d55.13121?entry=ttu",
+          "minBefore": 25
+        },
+        {
+          "name": "Ⓜ️ The Gardens @Time",
+          "link": "https://maps.app.goo.gl/pYCaCEnoWaAzgmE96",
+          "minBefore": 20
+        }
+      ]
+    },
+    {
+      "idPlayer": 155515278,
+      "name": "armont",
+      "firstName": "Arman",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "Ⓜ️ DMCC @Time",
+          "link": "https://2gis.ae/dubai/geo/70000001062658124/55.139791,25.070724",
+          "minBefore": 30
+        },
+        {
+          "name": "Ⓜ️ The Gardens @Time",
+          "link": "https://maps.app.goo.gl/pYCaCEnoWaAzgmE96",
+          "minBefore": 15
+        }
+      ]
+    },
+    {
+      "idPlayer": 6800069683,
+      "name": "koreyamama",
+      "firstName": "AI",
+      "placeCount": 3,
+      "carStops": [
+        {
+          "name": "JVC @Time",
+          "link": "https://maps.app.goo.gl/9ESeFCVb4HVkTcJD8",
+          "minBefore": 30
+        },
+        {
+          "name": "Sport city(по запросу) @Time",
+          "link": "https://maps.app.goo.gl/jLp1NjahLuwsJFDJ9",
+          "minBefore": 15
+        },
+        {
+          "name": "Motor city(по запросу) @Time",
+          "link": "https://maps.app.goo.gl/ktks5ysiuXK4gSvn6 ",
+          "minBefore": 15
+        }
+      ]
+    },
+    {
+      "idPlayer": 109394612,
+      "name": "Alexxxxxxander",
+      "firstName": "Alexander",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "Ⓜ️ DMCC @Time",
+          "link": "https://maps.app.goo.gl/PVXK3ZZ1FXKA11im6",
+          "minBefore": 30
+        }
+      ]
+    },
+    {
+      "idPlayer": 252978563,
+      "name": "bundesver",
+      "firstName": "V",
+      "placeCount": 3,
+      "carStops": [
+        {
+          "name": "Ⓜ️ DMCC @Time",
+          "link": "https://maps.app.goo.gl/4XtZ1gVYZHpnYwKe6?g_st=it",
+          "minBefore": 30
+        }
+      ]
+    },
+    {
+      "idPlayer": 2114345683,
+      "name": "amangeldinovel",
+      "firstName": "Yelaman",
+      "placeCount": 3,
+      "carStops": [
+        {
+          "name": "Hills @Time",
+          "link": "https://maps.app.goo.gl/QhvM3fu1aEVwETmS8",
+          "minBefore": 40
+        }
+      ]
+    },
+    {
+      "idPlayer": 418743991,
+      "name": "alexeynetic",
+      "firstName": "Alexey",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "GVA @Time",
+          "link": "",
+          "minBefore": 30
+        },
+        {
+          "name": "Ⓜ️ The Gardens @Time",
+          "link": "https://maps.app.goo.gl/pYCaCEnoWaAzgmE96",
+          "minBefore": 25
+        }
+      ]
+    },
+    {
+      "idPlayer": 434060880,
+      "name": "Spark3d",
+      "firstName": "Alex",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "JLT Cluster G @Time",
+          "link": "https://maps.app.goo.gl/Wj7RkYbGScNN1DgN7?g_st=it",
+          "minBefore": 30
+        },
+        {
+          "name": "Ⓜ️ DMCC @Time",
+          "link": "https://maps.app.goo.gl/vjZD3TB4NEd7mjMUA",
+          "minBefore": 20
+        }
+      ]
+    },
+    {
+      "idPlayer": 147768477,
+      "name": "burlakovmx",
+      "firstName": "Maks",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "DIC (раб. дни) @Time",
+          "link": "https://maps.app.goo.gl/PvphGWCppH93bFyX7?g_st=ic",
+          "minBefore": 35
+        },
+        {
+          "name": "Ⓜ️Mashreq @Time",
+          "link": "https://maps.app.goo.gl/MPwLHWHsWBUsFfMV7?g_st=ic",
+          "minBefore": 40
+        },
+        {
+          "name": "Ⓜ️DMCC @Time",
+          "link": "https://maps.app.goo.gl/u8badrFq68LL2aBF6",
+          "minBefore": 30
+        }
+      ]
+    },
+    {
+      "idPlayer": 10922580320000,
+      "name": "Yakodan",
+      "firstName": "Daniil",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "Sport City @Time",
+          "link": "https://maps.app.goo.gl/V6qQiTyVBFQSSvBN8",
+          "minBefore": 30
+        },
+        {
+          "name": "Motor City @Time",
+          "link": "https://maps.app.goo.gl/7TwCyZncEfSxK5As8",
+          "minBefore": 20
+        }
+      ]
+    },
+    {
+      "idPlayer": 565402228,
+      "name": "pasha_taurus",
+      "firstName": "Pavel",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "Ⓜ️ The Gardens @Time",
+          "link": "https://maps.app.goo.gl/pYCaCEnoWaAzgmE96",
+          "minBefore": 20
+        }
+      ]
+    },
+    {
+      "idPlayer": 712389930,
+      "name": "kyrylcinema",
+      "firstName": "Kyryl",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "Ⓜ️ The Gardens @Time",
+          "link": "https://maps.app.goo.gl/pYCaCEnoWaAzgmE96",
+          "minBefore": 20
+        }
+      ]
+    },
+    {
+      "idPlayer": 464228897,
+      "name": "jesuisIgor",
+      "firstName": "Igor",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "Circle Mall, JVC @Time",
+          "link": "https://maps.app.goo.gl/dDZGhxnLV58cLdo49",
+          "minBefore": 30
+        },
+        {
+          "name": "Ⓜ️Jumeriah Golf Estates @Time",
+          "link": "https://maps.apple.com/?address=Dubai,%20United%20Arab%20Emirates&auid=11510447714254820040&ll=25.017800,55.163303&lsp=9902&q=Jumeriah%20Golf%20Estates&t=m",
+          "minBefore": 20
+        }
+      ]
+    },
+    {
+      "idPlayer": 408397453,
+      "name": "skhromov",
+      "firstName": "Сергей Хромов",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "By OBS Designer Residences @Time",
+          "link": "https://maps.app.goo.gl/i5btyGfTJL1C4q7y7",
+          "minBefore": 30
+        }
+      ]
+    },
+    {
+      "idPlayer": 6792690422,
+      "name": "astemir_emcitypro",
+      "firstName": "Astemir",
+      "placeCount": 2,
+      "carStops": [
+        {
+          "name": "Remraam @Time",
+          "link": "https://maps.app.goo.gl/WPSNi7humfg9FvHK7",
+          "minBefore": 30
+        }
+      ]
+    },
+    {
+      "idPlayer": 46181819411,
+      "name": "Gyshud",
+      "firstName": "Андрей",
+      "placeCount": 3,
+      "carStops": [
+        {
+          "name": "Ⓜ️Equiti @Time",
+          "link": "https://maps.app.goo.gl/ffcBeuSVwmNVxqV98",
+          "minBefore": 35
+        }
+      ]
+    },
+    {
+      "idPlayer": 203500197299,
+      "name": "Sergei_Belij",
+      "firstName": "Сергей",
+      "placeCount": 3,
+      "carStops": [
+        {
+          "name": "Ⓜ️Discovery Garden @Time",
+          "link": "https://maps.app.goo.gl/Grk1SFo2cqmsYRif6",
+          "minBefore": 20
+        }
+      ]
+    },
+    {
+      "idPlayer": 169501220,
+      "name": "mrshalamir",
+      "firstName": "Максим",
+      "placeCount": 3,
+      "carStops": [
+        {
+          "name": "Ⓜ️Al Furjan @Time",
+          "link": "https://maps.app.goo.gl/oL8rQNFDXjwYg8X7A",
+          "minBefore": 20
+        },
+        {
+          "name": "Ⓜ️Discovery Garden @Time",
+          "link": "https://maps.app.goo.gl/Grk1SFo2cqmsYRif6",
+          "minBefore": 20
+        }
+      ]
+    },
+    {
+      "idPlayer": 590820727,
+      "name": "lanatulup",
+      "firstName": "Lana",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "Motor City @Time",
+          "link": "https://maps.app.goo.gl/5Cp3WicuT2eVjHDx6",
+          "minBefore": 30
+        }
+      ]
+    },
+    {
+      "idPlayer": 546515892,
+      "name": "Alexander_Kasiyanenko",
+      "firstName": "Alexander",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "Arjan @Time",
+          "link": "https://maps.app.goo.gl/LNkMCRz3F2PcuyK58",
+          "minBefore": 35
+        },
+        {
+          "name": "Motor City @Time",
+          "link": "https://maps.app.goo.gl/XgGLNN14gkvR3CZe9?g_st=atm",
+          "minBefore": 25
+        }
+      ]
+    },
+    {
+      "idPlayer": 97020429,
+      "name": "traffer",
+      "firstName": "traffer",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "Ⓜ️ DMCC @Time",
+          "link": "https://maps.app.goo.gl/e8HL2aPqB9hWwodr6",
+          "minBefore": 30
+        }
+      ]
+    },
+    {
+      "idPlayer": 42646299,
+      "name": "@evgenyikov",
+      "firstName": "Evgeny Koval",
+      "placeCount": 3,
+      "carStops": [
+        {
+          "name": "Sobha Waves Grande @Time",
+          "link": "https://maps.app.goo.gl/5gEbKkZ1TPZWbXbt9",
+          "minBefore": 40
+        }
+      ]
+    },
+    {
+      "idPlayer": 119042892,
+      "name": "@BoBaH6eToH",
+      "firstName": "Vladimir",
+      "placeCount": 2,
+      "carStops": [
+        {
+          "name": "JVC Binghatti Heights @Time",
+          "link": "https://maps.app.goo.gl/jiuvh9byFxSAtSgG7",
+          "minBefore": 30
+        }
+      ]
+    },
+    {
+      "idPlayer": 777144681,
+      "name": "@Shadi559_559",
+      "firstName": "Shadi",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "DMCC @Time",
+          "link": "https://maps.app.goo.gl/dywTKj8A61zHNvhY7?g_st=ipc",
+          "minBefore": 20
+        }
+      ]
+    },
+    {
+      "idPlayer": 1070734346,
+      "name": "@Fastest_one",
+      "firstName": "Ildar",
+      "placeCount": 3,
+      "carStops": [
+        {
+          "name": "Sharjah @Time",
+          "link": "https://maps.app.goo.gl/dHqeXGVML8UQH3B28?g_st=ipc",
+          "minBefore": 80
+        },
+        {
+          "name": "Sport City @Time",
+          "link": "https://maps.app.goo.gl/TGPwo5dRPrmGtwQW7?g_st=ipc",
+          "minBefore": 30
+        }
+      ]
+    },
+    {
+      "idPlayer": 396055322,
+      "name": "@kerri1488",
+      "firstName": "Karina",
+      "placeCount": 3,
+      "carStops": [
+        {
+          "name": "JLT Mazaya business avenue BB1 @Time",
+          "link": "https://maps.app.goo.gl/RhyHL9TWGxe8CFNDA",
+          "minBefore": 40
+        },
+        {
+          "name": "Ⓜ️ Discovery Gardens @Time",
+          "link": "https://maps.app.goo.gl/ZMFHUsanBwRKRYx7A",
+          "minBefore": 25
+        }
+      ]
+    },
+    {
+      "idPlayer": 1838160686,
+      "name": "@AndreyBessmertnyi",
+      "firstName": "Андрей",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "Port La Mer, La Cote 3 @Time",
+          "link": "https://maps.app.goo.gl/gGjZVPNJyjgo8BteA",
+          "minBefore": 45
+        },
+        {
+          "name": "Ⓜ️ Financial center @Time",
+          "link": "https://maps.app.goo.gl/tj7hMXFfHLrWN4CB8",
+          "minBefore": 45
+        }
+      ]
+    },
+    {
+      "idPlayer": 919066612,
+      "name": "@iuaksenova",
+      "firstName": "Юля",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "Hills @Time",
+          "link": "https://maps.app.goo.gl/o7hsN65QLz9n2heA9?g_st=ipc",
+          "minBefore": 30
+        }
+      ]
+    },
+    {
+      "idPlayer": 394983316,
+      "name": "@topofclimb1",
+      "firstName": "Vladyslav",
+      "placeCount": 3,
+      "carStops": [
+        {
+          "name": "Spinneys creek harbor @Time",
+          "link": "https://maps.app.goo.gl/7UW5qPCAn4LEs9Jw5",
+          "minBefore": 35
+        }
+      ]
+    },
+    {
+      "idPlayer": 832467215,
+      "name": "@local_bro",
+      "firstName": "Эмиль",
+      "placeCount": 3,
+      "carStops": [
+        {
+          "name": "Expo @Time",
+          "link": "https://maps.app.goo.gl/C8Tm9HXW4137NdmRA",
+          "minBefore": 15
+        },
+        {
+          "name": "Ⓜ️ DIP @Time",
+          "link": "https://maps.app.goo.gl/PiGLYih83QCSEnNCA",
+          "minBefore": 5
+        }
+      ]
+    },
+    {
+      "idPlayer": 302977694,
+      "name": "@quackingknox",
+      "firstName": "Артем",
+      "placeCount": 4,
+      "carStops": [
+        {
+          "name": "Majan @Time",
+          "link": "https://maps.app.goo.gl/2wdoNeinXQNB3WXH6",
+          "minBefore": 40
+        }
+      ]
+    }
+  ],
+  "dislikedTeammates": [
+    {
+      "idPlayer": 5974908569,
+      "dislikedPlayers": [
+        6792690422
+      ]
+    },
+    {
+      "idPlayer": 354976636,
+      "dislikedPlayers": [
+        6792690422
+      ]
+    },
+    {
+      "idPlayer": 119042892,
+      "dislikedPlayers": [
+        549349549
+      ]
+    },
+    {
+      "idPlayer": 311737681,
+      "dislikedPlayers": [
+        335967923,
+        5241417491,
+        461818194,
+        6804202565
+      ]
+    },
+    {
+      "idPlayer": 607747728,
+      "dislikedPlayers": [
+        335967923
+      ]
+    },
+    {
+      "idPlayer": 565402228,
+      "dislikedPlayers": [
+        461818194,
+        280328160,
+        1017746727
+      ]
+    },
+    {
+      "idPlayer": 277184296,
+      "dislikedPlayers": [
+        461818194
+      ]
+    },
+    {
+      "idPlayer": 1070734346,
+      "dislikedPlayers": [
+        549349549,
+        119042892,
+        2035001972,
+        832467215,
+        335967923,
+        354976636,
+        6804202565
+      ]
+    },
+    {
+      "idPlayer": 205968815,
+      "dislikedPlayers": [
+        335967923
+      ]
+    },
+    {
+      "idPlayer": 1131567099,
+      "dislikedPlayers": [
+        461818194,
+        280328160
+      ]
+    },
+    {
+      "idPlayer": 433473229,
+      "dislikedPlayers": [
+        335967923
+      ]
+    },
+    {
+      "idPlayer": 320569436,
+      "dislikedPlayers": [
+        6792690422,
+        549349549
+      ]
+    },
+    {
+      "idPlayer": 482553595,
+      "dislikedPlayers": [
+        822338207,
+        511481237,
+        119042892
+      ]
+    },
+    {
+      "idPlayer": 353480644,
+      "dislikedPlayers": [
+        461818194,
+        335967923
+      ]
+    },
+    {
+      "idPlayer": 832467215,
+      "dislikedPlayers": [
+        354976636,
+        274531969,
+        6649264694,
+        6792690422,
+        2035001972,
+        549349549
+      ]
+    },
+    {
+      "idPlayer": 482553595,
+      "dislikedPlayers": [
+        822338207
+      ]
+    },
+    {
+      "idPlayer": 302977694,
+      "dislikedPlayers": [
+        154139558
+      ]
+    },
+    {
+      "idPlayer": 145706760,
+      "dislikedPlayers": [
+        433473229,
+        6792690422
+      ]
+    },
+    {
+      "idPlayer": 169372650,
+      "dislikedPlayers": [
+        6792690422,
+        549349549,
+        505750053
+      ]
+    },
+    {
+      "idPlayer": 919066612,
+      "dislikedPlayers": [
+        6792690422
+      ]
+    },
+    {
+      "idPlayer": 335967923,
+      "dislikedPlayers": [
+        354976636
+      ]
+    },
+    {
+      "idPlayer": 7490142419,
+      "dislikedPlayers": [
+        817294859
+      ]
+    },
+    {
+      "idPlayer": 274531969,
+      "dislikedPlayers": [
+        832467215
+      ]
+    },
+    {
+      "idPlayer": 258547606,
+      "dislikedPlayers": [
+        7490142419,
+        461818194
+      ]
+    },
+    {
+      "idPlayer": 470020608,
+      "dislikedPlayers": [
+        6792690422
+      ]
+    },
+    {
+      "idPlayer": 245566701,
+      "dislikedPlayers": [
+        258547606,
+        7281292913,
+        1017746727
+      ]
+    }
+  ],
+  "spamStopWords": [
+    "@kornilov_eg",
+    "@yagushevsk",
+    "@elmirax1",
+    "@elmirax17",
+    "kornilov_eg",
+    "@liliazimova",
+    "@ivannakrilova",
+    "@andrey_kovalskiyyy",
+    "@azimovval",
+    "@leo_mironov",
+    "@gubanova_connect",
+    "@avelinna",
+    "@vladislava_berezova",
+    "@nekrassovaa22",
+    "@anastasia_frolova_hr",
+    "@irin_akuznetsova75",
+    "@elyna_p0rtnova",
+    "@anastassia_lebedevahr"
+  ]
+}

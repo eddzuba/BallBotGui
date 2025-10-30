@@ -18,8 +18,10 @@ namespace BallBotGui
 
         public void SaveState()
         {
-            string json = JsonConvert.SerializeObject(state);
-            File.WriteAllText(fileName, json);
+           
+                string json = JsonConvert.SerializeObject(state);
+                File.WriteAllText(fileName, json);
+            
         }
 
         // Функция для загрузки опроса с диска из формата JSON

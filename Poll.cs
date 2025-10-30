@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 
 namespace BallBotGui
@@ -31,6 +32,7 @@ namespace BallBotGui
 
         // External subscriber (UI, telegram sender, etc.)
         // Subscriber should marshal to UI thread if needed.
+        [JsonIgnore]
         public Action<Poll>? PlayersUpdated { get; set; }
 
         // Call this after you change playrsList (AddPlayerToList, DeletePlayerFromList)
@@ -104,11 +106,28 @@ namespace BallBotGui
 
             if (index != -1)
             {
+                var removedPlayer = playrsList[index];
                 // Удаляем игрока из списка
                 playrsList.RemoveAt(index);
 
+
                 if (curGame.RatingGame)
                 {
+                    // Если удалили топового игрока (rating == 1) и он был в первых 8
+                    if (removedPlayer is PlayerVote rp && rp.rating == 1 && index < 8)
+                    {
+                        // Ищем следующего топового игрока с рейтингом 1, который стоит после первых 8
+                        int candidateIndex = playrsList.FindIndex(8, p => p is PlayerVote pv && pv.rating == 1);
+
+                        if (candidateIndex != -1)
+                        {
+                            var candidate = playrsList[candidateIndex];
+                            // Удаляем кандидата из его позиции
+                            playrsList.RemoveAt(candidateIndex);
+                            // Вставляем его на 8-ю позицию (или в конец списка, если игроков меньше 8)
+                            playrsList.Insert(Math.Min(7, playrsList.Count), candidate);
+                        }
+                    }
                     // schedule coalesced update
                     SchedulePlayersUpdate();
                 }
@@ -139,7 +158,20 @@ namespace BallBotGui
                 {
                     int newPlayerRating = rating;
                     
-                        // Т.е. это рейтингованный участник, он должен быть до всех игроков с нулевым рейтингом
+                        // Т.е. это рейтингованный участник, он должен быть до всех игроков с нулевым рейтингом, однако только если их не больше 8 вначале стоят
+                        if (newPlayerRating == 1) // это топовый игрок
+                        {
+                            // Считаем, сколько игроков с рейтингом 1 уже есть
+                            int topPlayersCount = playrsList.Count(p => p is PlayerVote pv && pv.rating == 1);
+                        
+                            if (topPlayersCount >= 8)
+                            {
+                                // Если уже есть 8 и больше топовых игроков, 
+                                // то текущего игрока трактуем как "B" (поставим rating = 0 временно)
+                                newPlayerRating = 2;
+                            }
+
+                    }    
 
                         // Найти последнего игрока рейтингованного с такимже рейтингом или сильнее
                         int lastSameRatingIdx = playrsList

@@ -164,7 +164,7 @@ namespace BallBotGui
             sb.AppendLine("<b>Рейтинговый список</b>");
             if (curPoll.curGame != null && !string.IsNullOrWhiteSpace(curPoll.curGame.Title))
             {
-                sb.AppendLine(curPoll.curGame.Title);
+                sb.AppendLine(curPoll.curGame.Title.Replace("@GameDayName", curPoll.date));
             }
             sb.AppendLine();
 
@@ -176,7 +176,7 @@ namespace BallBotGui
             else
             {
                 int idx = 1;
-                foreach (var p in players.Take(curPoll.maxPlayersCount))
+                foreach (var p in players)
                 {
                     var statePlayer = stateManager.players.FirstOrDefault(pl => pl.id == p.id);
                     var displayName = !string.IsNullOrWhiteSpace(statePlayer?.normalName) ? statePlayer.normalName : p.firstName;
@@ -364,7 +364,10 @@ namespace BallBotGui
                     {
                         var user = update.PollAnswer.User;
                         stateManager.AddVote(update.PollAnswer.PollId, user.Id, user.Username, user.FirstName, update.Id);
-                     
+
+                        // test
+
+                        // botClient?.SendMessage(AdminId, user.Username + " проголосовал ЗА! PollId:" + update.PollAnswer.PollId.ToString());
                     }
                 }
             }
@@ -382,12 +385,55 @@ namespace BallBotGui
                     // сегодняшний опрос и снялся человек и было уже сообщение
                     if(curPoll.idPoll == todayApprovedGamePoll.idPoll && todayApprovedGamePoll.idCarsMessage > 0) { 
                         freeSeat(idPlayer, todayApprovedGamePoll);
+                        // если есть машина которую ведет удаляемый игрок то нужно ее удалить и все пассажирма написать сообщение
+                        deleteCar(idPlayer, todayApprovedGamePoll);
                         // обновляем сообщение с машинами
                         await sendCarsMessage(todayApprovedGamePoll);
                     }
                 }
                 
             }
+
+        }
+
+        private async void deleteCar(long ownerId, Poll todayApprovedGamePoll)
+        {
+            try
+            {
+
+
+                // Найти машину владельца
+                var car = stateManager.state.carList.FirstOrDefault(c => c.idPlayer == ownerId);
+                if (car == null) return;
+
+                // Найти список пассажиров, записанных к этой машине (по сегодняшнему опросу)
+                var passengerPlaces = todayApprovedGamePoll.occupiedPlaces
+                    .Where(op => op.idCarOwner == ownerId)
+                    .ToList();
+
+                // Сообщение для пассажиров
+                string passengerMessage = $"Внимание: машина, в которую вы записывались, больше недоступна — поездка отменена. Пожалуйста, найдите другой вариант.";
+                // Уведомляем пассажиров
+                foreach (var place in passengerPlaces)
+                {
+                    try
+                    {
+                        await botClient.SendMessage(place.idPlayer, passengerMessage);
+                    }
+                    catch
+                    {
+                        // Игнорируем ошибки отправки отдельным пользователям
+                    }
+                }
+
+                // Удаляем записи о пассажирах для этой машины из состояния
+                todayApprovedGamePoll.occupiedPlaces.RemoveAll(op => op.idCarOwner == ownerId);
+            }
+            catch (Exception ex)
+            {
+                // просто гасим ошибку, плохо но пока так для надежности
+            }
+        
 
         }
 
@@ -700,7 +746,7 @@ namespace BallBotGui
                 long driverId = 0;
                 int stopIdx = 0;
 
-                var firstMaxPlayersCountIds = todayApprovedGamePoll.playrsList.OrderBy(player => player.idVote)
+                var firstMaxPlayersCountIds = todayApprovedGamePoll.playrsList
                                   .Take(todayApprovedGamePoll.maxPlayersCount)
                                   .Select(player => player.id);
 
@@ -869,7 +915,7 @@ namespace BallBotGui
             var stops = new List<StopInfo>();
 
             // Получаем id игроков из первых maxPlayersCount в голосовании
-            var firstMaxPlayersCountIds = todayApprovedGamePoll.playrsList.OrderBy(player => player.idVote)
+            var firstMaxPlayersCountIds = todayApprovedGamePoll.playrsList
                                         .Take(todayApprovedGamePoll.maxPlayersCount)
                                         .Select(player => player.id);
 
