@@ -1259,9 +1259,15 @@ namespace BallBotGui
             // ОТЛАДКА: Отправляем опрос только администратору
             if (poll.playrsList != null && poll.playrsList.Any())
             {
-                // Берем первого игрока для формирования списка
-                PlayerVote firstVoter = poll.playrsList[0];
-                await sendPlayerAfterGameSurvey(poll, firstVoter);
+                // Чтобы список кандидатов не менялся при клике (когда срабатывает HandleVoteCallback с AdminId),
+                // мы должны сформировать начальное сообщение так, как будто оно для AdminId.
+                // Если админа нет в списке игроков, то просто используем фейкового игрока с AdminId.
+                // Тогда логика исключения (p.id != voter.id) будет работать одинаково и при отправке, и при клике.
+
+                var adminVoter = poll.playrsList.FirstOrDefault(p => p.id == AdminId)
+                                 ?? new PlayerVote(AdminId, "Admin", "", 0, 0);
+
+                await sendPlayerAfterGameSurvey(poll, adminVoter);
             }
 
             /* ОРИГИНАЛЬНЫЙ КОД - закомментирован для отладки
@@ -1404,6 +1410,11 @@ namespace BallBotGui
                 InlineKeyboardButton.WithCallbackData("📩 ОТПРАВИТЬ", $"submit|{gameId}|{nomination}")
             });
 
+            // Добавляем кнопку СЕГОДНЯ ТАКИХ НЕТ
+            keyboard.Add(new List<InlineKeyboardButton> {
+                InlineKeyboardButton.WithCallbackData("🙅 СЕГОДНЯ ТАКИХ НЕТ", $"submit|{gameId}|{nomination}|none")
+            });
+
             return new InlineKeyboardMarkup(keyboard);
         }
 
@@ -1495,11 +1506,12 @@ namespace BallBotGui
 
         private async Task HandleSubmitCallback(CallbackQuery callbackQuery, string[] parts)
         {
-            // submit|gameId|nomination
-            if (parts.Length != 3) return;
+            // submit|gameId|nomination|none?
+            if (parts.Length < 3) return;
 
             string gameId = parts[1];
             string nomination = parts[2];
+            bool isNone = parts.Length > 3 && parts[3] == "none";
             long voterId = callbackQuery.From.Id;
 
             // Получаем выбранных игроков из клавиатуры
@@ -1508,10 +1520,15 @@ namespace BallBotGui
 
             var selectedIds = GetSelectionFromKeyboard(markup, nomination);
 
-            if (selectedIds.Count == 0)
+            if (!isNone && selectedIds.Count == 0)
             {
-                await botClient.AnswerCallbackQuery(callbackQuery.Id, "Выберите хотя бы одного игрока!", showAlert: true);
+                await botClient.AnswerCallbackQuery(callbackQuery.Id, "Выберите хотя бы одного игрока или нажмите 'СЕГОДНЯ ТАКИХ НЕТ'!", showAlert: true);
                 return;
+            }
+
+            if (isNone)
+            {
+                selectedIds.Clear();
             }
 
             var poll = stateManager.state.pollList.FirstOrDefault(p => p.idPoll == gameId);
@@ -1529,17 +1546,24 @@ namespace BallBotGui
 
             // Формируем сообщение подтверждения
             var selectedNames = new List<string>();
-            foreach (var pid in selectedIds)
+            if (isNone)
             {
-                var player = stateManager.players.FirstOrDefault(p => p.id == pid);
-                if (player != null)
+                selectedNames.Add("Никого");
+            }
+            else
+            {
+                foreach (var pid in selectedIds)
                 {
-                    string normalName = player.normalName ?? "";
-                    string displayName = !string.IsNullOrEmpty(normalName) ? normalName :
-                                         (!string.IsNullOrEmpty(player.firstName) ? player.firstName : player.name);
-                    string username = !string.IsNullOrEmpty(player.name) ? $"@{player.name}" : "";
+                    var player = stateManager.players.FirstOrDefault(p => p.id == pid);
+                    if (player != null)
+                    {
+                        string normalName = player.normalName ?? "";
+                        string displayName = !string.IsNullOrEmpty(normalName) ? normalName :
+                                             (!string.IsNullOrEmpty(player.firstName) ? player.firstName : player.name);
+                        string username = !string.IsNullOrEmpty(player.name) ? $"@{player.name}" : "";
 
-                    selectedNames.Add($"{displayName} {username}".Trim());
+                        selectedNames.Add($"{displayName} {username}".Trim());
+                    }
                 }
             }
 
