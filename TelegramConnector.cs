@@ -23,7 +23,7 @@ namespace BallBotGui
         private Form1 curForm;
 
         private readonly string chatId = Properties.Settings.Default.chatId;
-        private  System.Timers.Timer timerFirst = new System.Timers.Timer();
+        private System.Timers.Timer timerFirst = new System.Timers.Timer();
 
         public TelegramConnector(TelegramBotClient botClient, StateManager stateManager, Form1 form)
         {
@@ -79,12 +79,12 @@ namespace BallBotGui
             // botClient.OnMessage += OnMessage;
             botClient.OnUpdate += OnUpdate;
 
-           
-            
+
+
         }
 
-            
-       
+
+
         async Task OnUpdate(Update update)
         {
             var needToSave = OnNewUpdate(update);
@@ -96,10 +96,10 @@ namespace BallBotGui
         }
         async Task OnError(Exception exception, HandleErrorSource source)
         {
-                Console.WriteLine(exception); // just dump the exception to the console
+            Console.WriteLine(exception); // just dump the exception to the console
         }
 
-       
+
         public async Task createOnePoll(DateTime curDay, VolleybollGame curGame)
         {
             int idRatingMsg = 0;
@@ -130,24 +130,25 @@ namespace BallBotGui
                 );
                 idRatingMsg = ratingMsg.Id;
             }
-              
+
 
 
             // сохранение опроса в статусе
             stateManager.state.AddNewPoll(poll.Poll.Id, gameTime.ToString("dd.MM", new CultureInfo("ru-RU")), curQuest, poll.MessageId, curGame, idRatingMsg);
             stateManager.SaveState();
 
-            if (curGame != null && curGame.RatingGame){
+            if (curGame != null && curGame.RatingGame)
+            {
                 var curPollInstance = stateManager.state.pollList.Find(p => p.idPoll == poll.Poll.Id);
                 if (curPollInstance != null)
                 {
-                    curPollInstance.PlayersUpdated =  curPoll =>
+                    curPollInstance.PlayersUpdated = curPoll =>
                     {
                         updateRatingGameListMessage(curPoll);
                     };
                 }
             }
-       
+
             await Task.Delay(30000); // ждем 30 секунд, чтобы не прыгал чат
             // Закрепление опроса
             await botClient.PinChatMessage(
@@ -224,7 +225,7 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                
+
             }
         }
 
@@ -235,43 +236,43 @@ namespace BallBotGui
         /// </summary>
         /// <param name="curDay">Дата на которую создаем опрос</param>
         /// <returns></returns>
-       /* public async Task createOnePoll(DateTime curDay)
-        {
-            string formattedDate = curDay.ToString("dddd, dd.MM", new CultureInfo("ru-RU"));
-            // Модифицируем строку, чтобы первая буква дня недели была заглавной
-            formattedDate = formattedDate.ToUpper();
-            string curQuest = formattedDate + "! " + Properties.Settings.Default.pollQuestion;
-            var poll = await botClient.SendPoll(
-                            chatId: chatId, 
-                            question: curQuest,
-                            options: new InputPollOption[]
-                                {
-                                    Properties.Settings.Default.mainQuestion,
-                                    Properties.Settings.Default.questSkip
-                            },
-                            allowsMultipleAnswers: false,
-                            isAnonymous: false
-                        );
-            
+        /* public async Task createOnePoll(DateTime curDay)
+         {
+             string formattedDate = curDay.ToString("dddd, dd.MM", new CultureInfo("ru-RU"));
+             // Модифицируем строку, чтобы первая буква дня недели была заглавной
+             formattedDate = formattedDate.ToUpper();
+             string curQuest = formattedDate + "! " + Properties.Settings.Default.pollQuestion;
+             var poll = await botClient.SendPoll(
+                             chatId: chatId, 
+                             question: curQuest,
+                             options: new InputPollOption[]
+                                 {
+                                     Properties.Settings.Default.mainQuestion,
+                                     Properties.Settings.Default.questSkip
+                             },
+                             allowsMultipleAnswers: false,
+                             isAnonymous: false
+                         );
 
-            // сохранение опроса в статусе
-            stateManager.state.AddNewPoll(poll.Poll.Id, curDay.ToString("dd.MM", new CultureInfo("ru-RU")), curQuest, poll.MessageId, null);
-            stateManager.SaveState();
-            await Task.Delay(60000); // ждем минуту, чтобы не прыгал чат
-            // Закрепление опроса
-            await botClient.PinChatMessage(
-                        chatId: chatId,
-                        messageId: poll.MessageId
-                    );
-        }*/
 
-      
-/*
-        private DateTime GetNextWeekday(DateTime currentDate, DayOfWeek targetDay)
-        {
-            int daysUntilTargetDay = ((int)targetDay - (int)currentDate.DayOfWeek + 7) % 7;
-            return currentDate.AddDays(daysUntilTargetDay);
-        }*/
+             // сохранение опроса в статусе
+             stateManager.state.AddNewPoll(poll.Poll.Id, curDay.ToString("dd.MM", new CultureInfo("ru-RU")), curQuest, poll.MessageId, null);
+             stateManager.SaveState();
+             await Task.Delay(60000); // ждем минуту, чтобы не прыгал чат
+             // Закрепление опроса
+             await botClient.PinChatMessage(
+                         chatId: chatId,
+                         messageId: poll.MessageId
+                     );
+         }*/
+
+
+        /*
+                private DateTime GetNextWeekday(DateTime currentDate, DayOfWeek targetDay)
+                {
+                    int daysUntilTargetDay = ((int)targetDay - (int)currentDate.DayOfWeek + 7) % 7;
+                    return currentDate.AddDays(daysUntilTargetDay);
+                }*/
 
         public async void ReadAllUpdates()
         {
@@ -279,16 +280,21 @@ namespace BallBotGui
             var preOffset = 0;
             while (true)
             {
-                try { 
+                try
+                {
                     offset = await ReadMessages(offset);
-                } catch ( Exception e )
+                }
+                catch (Exception e)
                 {
 
                 }
 
-                if (preOffset == offset) {
+                if (preOffset == offset)
+                {
                     break;
-                } else {
+                }
+                else
+                {
                     preOffset = offset;
                 }
 
@@ -312,7 +318,7 @@ namespace BallBotGui
                 };
 
 
-            var updates = await botClient.GetUpdates(offset  
+            var updates = await botClient.GetUpdates(offset
                  , allowedUpdates: allowedUpdatesValue
                  );
             var needToSave = false;
@@ -326,15 +332,15 @@ namespace BallBotGui
             {
                 stateManager.SaveState();
             }
-            
+
             return offset;
 
         }
 
-       /* private void onNewPollUpdate(Update update)
-        {
-            stateManager.state.AddNewPoll(update.Poll.Id, string.Empty, update.Poll.Question);
-        }*/
+        /* private void onNewPollUpdate(Update update)
+         {
+             stateManager.state.AddNewPoll(update.Poll.Id, string.Empty, update.Poll.Question);
+         }*/
 
         private void onNewPollAnswer(Update update)
         {
@@ -343,19 +349,19 @@ namespace BallBotGui
                 if (update.PollAnswer.OptionIds.Length == 0)
                 {
                     // снятие голоса
-                    if( stateManager.RemoteVote(update.PollAnswer.PollId, update.PollAnswer.User.Id) )
+                    if (stateManager.RemoteVote(update.PollAnswer.PollId, update.PollAnswer.User.Id))
                     {
                         // если мы сняли игрока то идем дальше
                         DateTime curTime = DateTime.Now;
                         // после объявления состава до момента игры
-                        if(curTime.Hour >= 7 && curTime.Hour <= 19)
+                        if (curTime.Hour >= 7 && curTime.Hour <= 19)
                         {
                             inviteNextPlayer(update.PollAnswer.PollId, update.PollAnswer.User);
                         }
 
                         removeFromCars(update.PollAnswer.PollId, update.PollAnswer.User.Id);
                     }
-                    
+
                 }
                 else
                 {
@@ -383,7 +389,8 @@ namespace BallBotGui
                 if (todayApprovedGamePoll != null)
                 {
                     // сегодняшний опрос и снялся человек и было уже сообщение
-                    if(curPoll.idPoll == todayApprovedGamePoll.idPoll && todayApprovedGamePoll.idCarsMessage > 0) { 
+                    if (curPoll.idPoll == todayApprovedGamePoll.idPoll && todayApprovedGamePoll.idCarsMessage > 0)
+                    {
                         freeSeat(idPlayer, todayApprovedGamePoll);
                         // если есть машина которую ведет удаляемый игрок то нужно ее удалить и все пассажирма написать сообщение
                         deleteCar(idPlayer, todayApprovedGamePoll);
@@ -391,7 +398,7 @@ namespace BallBotGui
                         await sendCarsMessage(todayApprovedGamePoll);
                     }
                 }
-                
+
             }
 
         }
@@ -433,7 +440,7 @@ namespace BallBotGui
             {
                 // просто гасим ошибку, плохо но пока так для надежности
             }
-        
+
 
         }
 
@@ -449,14 +456,14 @@ namespace BallBotGui
 
             var now = DateTime.Now.ToString("dd.MM");
 
-            Poll? poll = this.stateManager.state.pollList.FirstOrDefault(x => 
+            Poll? poll = this.stateManager.state.pollList.FirstOrDefault(x =>
                     x.date == now && x.approved && x.idPoll == idPoll);
 
             if (poll != null)
             {
                 string gameTime = $"{poll.curGame.GameStartHour}:{poll.curGame.GameStartMinute:D2}";
                 int maxGameSpots = poll.maxPlayersCount;
-                if ( poll.playrsList.Count >= maxGameSpots)
+                if (poll.playrsList.Count >= maxGameSpots)
                 {
                     PlayerVote voter = poll.playrsList[maxGameSpots - 1]; // берем последнего игрока
                     string message = $"Игра в {gameTime}. Снялся @{oldUser.Username}. В игру вступает @{voter.name} {voter.firstName}!";
@@ -482,32 +489,32 @@ namespace BallBotGui
                     await botClient.SendMessage(chatId, message);
                 }
 
-                if( poll?.playrsList.Count < 12 )
+                if (poll?.playrsList.Count < 12)
                 {
                     string message = $"Игра в {gameTime}. После снятия  @{oldUser.Username} игроков осталось меньше 12. Штрафные санкции! ";
                     await botClient.SendMessage(chatId, message);
                 }
             }
 
-            
+
 
         }
 
-        private  bool OnNewUpdate(Update update)
+        private bool OnNewUpdate(Update update)
         {
-           /* ВО ВРЕМЯ ТЕСТА МОЖНО ВКЛЮЧАТЬ
-            * f (update.Type == UpdateType.Poll)
-            {
-                if (update.Poll != null && update.Poll.Question.Contains("Волейбол в ЗАЛЕ"))
-                {
-                    onNewPollUpdate(update);
-                    return true;
-                }
+            /* ВО ВРЕМЯ ТЕСТА МОЖНО ВКЛЮЧАТЬ
+             * f (update.Type == UpdateType.Poll)
+             {
+                 if (update.Poll != null && update.Poll.Question.Contains("Волейбол в ЗАЛЕ"))
+                 {
+                     onNewPollUpdate(update);
+                     return true;
+                 }
 
-            }*/
-           if (update.Type == UpdateType.CallbackQuery)
+             }*/
+            if (update.Type == UpdateType.CallbackQuery)
             {
-                if(update != null && update.CallbackQuery != null && update.CallbackQuery.Data != null && update.CallbackQuery.Data.StartsWith("takeaseat:"))
+                if (update != null && update.CallbackQuery != null && update.CallbackQuery.Data != null && update.CallbackQuery.Data.StartsWith("takeaseat:"))
                 {
                     takeSeat(update);
                 }
@@ -542,26 +549,26 @@ namespace BallBotGui
                             {
                                 sendDirectMessage(update.Message.From, "Приветствую, я просто БОТ. Я буду напоминать вам о волейболе!");
                             }
-                           
+
                         }
                         catch (Exception)
                         {
 
-                        
+
                         }
-                        
+
                     }
-                    if ( update.Message.Text?.Trim() == "#teams")
+                    if (update.Message.Text?.Trim() == "#teams")
                     {
                         suggectTeams(update);
                     }
 
-                    if ( update.Message.Text?.Trim() == "#teams4")
+                    if (update.Message.Text?.Trim() == "#teams4")
                     {
                         suggect4Teams(update);
                     }
 
-                    if ( (update.Message?.Text == "#mystat" || update.Message?.Text == "#mystats" || update.Message?.Text == "/mystat"))
+                    if ((update.Message?.Text == "#mystat" || update.Message?.Text == "#mystats" || update.Message?.Text == "/mystat"))
                     {
                         writePlayerStat(update);
                     }
@@ -596,10 +603,10 @@ namespace BallBotGui
                 onNewPollAnswer(update);
                 return true;
             }
-            
-           
 
-            
+
+
+
             return false;
         }
 
@@ -612,7 +619,8 @@ namespace BallBotGui
                 {
                     var (message, type, player) = stateManager.getRatingRequestStatusText(update);
 
-                    if (type == "success" && player != null) {
+                    if (type == "success" && player != null)
+                    {
                         RequestPlayerRating(player);
                     }
 
@@ -703,10 +711,10 @@ namespace BallBotGui
                 {
                     await botClient.SendMessage(update.Message.Chat.Id, message);
                 }
-               
+
 
             }
-            
+
         }
 
         private void takeSeat(Update update)
@@ -718,77 +726,78 @@ namespace BallBotGui
             }
 
             var todayApprovedGamePollList = stateManager.getTodayApprovedGamePoll();
-            foreach (var todayApprovedGamePoll in todayApprovedGamePollList) { 
+            foreach (var todayApprovedGamePoll in todayApprovedGamePollList)
+            {
                 if (todayApprovedGamePoll != null)  // сегодня есть игра....
                 {
-                // Разделяем строку по символу ':'
-                // проверяем что у нас строка в правильном формате
-                var values = update.CallbackQuery.Data.Split(":");
-                // проверяем, что это текущее голосование
-                if (values.Length != 4 || values[3] != todayApprovedGamePoll.idPoll)
-                {
-                    continue;
-                }
-                var idCurUser = update.CallbackQuery.From.Id;
-                if (update.CallbackQuery.Data.StartsWith("takeaseat:0:0:"))
-                {
-                    // если просящий есть среди тех кто уже занял место то удаляем его 
-                    if (freeSeat(idCurUser, todayApprovedGamePoll) > 0)
+                    // Разделяем строку по символу ':'
+                    // проверяем что у нас строка в правильном формате
+                    var values = update.CallbackQuery.Data.Split(":");
+                    // проверяем, что это текущее голосование
+                    if (values.Length != 4 || values[3] != todayApprovedGamePoll.idPoll)
                     {
-                        stateManager.SaveState();
-                        // обновляем сообщение с машинами
-                        sendCarsMessage(todayApprovedGamePoll);
+                        continue;
+                    }
+                    var idCurUser = update.CallbackQuery.From.Id;
+                    if (update.CallbackQuery.Data.StartsWith("takeaseat:0:0:"))
+                    {
+                        // если просящий есть среди тех кто уже занял место то удаляем его 
+                        if (freeSeat(idCurUser, todayApprovedGamePoll) > 0)
+                        {
+                            stateManager.SaveState();
+                            // обновляем сообщение с машинами
+                            sendCarsMessage(todayApprovedGamePoll);
+                        }
+
+                        return;
                     }
 
-                    return;
+                    long driverId = 0;
+                    int stopIdx = 0;
+
+                    var firstMaxPlayersCountIds = todayApprovedGamePoll.playrsList
+                                      .Take(todayApprovedGamePoll.maxPlayersCount)
+                                      .Select(player => player.id);
+
+                    // проверяем что остановка это число
+                    if (!int.TryParse(values[2], out stopIdx) || !long.TryParse(values[1], out driverId)) { return; }
+
+                    // проверяем что тот кто просится тоже среди первых todayApprovedGamePoll.maxPlayersCount
+                    if (update.CallbackQuery.From != null && idCurUser > 0)
+                    {
+                        if (!firstMaxPlayersCountIds.Contains(idCurUser) && 245566701 != idCurUser) { return; }
+                    }
+
+                    // проверяем что водитель есть среди первых todayApprovedGamePoll.maxPlayersCount
+                    if (!firstMaxPlayersCountIds.Contains(driverId)) { return; }
+
+                    // проверяем что данного водителя ещё есть места, без учета просящегося
+                    // Подсчет количества записей для конкретного пользователя
+                    int count = todayApprovedGamePoll.occupiedPlaces.Count(place => place.idCarOwner == driverId);
+                    Car foundCar = stateManager.state.carList.FirstOrDefault(car => car.idPlayer == driverId);
+                    if (foundCar == null || count >= foundCar.placeCount)
+                    {
+                        return;
+                    }
+
+                    // проверяем что он ещё не занял место в данной точке
+                    if (todayApprovedGamePoll.occupiedPlaces.Any(o => o.idCarOwner == driverId && o.stopIdx == stopIdx && o.idPlayer == idCurUser))
+                    {
+                        return;
+                    }
+
+                    // если просящий есть среди тех кто уже занял место то удаляем его 
+                    freeSeat(idCurUser, todayApprovedGamePoll);
+
+                    // записываем просящегося 
+                    var newTake = new OccupiedPlace(idCurUser, driverId, stopIdx, nickname: update.CallbackQuery.From.Username, update.CallbackQuery.From.FirstName);
+                    todayApprovedGamePoll.occupiedPlaces.Add(newTake);
+                    stateManager.SaveState();
+
+                    // обновляем сообщение с машинами
+                    sendCarsMessage(todayApprovedGamePoll);
+
                 }
-
-                long driverId = 0;
-                int stopIdx = 0;
-
-                var firstMaxPlayersCountIds = todayApprovedGamePoll.playrsList
-                                  .Take(todayApprovedGamePoll.maxPlayersCount)
-                                  .Select(player => player.id);
-
-                // проверяем что остановка это число
-                if (!int.TryParse(values[2], out stopIdx) || !long.TryParse(values[1], out driverId)) { return; }
-
-                // проверяем что тот что просится тоже среди первых todayApprovedGamePoll.maxPlayersCount
-                if (update.CallbackQuery.From != null && idCurUser > 0)
-                {
-                    if (!firstMaxPlayersCountIds.Contains(idCurUser) && 245566701 != idCurUser) { return; }
-                }
-
-                // проверяем что водитель есть среди первых todayApprovedGamePoll.maxPlayersCount
-                if (!firstMaxPlayersCountIds.Contains(driverId)) { return; }
-
-                // проверяем что данного водителя ещё есть места, без учета просящегося
-                // Подсчет количества записей для конкретного пользователя
-                int count = todayApprovedGamePoll.occupiedPlaces.Count(place => place.idCarOwner == driverId);
-                Car foundCar = stateManager.state.carList.FirstOrDefault(car => car.idPlayer == driverId);
-                if (foundCar == null || count >= foundCar.placeCount)
-                {
-                    return;
-                }
-
-                // проверяем что он ещё не занял место в данной точке
-                if (todayApprovedGamePoll.occupiedPlaces.Any(o => o.idCarOwner == driverId && o.stopIdx == stopIdx && o.idPlayer == idCurUser))
-                {
-                    return;
-                }
-
-                // если просящий есть среди тех кто уже занял место то удаляем его 
-                freeSeat(idCurUser, todayApprovedGamePoll);
-
-                // записываем просящегося 
-                var newTake = new OccupiedPlace(idCurUser, driverId, stopIdx, nickname: update.CallbackQuery.From.Username, update.CallbackQuery.From.FirstName);
-                todayApprovedGamePoll.occupiedPlaces.Add(newTake);
-                stateManager.SaveState();
-
-                // обновляем сообщение с машинами
-                sendCarsMessage(todayApprovedGamePoll);
-
-            }
             }
         }
 
@@ -800,7 +809,7 @@ namespace BallBotGui
 
         private async void sendWellcomeMessage(User? member)
         {
-            if(member != null)
+            if (member != null)
             {
                 var inviteMessage = BallBotGui.Properties.Settings.Default.inviteMessage;
                 inviteMessage = inviteMessage.Replace("@Player", member.FirstName);
@@ -809,7 +818,7 @@ namespace BallBotGui
             }
         }
 
-        
+
 
         internal async void suggectTeams(Update update)
         {
@@ -853,7 +862,7 @@ namespace BallBotGui
 
             }
             stateManager.ArchPolls(botClient);
-            
+
         }
 
         internal async Task sendInvitation(Poll todayApprovedGamePoll)
@@ -931,7 +940,7 @@ namespace BallBotGui
                 int stopIdx = 1;
                 foreach (var car in carsWithOwnersInFirstMaxPlayersCount)
                 {
-                   var owner = todayApprovedGamePoll.playrsList.FirstOrDefault(player => player.id == car.idPlayer);
+                    var owner = todayApprovedGamePoll.playrsList.FirstOrDefault(player => player.id == car.idPlayer);
                     if (owner != null)
                     {
                         messageBuilder.AppendLine($"🚗 <b> {owner.firstName} @{owner.name}, мест в машине: {car.placeCount}</b>");
@@ -955,11 +964,11 @@ namespace BallBotGui
                         try
                         {
                             var carInfoMessage = await botClient.EditMessageText(
-                                chatId: chatId, 
-                                messageId: todayApprovedGamePoll.idCarsMessage, 
-                                text: message, 
+                                chatId: chatId,
+                                messageId: todayApprovedGamePoll.idCarsMessage,
+                                text: message,
                                 parseMode: ParseMode.Html,
-                                linkPreviewOptions: true, 
+                                linkPreviewOptions: true,
                                 replyMarkup: keyboard);
                             success = true;
                         }
@@ -970,18 +979,18 @@ namespace BallBotGui
                         }
                     }
 
-                   
+
                 }
                 else
                 {
                     var carInfoMessage = await botClient.SendMessage(
-                        chatId: chatId, 
-                        text: message, 
+                        chatId: chatId,
+                        text: message,
                         parseMode: ParseMode.Html,
                         linkPreviewOptions: true,
                         replyMarkup: keyboard);
                     todayApprovedGamePoll.idCarsMessage = carInfoMessage.MessageId;
-                    
+
                     // Закрепление опроса по машинам
                     await botClient.PinChatMessage(
                                 chatId: chatId,
@@ -1004,7 +1013,7 @@ namespace BallBotGui
         public async void startScoreBoard()
         {
             string webAppUrl = "https://your-web-app-url.com";
-       
+
         }
 
         public async void deleteCarMessage(Poll curPoll)
@@ -1028,16 +1037,16 @@ namespace BallBotGui
                     TimeSpan gameTime = new TimeSpan(20, 0, 0); // Время игры: 20:00
                     int minutesToSubtract = 30;
 
-                    if (stop.minBefore > 0 )
+                    if (stop.minBefore > 0)
                     {
                         minutesToSubtract = stop.minBefore;
 
                     }
                     var curGame = todayApprovedGamePoll.curGame;
-                    if (curGame != null  
-                        && curGame.GameStartHour > 0 )
+                    if (curGame != null
+                        && curGame.GameStartHour > 0)
                     {
-                        
+
                         gameTime = new TimeSpan(curGame.GameStartHour, curGame.GameStartMinute, 0);
                     }
 
@@ -1064,12 +1073,12 @@ namespace BallBotGui
                     // Вывод результатов
                     if (filteredPlaces.Count > 0)
                     {
-                 
+
                         foreach (var place in filteredPlaces)
                         {
                             messageBuilder.AppendLine($" . 🙋‍ {place.firstName} @{place.nickname}");
                         }
-                        
+
                     }
 
                     stopIdx++;
@@ -1106,7 +1115,7 @@ namespace BallBotGui
         {
             // ID пользователя, к3оторого вы хотите упомянуть
             int userId = 3485184;
-         //string message = $"<a href=\"tg://user?id={userId}\"> inline mention of a user</a>";
+            //string message = $"<a href=\"tg://user?id={userId}\"> inline mention of a user</a>";
             string username = "[" + "Sergey" + "](tg://user?id=" + userId + ")";
             string message = $"Hello {username}";
             try
@@ -1118,7 +1127,7 @@ namespace BallBotGui
                 var dd = ex;
                 throw;
             }
-           
+
 
         }
         /*
@@ -1162,20 +1171,20 @@ namespace BallBotGui
             {
                 var json = System.IO.File.ReadAllText(file);
                 var poll = JsonConvert.DeserializeObject<Poll>(json);
-              
-                if(poll != null && poll.approved)
+
+                if (poll != null && poll.approved)
                 {
                     foreach (var player in poll.playrsList.Take(poll.maxPlayersCount))
                     {
                         previousPlayerIds.Add(player.id);
                     }
                 }
-               
+
             }
 
             // Находим новых игроков
 
-           //  var curPlayersList = todayApprovedGamePoll.playrsList.Take(todayApprovedGamePoll.maxPlayersCount);
+            //  var curPlayersList = todayApprovedGamePoll.playrsList.Take(todayApprovedGamePoll.maxPlayersCount);
             var uniquePlayers = todayApprovedGamePoll
                 .SelectMany(poll => poll.playrsList.Take(poll.maxPlayersCount))
                 .GroupBy(player => player.id)
@@ -1183,7 +1192,7 @@ namespace BallBotGui
                 .ToList();
 
             var newPlayers = uniquePlayers.Where(player => !previousPlayerIds.Contains(player.id)).ToList();
-           // var newPlayers = curPlayersList.Where(p => !previousPlayerIds.Contains(p.id)).ToList();
+            // var newPlayers = curPlayersList.Where(p => !previousPlayerIds.Contains(p.id)).ToList();
             return newPlayers;
         }
 
@@ -1197,7 +1206,7 @@ namespace BallBotGui
         internal async Task sendBeforeGameInvite(Poll poll)
         {
             int inviteCount = Math.Min(poll.playrsList.Count, poll.maxPlayersCount);
-            
+
 
             for (int i = 0; i < inviteCount; i++)
             {
@@ -1211,12 +1220,30 @@ namespace BallBotGui
             try
             {
                 string message = $"Через час волейбол! Пора собираться!";
+                // Проверяем, есть ли пассажиры у текущего водителя
+                var passengers = poll.occupiedPlaces
+                    .Where(p => p.idCarOwner == voter.id)
+                    .ToList();
+
+                if (passengers.Any())
+                {
+                    message += "\n\n🚗 У вас есть пассажиры:";
+
+                    foreach (var passenger in passengers)
+                    {
+                        string name = !string.IsNullOrEmpty(passenger.nickname)
+                                        ? "@" + passenger.nickname
+                                        : passenger.firstName ?? "Игрок";
+
+                        message += $"\n - {name}";
+                    }
+                }
+
                 await botClient.SendMessage(voter.id, message);
             }
             catch (Exception)
             {
-                /*string message = $"Добрый день, @{voter.name} {voter.firstName}.Я ( @GadensVolleyballBot ) скучаю, начни со мной общаться, пожалуйста!";
-                await botClient.SendMessage(chatId, message);*/
+
             }
         }
 
@@ -1236,14 +1263,67 @@ namespace BallBotGui
         {
             try
             {
-                string message = $"Спасибо за игру!";
-                // await botClient.SendMessage(voter.id, message);
+                var otherPlayers = poll.playrsList.Where(p => p.id != voter.id).ToList();
+
+                string text =
+                    "🙏 Кому из игроков вы хотите выразить благодарность?\n\n" +
+                    "1️⃣ За хорошее настроение\n" +
+                    "2️⃣ За поддержку на площадке\n" +
+                    "3️⃣ За отличную игру\n\n" +
+                    "Можно выбрать до 2 человек в каждой категории.\n" +
+                    "Нажмите 📩 ОТПРАВИТЬ, когда закончите выбор.\n\n";
+
+                var replyMarkup = BuildKeyboard(poll.idPoll, otherPlayers, new Dictionary<string, HashSet<long>>());
+
+                // Отправка опроса пользователю
+                // ВНИМАНИЕ: Для отладки - реальная отправка пользователям
+                await botClient.SendMessage(voter.id, text, replyMarkup: replyMarkup);
             }
             catch (Exception)
             {
-               
+
             }
         }
+
+        private InlineKeyboardMarkup BuildKeyboard(string gameId, List<PlayerVote> players,
+            Dictionary<string, HashSet<long>> selected)
+        {
+            var keyboard = new List<List<InlineKeyboardButton>>();
+            var nominations = new[] { "mood", "support", "skill" };
+
+            foreach (var n in nominations)
+            {
+                keyboard.Add(new List<InlineKeyboardButton> {
+                    InlineKeyboardButton.WithCallbackData($"--- {NominationName(n)} ---", "noop")
+                });
+
+                foreach (var p in players)
+                {
+                    bool sel = selected.ContainsKey(n) && selected[n].Contains(p.id);
+                    string txt = (!string.IsNullOrEmpty(p.firstName) ? p.firstName : p.name) + (sel ? " ✅" : "");
+                    string data = $"vote|{gameId}|{n}|{p.id}";
+                    keyboard.Add(new List<InlineKeyboardButton> {
+                        InlineKeyboardButton.WithCallbackData(txt, data)
+                    });
+                }
+            }
+
+            keyboard.Add(new List<InlineKeyboardButton> {
+                    InlineKeyboardButton.WithCallbackData("📩 ОТПРАВИТЬ", $"submit|{gameId}")
+    });
+
+            return new InlineKeyboardMarkup(keyboard);
+        }
+
+        private string NominationName(string key) =>
+       key switch
+       {
+           "mood" => "За хорошее настроение",
+           "support" => "За поддержку на площадке",
+           "skill" => "За отличную игру",
+           _ => key
+       };
+
 
         private string GetLetterRating(int rate)
         {
@@ -1356,5 +1436,5 @@ namespace BallBotGui
             }
         }
     }
-    
+
 }

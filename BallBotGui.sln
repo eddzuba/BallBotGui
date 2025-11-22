@@ -5,6 +5,8 @@ VisualStudioVersion = 17.8.34525.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BallBotGui", "BallBotGui.csproj", "{E50EB918-2E2C-443B-820B-03B4992D20DA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCP_voleyball", "..\..\..\source\repos\MCP_voleyball\MCP_voleyball\MCP_voleyball.csproj", "{1F81588C-C1D8-D2CC-72AA-C9137C554AF6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{E50EB918-2E2C-443B-820B-03B4992D20DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E50EB918-2E2C-443B-820B-03B4992D20DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E50EB918-2E2C-443B-820B-03B4992D20DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F81588C-C1D8-D2CC-72AA-C9137C554AF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F81588C-C1D8-D2CC-72AA-C9137C554AF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F81588C-C1D8-D2CC-72AA-C9137C554AF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F81588C-C1D8-D2CC-72AA-C9137C554AF6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

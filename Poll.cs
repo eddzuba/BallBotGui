@@ -258,9 +258,12 @@ namespace BallBotGui
             return DateTime.MinValue;
         }
 
-        internal bool isTimeToSendAfterGameSurvey(DateTime curTime)
+        internal bool isTimeToSendAfterGameSurvey(DateTime currentTime)
         {
-            throw new NotImplementedException();
+            return (currentTime.Minute == curGame.GameStartMinute + 15
+                   && currentTime.Hour == curGame.GameStartHour - 2 + 3); 
+            // 1 час это смещение часового пояса и ещё один час это за сколько предупреждать
+
         }
     }
 }

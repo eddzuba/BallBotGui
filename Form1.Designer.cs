@@ -302,7 +302,7 @@
             getCars.Name = "getCars";
             getCars.Size = new Size(303, 46);
             getCars.TabIndex = 15;
-            getCars.Text = "Табло запуск";
+            getCars.Text = "Табло запус";
             getCars.UseVisualStyleBackColor = true;
             getCars.Click += getCars_Click;
             // 
@@ -313,7 +313,7 @@
             button9.Name = "button9";
             button9.Size = new Size(303, 46);
             button9.TabIndex = 16;
-            button9.Text = "Тест сообщение";
+            button9.Text = "Опрос после игры";
             button9.UseVisualStyleBackColor = true;
             button9.Click += button9_Click_1;
             // 

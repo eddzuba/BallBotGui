@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace BallBotGui
@@ -146,6 +147,14 @@ namespace BallBotGui
                     {
                         await telConnector.sendBeforeGameInvite(poll);
                         break;
+                    }
+
+                    if (telConnector != null && poll.isTimeToSendAfterGameSurvey(curTime))
+                    {
+                        // опрос после игры
+                        await telConnector.sendAfterGameSurvey(poll);
+                        break;
+
                     }
                 }
             }
@@ -351,16 +360,16 @@ namespace BallBotGui
 
 
 
-       /* private async void createNewPoll() //
-        {
+        /* private async void createNewPoll() //
+         {
 
-            DateTime curTime = DateTime.Now;
-            int pollBeforeGame = Properties.Settings.Default.pollBeforeGame;
+             DateTime curTime = DateTime.Now;
+             int pollBeforeGame = Properties.Settings.Default.pollBeforeGame;
 
-            await telConnector.createOnePoll(curTime.AddDays(pollBeforeGame));
-            bsPoll.ResetBindings(false);
-            bsPlayer.ResetBindings(false);
-        }*/
+             await telConnector.createOnePoll(curTime.AddDays(pollBeforeGame));
+             bsPoll.ResetBindings(false);
+             bsPlayer.ResetBindings(false);
+         }*/
 
         private void AddPlayers(object sender, EventArgs e)
         {
@@ -401,90 +410,6 @@ namespace BallBotGui
 
           }*/
 
-        private void getCars_Click(object sender, EventArgs e)
-        {
-            this.telConnector.startScoreBoard();
-        }
-
-        private void dgvCars_SelectionChanged(object sender, EventArgs e)
-        {
-            Console.WriteLine("changed");
-            if (dgvCars.CurrentRow != null)
-            {
-                var selectedCar = dgvCars.CurrentRow.DataBoundItem as Car;
-                if (selectedCar != null)
-                {
-
-                    /*   bsCars.DataSource = stateManager.state.carList;
-                       dgvCars.DataSource = bsCars;
-                       dgvCars.AutoGenerateColumns = true;
-
-   */
-
-                    bsCarStops.DataSource = selectedCar.carStops;
-                    bsCarStops.ResetBindings(false);
-                    dataGridViewCarStops.DataSource = bsCarStops;
-                    dataGridViewCarStops.AutoGenerateColumns = true;
-                    dataGridViewCarStops.ReadOnly = false;
-
-                    /*bsCarStops.DataSource = bsCars;
-                    bsCarStops.DataMember = "carStops";
-
-                    dataGridViewCarStops.DataSource = bsCarStops;
-                    dataGridViewCarStops.AutoGenerateColumns = true;
-                    // Разрешаем редактирование данных в таблице
-                    dataGridViewCarStops.ReadOnly = false;
-        */
-                    // Выбранный объект доступен в selectedCar
-                    // Можно выполнить нужные действия с выбранным объектом
-                }
-            }
-        }
-
-        private void button9_Click_1(object sender, EventArgs e)
-        {
-            this.telConnector.sendTestMessageAsync();
-        }
-
-        private void getStat(object sender, EventArgs e)
-        {
-            string archiveFolderName = "Arch";
-            var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), archiveFolderName);
-            HashSet<long> uniquePlayerIds = new HashSet<long>();
-
-            foreach (string filePath in Directory.GetFiles(directoryPath, "Arch*.json"))
-            {
-                try
-                {
-                    string fileContent = File.ReadAllText(filePath);
-                    var gameData = JsonConvert.DeserializeObject<Poll>(fileContent);
-
-                    if (gameData?.playrsList != null)
-                    {
-                        var firstmaxPlayersCountPlayers = gameData.playrsList.Take(gameData.maxPlayersCount);
-                        foreach (var player in firstmaxPlayersCountPlayers)
-                        {
-
-                            uniquePlayerIds.Add(player.id);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error processing file {filePath}: {ex.Message}");
-                }
-            }
-
-            var distinctCount = uniquePlayerIds.Count();
-            var d = 0;
-        }
-
-        private void button11_ClickAsync(object sender, EventArgs e)
-        {
-            sendInvitationAsync();
-            // sendCarsInfo();
-            // askNewPlayesrsAsync();
-        }
 
         private void filter_TextChanged(object sender, EventArgs e)
         {
