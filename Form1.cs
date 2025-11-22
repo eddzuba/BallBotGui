@@ -124,7 +124,7 @@ namespace BallBotGui
                 }
             }
 
-            if (curTime.Hour == 23 && curTime.Minute == 30)
+            if (curTime.Hour == 23 && curTime.Minute == 55)
             {
                 telConnector.ArchPolls();
 

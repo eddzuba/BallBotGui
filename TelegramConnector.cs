@@ -1304,6 +1304,33 @@ namespace BallBotGui
                     .Where(p => p.id != voter.id)  // Исключаем текущего пользователя
                     .ToList();
 
+                // Если есть составы команд, сортируем игроков по последнему составу
+                if (poll.TeamCompositions != null && poll.TeamCompositions.Any())
+                {
+                    var lastTeams = poll.TeamCompositions.Last();
+                    var team1Ids = lastTeams.Team1PlayerIds;
+                    var team2Ids = lastTeams.Team2PlayerIds;
+
+                    // Разделяем игроков по командам
+                    var team1Players = otherPlayers.Where(p => team1Ids.Contains(p.id)).ToList();
+                    var team2Players = otherPlayers.Where(p => team2Ids.Contains(p.id)).ToList();
+                    var otherPlayersList = otherPlayers.Where(p => !team1Ids.Contains(p.id) && !team2Ids.Contains(p.id)).ToList();
+
+                    // Чередуем игроков из команд для создания двух столбцов
+                    var sortedPlayers = new List<PlayerVote>();
+                    int maxCount = Math.Max(team1Players.Count, team2Players.Count);
+
+                    for (int i = 0; i < maxCount; i++)
+                    {
+                        if (i < team1Players.Count) sortedPlayers.Add(team1Players[i]);
+                        if (i < team2Players.Count) sortedPlayers.Add(team2Players[i]);
+                    }
+
+                    // Добавляем остальных игроков в конец
+                    sortedPlayers.AddRange(otherPlayersList);
+                    otherPlayers = sortedPlayers;
+                }
+
                 // Определяем номинации с пиктограммами
                 var nominations = new[] {
                     ("mood", "😊 За хорошее настроение"),
@@ -1347,7 +1374,7 @@ namespace BallBotGui
             }
         }
 
-      
+
 
         private InlineKeyboardMarkup BuildKeyboardForNomination(string gameId, string nomination, List<PlayerVote> players,
             Dictionary<string, HashSet<long>> selected)
