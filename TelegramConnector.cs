@@ -1294,42 +1294,49 @@ namespace BallBotGui
             */
         }
 
+        private List<PlayerVote> GetSortedCandidates(Poll poll, long voterId)
+        {
+            // Берем только первых maxPlayersCount игроков (приглашенных на игру), исключая текущего пользователя
+            var candidates = poll.playrsList
+                .Take(poll.maxPlayersCount)  // Берем только приглашенных игроков
+                .Where(p => p.id != voterId)  // Исключаем текущего пользователя
+                .ToList();
+
+            // Если есть составы команд, сортируем игроков по последнему составу
+            if (poll.TeamCompositions != null && poll.TeamCompositions.Any())
+            {
+                var lastTeams = poll.TeamCompositions.Last();
+                var team1Ids = lastTeams.Team1PlayerIds;
+                var team2Ids = lastTeams.Team2PlayerIds;
+
+                // Разделяем игроков по командам
+                var team1Players = candidates.Where(p => team1Ids.Contains(p.id)).ToList();
+                var team2Players = candidates.Where(p => team2Ids.Contains(p.id)).ToList();
+                var otherPlayersList = candidates.Where(p => !team1Ids.Contains(p.id) && !team2Ids.Contains(p.id)).ToList();
+
+                // Чередуем игроков из команд для создания двух столбцов
+                var sortedPlayers = new List<PlayerVote>();
+                int maxCount = Math.Max(team1Players.Count, team2Players.Count);
+
+                for (int i = 0; i < maxCount; i++)
+                {
+                    if (i < team1Players.Count) sortedPlayers.Add(team1Players[i]);
+                    if (i < team2Players.Count) sortedPlayers.Add(team2Players[i]);
+                }
+
+                // Добавляем остальных игроков в конец
+                sortedPlayers.AddRange(otherPlayersList);
+                return sortedPlayers;
+            }
+
+            return candidates;
+        }
+
         private async Task sendPlayerAfterGameSurvey(Poll poll, PlayerVote voter)
         {
             try
             {
-                // Берем только первых maxPlayersCount игроков (приглашенных на игру), исключая текущего пользователя
-                var otherPlayers = poll.playrsList
-                    .Take(poll.maxPlayersCount)  // Берем только приглашенных игроков
-                    .Where(p => p.id != voter.id)  // Исключаем текущего пользователя
-                    .ToList();
-
-                // Если есть составы команд, сортируем игроков по последнему составу
-                if (poll.TeamCompositions != null && poll.TeamCompositions.Any())
-                {
-                    var lastTeams = poll.TeamCompositions.Last();
-                    var team1Ids = lastTeams.Team1PlayerIds;
-                    var team2Ids = lastTeams.Team2PlayerIds;
-
-                    // Разделяем игроков по командам
-                    var team1Players = otherPlayers.Where(p => team1Ids.Contains(p.id)).ToList();
-                    var team2Players = otherPlayers.Where(p => team2Ids.Contains(p.id)).ToList();
-                    var otherPlayersList = otherPlayers.Where(p => !team1Ids.Contains(p.id) && !team2Ids.Contains(p.id)).ToList();
-
-                    // Чередуем игроков из команд для создания двух столбцов
-                    var sortedPlayers = new List<PlayerVote>();
-                    int maxCount = Math.Max(team1Players.Count, team2Players.Count);
-
-                    for (int i = 0; i < maxCount; i++)
-                    {
-                        if (i < team1Players.Count) sortedPlayers.Add(team1Players[i]);
-                        if (i < team2Players.Count) sortedPlayers.Add(team2Players[i]);
-                    }
-
-                    // Добавляем остальных игроков в конец
-                    sortedPlayers.AddRange(otherPlayersList);
-                    otherPlayers = sortedPlayers;
-                }
+                var otherPlayers = GetSortedCandidates(poll, voter.id);
 
                 // Определяем номинации с пиктограммами
                 var nominations = new[] {
@@ -1501,10 +1508,7 @@ namespace BallBotGui
 
             // Исключаем голосующего (себя) из списка кандидатов
             var voterId = callbackQuery.From.Id;
-            var candidates = poll.playrsList
-                .Take(poll.maxPlayersCount)
-                .Where(p => p.id != voterId)
-                .ToList();
+            var candidates = GetSortedCandidates(poll, voterId);
 
             var selectedDict = new Dictionary<string, HashSet<long>> { { nomination, currentSelection } };
             var newKeyboard = BuildKeyboardForNomination(gameId, nomination, candidates, selectedDict);

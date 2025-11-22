@@ -366,10 +366,15 @@ namespace BallBotGui
              DateTime curTime = DateTime.Now;
              int pollBeforeGame = Properties.Settings.Default.pollBeforeGame;
 
-             await telConnector.createOnePoll(curTime.AddDays(pollBeforeGame));
-             bsPoll.ResetBindings(false);
-             bsPlayer.ResetBindings(false);
-         }*/
+              var stop1 = new CarStops("Парковка Gardens 19.35", "");
+              var stop2 = new CarStops("Метро Gardens 19.40", "");
+
+              newCar.carStops.Add(stop1);
+              newCar.carStops.Add(stop2);
+
+              this.stateManager.state.carList.Add(newCar);
+
+          }*/
 
         private void AddPlayers(object sender, EventArgs e)
         {
@@ -387,16 +392,27 @@ namespace BallBotGui
 
         private async void button9_Click(object sender, EventArgs e)
         {
-            // Отправка опроса после игры для последней игры
+            // Отправка опроса после игры
             if (stateManager.state.pollList != null && stateManager.state.pollList.Any())
             {
-                // Находим последнюю игру в списке
-                var lastPoll = stateManager.state.pollList.Last();
-
-                if (lastPoll != null && telConnector != null)
+                // Пытаемся найти опрос на сегодня
+                var today = DateTime.Now.Date;
+                var targetPoll = stateManager.state.pollList.FirstOrDefault(p =>
                 {
-                    await telConnector.sendAfterGameSurvey(lastPoll);
-                    MessageBox.Show($"Опрос после игры отправлен для игры: {lastPoll.date}", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    if (DateTime.TryParse(p.date, out DateTime d)) return d.Date == today;
+                    return false;
+                });
+
+                // Если на сегодня нет, берем первый в списке
+                if (targetPoll == null)
+                {
+                    targetPoll = stateManager.state.pollList.First();
+                }
+
+                if (targetPoll != null && telConnector != null)
+                {
+                    await telConnector.sendAfterGameSurvey(targetPoll);
+                    MessageBox.Show($"Опрос после игры отправлен для игры: {targetPoll.date}", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             else
@@ -409,20 +425,6 @@ namespace BallBotGui
         {
 
         }
-
-        /*  private void addCar_Click(object sender, EventArgs e)
-          {
-
-              var newCar = new Car(1, "ed", "edGzrd", 4);
-              var stop1 = new CarStops("Парковка Gardens 19.35", "");
-              var stop2 = new CarStops("Метро Gardens 19.40", "");
-
-              newCar.carStops.Add(stop1);
-              newCar.carStops.Add(stop2);
-
-              this.stateManager.state.carList.Add(newCar);
-
-          }*/
 
 
         private void filter_TextChanged(object sender, EventArgs e)
