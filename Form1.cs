@@ -385,10 +385,24 @@ namespace BallBotGui
             stateManager.SavePlayers();
         }
 
-        private void button9_Click(object sender, EventArgs e)
+        private async void button9_Click(object sender, EventArgs e)
         {
-            // stateManager.Take2Teams();
+            // Отправка опроса после игры для последней игры
+            if (stateManager.state.pollList != null && stateManager.state.pollList.Any())
+            {
+                // Находим последнюю игру в списке
+                var lastPoll = stateManager.state.pollList.Last();
 
+                if (lastPoll != null && telConnector != null)
+                {
+                    await telConnector.sendAfterGameSurvey(lastPoll);
+                    MessageBox.Show($"Опрос после игры отправлен для игры: {lastPoll.date}", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Нет доступных игр для отправки опроса", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void Form1_Activated(object sender, EventArgs e)
@@ -453,6 +467,29 @@ namespace BallBotGui
                     }
                 }
             }
+        }
+
+        private void getStat(object sender, EventArgs e)
+        {
+            // Заглушка для статистики
+            MessageBox.Show("Функция статистики в разработке", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private async void button11_ClickAsync(object sender, EventArgs e)
+        {
+            // Приглашение игроков
+            await sendInvitationAsync();
+        }
+
+        private void getCars_Click(object sender, EventArgs e)
+        {
+            // Заглушка для табло
+            MessageBox.Show("Функция табло в разработке", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void dgvCars_SelectionChanged(object sender, EventArgs e)
+        {
+            // Обработка изменения выбора в таблице машин
         }
 
     }

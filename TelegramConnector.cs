@@ -1249,14 +1249,23 @@ namespace BallBotGui
 
         internal async Task sendAfterGameSurvey(Poll poll)
         {
-            int inviteCount = Math.Min(poll.playrsList.Count, poll.maxPlayersCount);
+            // ОТЛАДКА: Отправляем опрос только администратору
+            if (poll.playrsList != null && poll.playrsList.Any())
+            {
+                // Берем первого игрока для формирования списка
+                PlayerVote firstVoter = poll.playrsList[0];
+                await sendPlayerAfterGameSurvey(poll, firstVoter);
+            }
 
+            /* ОРИГИНАЛЬНЫЙ КОД - закомментирован для отладки
+            int inviteCount = Math.Min(poll.playrsList.Count, poll.maxPlayersCount);
 
             for (int i = 0; i < inviteCount; i++)
             {
                 PlayerVote voter = poll.playrsList[i];
                 await sendPlayerAfterGameSurvey(poll, voter);
             }
+            */
         }
 
         private async Task sendPlayerAfterGameSurvey(Poll poll, PlayerVote voter)
@@ -1275,9 +1284,13 @@ namespace BallBotGui
 
                 var replyMarkup = BuildKeyboard(poll.idPoll, otherPlayers, new Dictionary<string, HashSet<long>>());
 
+                // ОТЛАДКА: Отправка опроса только администратору
+                await botClient.SendMessage(AdminId, text, replyMarkup: replyMarkup);
+
+                /* ОРИГИНАЛЬНЫЙ КОД - закомментирован для отладки
                 // Отправка опроса пользователю
-                // ВНИМАНИЕ: Для отладки - реальная отправка пользователям
                 await botClient.SendMessage(voter.id, text, replyMarkup: replyMarkup);
+                */
             }
             catch (Exception)
             {

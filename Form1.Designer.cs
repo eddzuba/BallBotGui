@@ -315,7 +315,7 @@
             button9.TabIndex = 16;
             button9.Text = "Опрос после игры";
             button9.UseVisualStyleBackColor = true;
-            button9.Click += button9_Click_1;
+            button9.Click += button9_Click;
             // 
             // button10
             // 
