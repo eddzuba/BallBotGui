@@ -1347,7 +1347,20 @@ namespace BallBotGui
             foreach (var p in players)
             {
                 bool sel = selected.ContainsKey(nomination) && selected[nomination].Contains(p.id);
-                string txt = (!string.IsNullOrEmpty(p.firstName) ? p.firstName : p.name) + (sel ? " ✅" : "");
+
+                // Ищем игрока в stateManager.players для получения normalName
+                var player = stateManager.players.FirstOrDefault(pl => pl.id == p.id);
+                string normalName = player?.normalName ?? "";
+
+                // Формируем текст кнопки: "NormalName/FirstName/Name @username"
+                string displayName = !string.IsNullOrEmpty(normalName) ? normalName :
+                                     (!string.IsNullOrEmpty(p.firstName) ? p.firstName : p.name);
+
+                string username = !string.IsNullOrEmpty(p.name) ? $"@{p.name}" : "";
+
+                // Собираем итоговую строку, убирая лишние пробелы
+                string txt = $"{displayName} {username}".Trim() + (sel ? " ✅" : "");
+
                 string data = $"vote|{gameId}|{nomination}|{p.id}";
                 keyboard.Add(new List<InlineKeyboardButton> {
                     InlineKeyboardButton.WithCallbackData(txt, data)
