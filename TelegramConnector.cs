@@ -1431,7 +1431,7 @@ namespace BallBotGui
 
             // Добавляем кнопку СЕГОДНЯ ТАКИХ НЕТ
             keyboard.Add(new List<InlineKeyboardButton> {
-                InlineKeyboardButton.WithCallbackData("🙅 СЕГОДНЯ ТАКИХ НЕТ", $"submit|{gameId}|{nomination}|none")
+                InlineKeyboardButton.WithCallbackData("🙅 СЕГОДНЯ ПРОПУЩУ", $"submit|{gameId}|{nomination}|none")
             });
 
             return new InlineKeyboardMarkup(keyboard);
@@ -1538,7 +1538,7 @@ namespace BallBotGui
 
             if (!isNone && selectedIds.Count == 0)
             {
-                await botClient.AnswerCallbackQuery(callbackQuery.Id, "Выберите хотя бы одного игрока или нажмите 'СЕГОДНЯ ТАКИХ НЕТ'!", showAlert: true);
+                await botClient.AnswerCallbackQuery(callbackQuery.Id, "Выберите хотя бы одного игрока или нажмите 'СЕГОДНЯ ПРОПУЩУ'!", showAlert: true);
                 return;
             }
 
