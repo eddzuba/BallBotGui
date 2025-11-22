@@ -24,6 +24,9 @@ namespace BallBotGui
 
         public List<OccupiedPlace> occupiedPlaces { get; set; } = new List<OccupiedPlace>(); // доставка, брони
 
+        public List<PostGameVote> PostGameVotes { get; set; } = new(); // Голоса после игры
+
+
         /********************************************************************************************/
         // Debounce config
         private const int UpdateDelaySeconds = 3;
@@ -55,7 +58,7 @@ namespace BallBotGui
                 lock (_notifyLock)
                 {
                     // create a snapshot to pass to subscribers
-                    
+
                     _updateScheduled = false;
                 }
 
@@ -78,9 +81,10 @@ namespace BallBotGui
         {
             return (currentTime.Minute == curGame.GameStartMinute
                     && currentTime.Hour == curGame.GameStartHour - 2); // 1 час это смещение часового пояса и ещё один час это за сколько предупреждать
-                       
+
         }
-        public Poll(string idPoll, string date, string question, int idMessage, VolleybollGame curGame, int ratingMessageId) {
+        public Poll(string idPoll, string date, string question, int idMessage, VolleybollGame curGame, int ratingMessageId)
+        {
             this.idPoll = idPoll;
             this.question = question;
             this.idMessage = idMessage;
@@ -90,11 +94,12 @@ namespace BallBotGui
             if (date == string.Empty)
             {
                 this.date = GetGameDateFromQuestion(question);
-            } else
-            {
-              this.date = date;
             }
-          
+            else
+            {
+                this.date = date;
+            }
+
         }
 
         public List<PlayerVote> playrsList { get; set; } = new();
@@ -151,39 +156,41 @@ namespace BallBotGui
             else
             {
                 var newPlayer = new PlayerVote(id, name, firstName, idVote, rating);
-              
-                if (curGame.RatingGame 
-                    && rating > 0 
+
+                if (curGame.RatingGame
+                    && rating > 0
                     && GetGameDate().ToString("ddMMyyyy") != DateTime.Now.ToString("ddMMyyyy"))
                 {
                     int newPlayerRating = rating;
-                    
-                        // Т.е. это рейтингованный участник, он должен быть до всех игроков с нулевым рейтингом, однако только если их не больше 8 вначале стоят
-                        if (newPlayerRating == 1) // это топовый игрок
+
+                    // Т.е. это рейтингованный участник, он должен быть до всех игроков с нулевым рейтингом, однако только если их не больше 8 вначале стоят
+                    if (newPlayerRating == 1) // это топовый игрок
+                    {
+                        // Считаем, сколько игроков с рейтингом 1 уже есть
+                        int topPlayersCount = playrsList.Count(p => p is PlayerVote pv && pv.rating == 1);
+
+                        if (topPlayersCount >= 8)
                         {
-                            // Считаем, сколько игроков с рейтингом 1 уже есть
-                            int topPlayersCount = playrsList.Count(p => p is PlayerVote pv && pv.rating == 1);
-                        
-                            if (topPlayersCount >= 8)
-                            {
-                                // Если уже есть 8 и больше топовых игроков, 
-                                // то текущего игрока трактуем как "B" (поставим rating = 0 временно)
-                                newPlayerRating = 2;
-                            }
+                            // Если уже есть 8 и больше топовых игроков, 
+                            // то текущего игрока трактуем как "B" (поставим rating = 0 временно)
+                            newPlayerRating = 2;
+                        }
 
-                    }    
+                    }
 
-                        // Найти последнего игрока рейтингованного с такимже рейтингом или сильнее
-                        int lastSameRatingIdx = playrsList
-                                .FindLastIndex(p => (p is PlayerVote pv && pv.rating <= newPlayerRating && pv.rating != 0 ));
+                    // Найти последнего игрока рейтингованного с такимже рейтингом или сильнее
+                    int lastSameRatingIdx = playrsList
+                            .FindLastIndex(p => (p is PlayerVote pv && pv.rating <= newPlayerRating && pv.rating != 0));
 
-                        playrsList.Insert(lastSameRatingIdx + 1, newPlayer); // если -1 ,то в нуль запишем, а если не -1 то в правильное место
-                } else
+                    playrsList.Insert(lastSameRatingIdx + 1, newPlayer); // если -1 ,то в нуль запишем, а если не -1 то в правильное место
+                }
+                else
                 {
                     playrsList.Add(newPlayer);
                 }
 
-                if(curGame.RatingGame){
+                if (curGame.RatingGame)
+                {
                     // schedule coalesced update
                     SchedulePlayersUpdate();
                 }
@@ -228,7 +235,7 @@ namespace BallBotGui
             return result;
         }
 
-        public  DateTime GetGameDate()
+        public DateTime GetGameDate()
         {
             try
             {
@@ -244,7 +251,7 @@ namespace BallBotGui
                     {
                         result = result.AddYears(1);
                     }
-                    if(difference.Days > 180 )
+                    if (difference.Days > 180)
                     {
                         result = result.AddYears(-1);
                     }
@@ -252,8 +259,10 @@ namespace BallBotGui
                     return result;
                 }
 
-            } catch {
-                
+            }
+            catch
+            {
+
             }
             return DateTime.MinValue;
         }
@@ -261,7 +270,7 @@ namespace BallBotGui
         internal bool isTimeToSendAfterGameSurvey(DateTime currentTime)
         {
             return (currentTime.Minute == curGame.GameStartMinute + 15
-                   && currentTime.Hour == curGame.GameStartHour - 2 + 3); 
+                   && currentTime.Hour == curGame.GameStartHour - 2 + 3);
             // 1 час это смещение часового пояса и ещё один час это за сколько предупреждать
 
         }

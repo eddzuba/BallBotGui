@@ -514,9 +514,16 @@ namespace BallBotGui
              }*/
             if (update.Type == UpdateType.CallbackQuery)
             {
-                if (update != null && update.CallbackQuery != null && update.CallbackQuery.Data != null && update.CallbackQuery.Data.StartsWith("takeaseat:"))
+                if (update != null && update.CallbackQuery != null && update.CallbackQuery.Data != null)
                 {
-                    takeSeat(update);
+                    if (update.CallbackQuery.Data.StartsWith("takeaseat:"))
+                    {
+                        takeSeat(update);
+                    }
+                    else if (update.CallbackQuery.Data.StartsWith("vote|") || update.CallbackQuery.Data.StartsWith("submit|"))
+                    {
+                        HandleCallbackQuery(update.CallbackQuery);
+                    }
                 }
                 return false;
             }
@@ -1285,11 +1292,23 @@ namespace BallBotGui
                     ("skill", "⭐ За отличную игру")
                 };
 
+                // Вступительное сообщение
+                string introText = "🙏 <b>Спасибо за игру!</b>\n\n" +
+                                   "Кому из игроков вы хотите выразить благодарность?\n" +
+                                   "Можно выбрать до 2 человек в каждой категории.";
+
+                // ОТЛАДКА: Отправка вступления только администратору
+                await botClient.SendMessage(AdminId, introText, parseMode: ParseMode.Html);
+
+                /* ОРИГИНАЛЬНЫЙ КОД - закомментирован для отладки
+                await botClient.SendMessage(voter.id, introText, parseMode: ParseMode.Html);
+                */
+
                 // Отправляем три отдельных сообщения - по одному для каждой номинации
                 foreach (var (key, name) in nominations)
                 {
                     // Формируем текст только с заголовком категории
-                    string text = $"<b>{name}</b>\n\nВыберите до 2 игроков:";
+                    string text = $"<b>{name}</b>:";
 
                     // Создаем клавиатуру для этой номинации с кнопкой ОТПРАВИТЬ в конце
                     var replyMarkup = BuildKeyboardForNomination(poll.idPoll, key, otherPlayers, new Dictionary<string, HashSet<long>>());
@@ -1324,7 +1343,7 @@ namespace BallBotGui
                 foreach (var p in players)
                 {
                     bool sel = selected.ContainsKey(n) && selected[n].Contains(p.id);
-                    string txt = (!string.IsNullOrEmpty(p.firstName) ? p.firstName : p.name) + (sel ? " ✅" : "");
+                    string txt = (sel ? "✅ " : "") + (!string.IsNullOrEmpty(p.firstName) ? p.firstName : p.name);
                     string data = $"vote|{gameId}|{n}|{p.id}";
                     keyboard.Add(new List<InlineKeyboardButton> {
                         InlineKeyboardButton.WithCallbackData(txt, data)
@@ -1360,7 +1379,7 @@ namespace BallBotGui
                 string username = !string.IsNullOrEmpty(p.name) ? $"@{p.name}" : "";
 
                 // Собираем итоговую строку, убирая лишние пробелы
-                string txt = $"{displayName} {username}".Trim() + (sel ? " ✅" : "");
+                string txt = (sel ? "✅ " : "") + $"{displayName} {username}".Trim();
 
                 string data = $"vote|{gameId}|{nomination}|{p.id}";
 
@@ -1382,7 +1401,7 @@ namespace BallBotGui
 
             // Добавляем кнопку ОТПРАВИТЬ в конец списка (всегда отдельной строкой)
             keyboard.Add(new List<InlineKeyboardButton> {
-                InlineKeyboardButton.WithCallbackData("📩 ОТПРАВИТЬ", $"submit|{gameId}")
+                InlineKeyboardButton.WithCallbackData("📩 ОТПРАВИТЬ", $"submit|{gameId}|{nomination}")
             });
 
             return new InlineKeyboardMarkup(keyboard);
@@ -1391,12 +1410,179 @@ namespace BallBotGui
         private string NominationName(string key) =>
        key switch
        {
-           "mood" => "За хорошее настроение",
-           "support" => "За поддержку на площадке",
-           "skill" => "За отличную игру",
+           "mood" => "😊 За хорошее настроение",
+           "support" => "🤝 За поддержку на площадке",
+           "skill" => "⭐ За отличную игру",
            _ => key
        };
 
+
+        private async void HandleCallbackQuery(CallbackQuery callbackQuery)
+        {
+            try
+            {
+                var data = callbackQuery.Data;
+                if (string.IsNullOrEmpty(data)) return;
+
+                var parts = data.Split('|');
+                var action = parts[0];
+
+                if (action == "vote")
+                {
+                    await HandleVoteCallback(callbackQuery, parts);
+                }
+                else if (action == "submit")
+                {
+                    await HandleSubmitCallback(callbackQuery, parts);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error handling callback: {ex.Message}");
+            }
+        }
+
+        private async Task HandleVoteCallback(CallbackQuery callbackQuery, string[] parts)
+        {
+            // vote|gameId|nomination|playerId
+            if (parts.Length != 4) return;
+
+            string gameId = parts[1];
+            string nomination = parts[2];
+            if (!long.TryParse(parts[3], out long playerId)) return;
+
+            // Восстанавливаем текущее состояние из клавиатуры
+            var markup = callbackQuery.Message?.ReplyMarkup;
+            if (markup == null) return;
+
+            var currentSelection = GetSelectionFromKeyboard(markup, nomination);
+
+            // Обновляем выбор
+            if (currentSelection.Contains(playerId))
+            {
+                currentSelection.Remove(playerId);
+            }
+            else
+            {
+                if (currentSelection.Count >= 2)
+                {
+                    await botClient.AnswerCallbackQuery(callbackQuery.Id, "Можно выбрать не более 2 игроков!", showAlert: true);
+                    return;
+                }
+                currentSelection.Add(playerId);
+            }
+
+            // Получаем список игроков из опроса для перестройки клавиатуры
+            var poll = stateManager.state.pollList.FirstOrDefault(p => p.idPoll == gameId);
+            if (poll == null) return;
+
+            // Исключаем голосующего (себя) из списка кандидатов
+            var voterId = callbackQuery.From.Id;
+            var candidates = poll.playrsList
+                .Take(poll.maxPlayersCount)
+                .Where(p => p.id != voterId)
+                .ToList();
+
+            var selectedDict = new Dictionary<string, HashSet<long>> { { nomination, currentSelection } };
+            var newKeyboard = BuildKeyboardForNomination(gameId, nomination, candidates, selectedDict);
+
+            await botClient.EditMessageReplyMarkup(
+                callbackQuery.Message.Chat.Id,
+                callbackQuery.Message.MessageId,
+                replyMarkup: newKeyboard
+            );
+        }
+
+        private async Task HandleSubmitCallback(CallbackQuery callbackQuery, string[] parts)
+        {
+            // submit|gameId|nomination
+            if (parts.Length != 3) return;
+
+            string gameId = parts[1];
+            string nomination = parts[2];
+            long voterId = callbackQuery.From.Id;
+
+            // Получаем выбранных игроков из клавиатуры
+            var markup = callbackQuery.Message?.ReplyMarkup;
+            if (markup == null) return;
+
+            var selectedIds = GetSelectionFromKeyboard(markup, nomination);
+
+            if (selectedIds.Count == 0)
+            {
+                await botClient.AnswerCallbackQuery(callbackQuery.Id, "Выберите хотя бы одного игрока!", showAlert: true);
+                return;
+            }
+
+            var poll = stateManager.state.pollList.FirstOrDefault(p => p.idPoll == gameId);
+            if (poll != null)
+            {
+                // Сохраняем голос
+                var vote = new PostGameVote(voterId, nomination, selectedIds.ToList());
+
+                // Удаляем старый голос этого юзера за эту номинацию, если был
+                poll.PostGameVotes.RemoveAll(v => v.VoterId == voterId && v.Nomination == nomination);
+                poll.PostGameVotes.Add(vote);
+
+                stateManager.SaveState();
+            }
+
+            // Формируем сообщение подтверждения
+            var selectedNames = new List<string>();
+            foreach (var pid in selectedIds)
+            {
+                var player = stateManager.players.FirstOrDefault(p => p.id == pid);
+                if (player != null)
+                {
+                    string normalName = player.normalName ?? "";
+                    string displayName = !string.IsNullOrEmpty(normalName) ? normalName :
+                                         (!string.IsNullOrEmpty(player.firstName) ? player.firstName : player.name);
+                    string username = !string.IsNullOrEmpty(player.name) ? $"@{player.name}" : "";
+
+                    selectedNames.Add($"{displayName} {username}".Trim());
+                }
+            }
+
+            string confirmText = $"<b>{NominationName(nomination)}</b>\n" +
+                                 $"Вы выбрали: {string.Join(", ", selectedNames)}";
+
+            await botClient.EditMessageText(
+                callbackQuery.Message.Chat.Id,
+                callbackQuery.Message.MessageId,
+                confirmText,
+                parseMode: ParseMode.Html
+            );
+        }
+
+        private HashSet<long> GetSelectionFromKeyboard(InlineKeyboardMarkup markup, string nomination)
+        {
+            var selected = new HashSet<long>();
+            if (markup == null) return selected;
+
+            foreach (var row in markup.InlineKeyboard)
+            {
+                foreach (var btn in row)
+                {
+                    // vote|gameId|nomination|playerId
+                    if (btn.CallbackData != null && btn.CallbackData.StartsWith($"vote|"))
+                    {
+                        var parts = btn.CallbackData.Split('|');
+                        if (parts.Length == 4 && parts[2] == nomination)
+                        {
+                            // Проверяем наличие галочки в тексте
+                            if (btn.Text.Contains("✅"))
+                            {
+                                if (long.TryParse(parts[3], out long pid))
+                                {
+                                    selected.Add(pid);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return selected;
+        }
 
         private string GetLetterRating(int rate)
         {
