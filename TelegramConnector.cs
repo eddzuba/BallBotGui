@@ -1272,25 +1272,36 @@ namespace BallBotGui
         {
             try
             {
-                var otherPlayers = poll.playrsList.Where(p => p.id != voter.id).ToList();
+                // Берем только первых maxPlayersCount игроков (приглашенных на игру), исключая текущего пользователя
+                var otherPlayers = poll.playrsList
+                    .Take(poll.maxPlayersCount)  // Берем только приглашенных игроков
+                    .Where(p => p.id != voter.id)  // Исключаем текущего пользователя
+                    .ToList();
 
-                string text =
-                    "🙏 Кому из игроков вы хотите выразить благодарность?\n\n" +
-                    "1️⃣ За хорошее настроение\n" +
-                    "2️⃣ За поддержку на площадке\n" +
-                    "3️⃣ За отличную игру\n\n" +
-                    "Можно выбрать до 2 человек в каждой категории.\n" +
-                    "Нажмите 📩 ОТПРАВИТЬ, когда закончите выбор.\n\n";
+                // Определяем номинации с пиктограммами
+                var nominations = new[] {
+                    ("mood", "😊 За хорошее настроение"),
+                    ("support", "🤝 За поддержку на площадке"),
+                    ("skill", "⭐ За отличную игру")
+                };
 
-                var replyMarkup = BuildKeyboard(poll.idPoll, otherPlayers, new Dictionary<string, HashSet<long>>());
+                // Отправляем три отдельных сообщения - по одному для каждой номинации
+                foreach (var (key, name) in nominations)
+                {
+                    // Формируем текст только с заголовком категории
+                    string text = $"<b>{name}</b>\n\nВыберите до 2 игроков:";
 
-                // ОТЛАДКА: Отправка опроса только администратору
-                await botClient.SendMessage(AdminId, text, replyMarkup: replyMarkup);
+                    // Создаем клавиатуру для этой номинации с кнопкой ОТПРАВИТЬ в конце
+                    var replyMarkup = BuildKeyboardForNomination(poll.idPoll, key, otherPlayers, new Dictionary<string, HashSet<long>>());
 
-                /* ОРИГИНАЛЬНЫЙ КОД - закомментирован для отладки
-                // Отправка опроса пользователю
-                await botClient.SendMessage(voter.id, text, replyMarkup: replyMarkup);
-                */
+                    // ОТЛАДКА: Отправка опроса только администратору
+                    await botClient.SendMessage(AdminId, text, parseMode: ParseMode.Html, replyMarkup: replyMarkup);
+
+                    /* ОРИГИНАЛЬНЫЙ КОД - закомментирован для отладки
+                    // Отправка опроса пользователю
+                    await botClient.SendMessage(voter.id, text, parseMode: ParseMode.Html, replyMarkup: replyMarkup);
+                    */
+                }
             }
             catch (Exception)
             {
@@ -1324,6 +1335,29 @@ namespace BallBotGui
             keyboard.Add(new List<InlineKeyboardButton> {
                     InlineKeyboardButton.WithCallbackData("📩 ОТПРАВИТЬ", $"submit|{gameId}")
     });
+
+            return new InlineKeyboardMarkup(keyboard);
+        }
+
+        private InlineKeyboardMarkup BuildKeyboardForNomination(string gameId, string nomination, List<PlayerVote> players,
+            Dictionary<string, HashSet<long>> selected)
+        {
+            var keyboard = new List<List<InlineKeyboardButton>>();
+
+            foreach (var p in players)
+            {
+                bool sel = selected.ContainsKey(nomination) && selected[nomination].Contains(p.id);
+                string txt = (!string.IsNullOrEmpty(p.firstName) ? p.firstName : p.name) + (sel ? " ✅" : "");
+                string data = $"vote|{gameId}|{nomination}|{p.id}";
+                keyboard.Add(new List<InlineKeyboardButton> {
+                    InlineKeyboardButton.WithCallbackData(txt, data)
+                });
+            }
+
+            // Добавляем кнопку ОТПРАВИТЬ в конец списка
+            keyboard.Add(new List<InlineKeyboardButton> {
+                InlineKeyboardButton.WithCallbackData("📩 ОТПРАВИТЬ", $"submit|{gameId}")
+            });
 
             return new InlineKeyboardMarkup(keyboard);
         }
