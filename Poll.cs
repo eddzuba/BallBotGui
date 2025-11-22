@@ -26,6 +26,8 @@ namespace BallBotGui
 
         public List<PostGameVote> PostGameVotes { get; set; } = new(); // Голоса после игры
 
+        public List<TeamComposition> TeamCompositions { get; set; } = new(); // История составов команд
+
 
         /********************************************************************************************/
         // Debounce config

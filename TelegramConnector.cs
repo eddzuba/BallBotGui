@@ -841,6 +841,19 @@ namespace BallBotGui
 
                 string message = $"Предлагаются команды:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}";
                 await botClient.SendMessage(chatId, message);
+
+                // Сохраняем составы команд в опрос для истории
+                var poll = stateManager.GetClosestApprovedPollForToday();
+                if (poll != null)
+                {
+                    var teamComposition = new TeamComposition(
+                        DateTime.Now,
+                        teams.Team1.Select(p => p.id).ToList(),
+                        teams.Team2.Select(p => p.id).ToList()
+                    );
+                    poll.TeamCompositions.Add(teamComposition);
+                    stateManager.SaveState();
+                }
             }
         }
         internal async void suggect4Teams(Update update)
@@ -1334,35 +1347,7 @@ namespace BallBotGui
             }
         }
 
-        private InlineKeyboardMarkup BuildKeyboard(string gameId, List<PlayerVote> players,
-            Dictionary<string, HashSet<long>> selected)
-        {
-            var keyboard = new List<List<InlineKeyboardButton>>();
-            var nominations = new[] { "mood", "support", "skill" };
-
-            foreach (var n in nominations)
-            {
-                keyboard.Add(new List<InlineKeyboardButton> {
-                    InlineKeyboardButton.WithCallbackData($"--- {NominationName(n)} ---", "noop")
-                });
-
-                foreach (var p in players)
-                {
-                    bool sel = selected.ContainsKey(n) && selected[n].Contains(p.id);
-                    string txt = (sel ? "✅ " : "") + (!string.IsNullOrEmpty(p.firstName) ? p.firstName : p.name);
-                    string data = $"vote|{gameId}|{n}|{p.id}";
-                    keyboard.Add(new List<InlineKeyboardButton> {
-                        InlineKeyboardButton.WithCallbackData(txt, data)
-                    });
-                }
-            }
-
-            keyboard.Add(new List<InlineKeyboardButton> {
-                    InlineKeyboardButton.WithCallbackData("📩 ОТПРАВИТЬ", $"submit|{gameId}")
-    });
-
-            return new InlineKeyboardMarkup(keyboard);
-        }
+      
 
         private InlineKeyboardMarkup BuildKeyboardForNomination(string gameId, string nomination, List<PlayerVote> players,
             Dictionary<string, HashSet<long>> selected)
