@@ -1343,6 +1343,7 @@ namespace BallBotGui
             Dictionary<string, HashSet<long>> selected)
         {
             var keyboard = new List<List<InlineKeyboardButton>>();
+            var currentRow = new List<InlineKeyboardButton>();
 
             foreach (var p in players)
             {
@@ -1362,12 +1363,24 @@ namespace BallBotGui
                 string txt = $"{displayName} {username}".Trim() + (sel ? " ✅" : "");
 
                 string data = $"vote|{gameId}|{nomination}|{p.id}";
-                keyboard.Add(new List<InlineKeyboardButton> {
-                    InlineKeyboardButton.WithCallbackData(txt, data)
-                });
+
+                currentRow.Add(InlineKeyboardButton.WithCallbackData(txt, data));
+
+                // Если в строке набралось 2 кнопки, добавляем строку в клавиатуру и начинаем новую
+                if (currentRow.Count == 2)
+                {
+                    keyboard.Add(currentRow);
+                    currentRow = new List<InlineKeyboardButton>();
+                }
             }
 
-            // Добавляем кнопку ОТПРАВИТЬ в конец списка
+            // Если осталась неполная строка (1 кнопка), добавляем её
+            if (currentRow.Count > 0)
+            {
+                keyboard.Add(currentRow);
+            }
+
+            // Добавляем кнопку ОТПРАВИТЬ в конец списка (всегда отдельной строкой)
             keyboard.Add(new List<InlineKeyboardButton> {
                 InlineKeyboardButton.WithCallbackData("📩 ОТПРАВИТЬ", $"submit|{gameId}")
             });
