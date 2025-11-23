@@ -1328,21 +1328,20 @@ namespace BallBotGui
 
         internal async Task sendAfterGameSurvey(Poll poll)
         {
-            // ОТЛАДКА: Отправляем опрос только администратору
-            if (poll.playrsList != null && poll.playrsList.Any())
-            {
-                // Чтобы список кандидатов не менялся при клике (когда срабатывает HandleVoteCallback с AdminId),
-                // мы должны сформировать начальное сообщение так, как будто оно для AdminId.
-                // Если админа нет в списке игроков, то просто используем фейкового игрока с AdminId.
-                // Тогда логика исключения (p.id != voter.id) будет работать одинаково и при отправке, и при клике.
+            /*   // ОТЛАДКА: Отправляем опрос только администратору
+               if (poll.playrsList != null && poll.playrsList.Any())
+               {
+                   // Чтобы список кандидатов не менялся при клике (когда срабатывает HandleVoteCallback с AdminId),
+                   // мы должны сформировать начальное сообщение так, как будто оно для AdminId.
+                   // Если админа нет в списке игроков, то просто используем фейкового игрока с AdminId.
+                   // Тогда логика исключения (p.id != voter.id) будет работать одинаково и при отправке, и при клике.
 
-                var adminVoter = poll.playrsList.FirstOrDefault(p => p.id == AdminId)
-                                 ?? new PlayerVote(AdminId, "Admin", "", 0, 0);
+                   var adminVoter = poll.playrsList.FirstOrDefault(p => p.id == AdminId)
+                                    ?? new PlayerVote(AdminId, "Admin", "", 0, 0);
 
-                await sendPlayerAfterGameSurvey(poll, adminVoter);
-            }
+                   await sendPlayerAfterGameSurvey(poll, adminVoter);
+               }*/
 
-            /* ОРИГИНАЛЬНЫЙ КОД - закомментирован для отладки
             int inviteCount = Math.Min(poll.playrsList.Count, poll.maxPlayersCount);
 
             for (int i = 0; i < inviteCount; i++)
@@ -1350,7 +1349,7 @@ namespace BallBotGui
                 PlayerVote voter = poll.playrsList[i];
                 await sendPlayerAfterGameSurvey(poll, voter);
             }
-            */
+
         }
 
         private List<PlayerVote> GetSortedCandidates(Poll poll, long voterId)
@@ -1409,10 +1408,6 @@ namespace BallBotGui
                                    "Кому из игроков вы хотите выразить благодарность?\n" +
                                    "Можно выбрать до 2 человек в каждой категории.";
 
-                // ОТЛАДКА: Отправка вступления только администратору
-                // await botClient.SendMessage(AdminId, introText, parseMode: ParseMode.Html);
-
-
                 var sentIntro = await botClient.SendMessage(voter.id, introText, parseMode: ParseMode.Html);
 
                 var surveyInfo = new SurveyMessageInfo(voter.id);
@@ -1426,10 +1421,6 @@ namespace BallBotGui
 
                     // Создаем клавиатуру для этой номинации с кнопкой ОТПРАВИТЬ в конце
                     var replyMarkup = BuildKeyboardForNomination(poll.idPoll, key, otherPlayers, new Dictionary<string, HashSet<long>>());
-
-                    // ОТЛАДКА: Отправка опроса только администратору
-                    // await botClient.SendMessage(AdminId, text, parseMode: ParseMode.Html, replyMarkup: replyMarkup);
-
 
                     // Отправка опроса пользователю
                     var sentPoll = await botClient.SendMessage(voter.id, text, parseMode: ParseMode.Html, replyMarkup: replyMarkup);
@@ -1644,8 +1635,7 @@ namespace BallBotGui
                             if (recipientId == voterId) continue;
 
                             string msg = $"🙏 <b>{voterName}</b> отметил(а) вас в номинации:\n✨ <b>{nominationTitle}</b>";
-                            // не нужно отсылать во время отладки    
-                            // await botClient.SendMessage(recipientId, msg, parseMode: ParseMode.Html);
+                            await botClient.SendMessage(recipientId, msg, parseMode: ParseMode.Html);
                         }
                         catch (Exception ex)
                         {
