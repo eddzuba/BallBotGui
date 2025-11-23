@@ -12,23 +12,29 @@ namespace BallBotGui
     {
         internal string getPlayerStat(Update update)
         {
-            string message = "";
-            var (currentMonthFiles, previousMonthFiles) = GetArchivesForCurrentAndPreviousMonth();
-            var currentMonthPolls = ReadPollsFromFiles(currentMonthFiles);
-            var previousMonthPolls = ReadPollsFromFiles(previousMonthFiles);
+            try
+            {
+                string message = "";
+                var (currentMonthFiles, previousMonthFiles) = GetArchivesForCurrentAndPreviousMonth();
+                var currentMonthPolls = ReadPollsFromFiles(currentMonthFiles);
+                var previousMonthPolls = ReadPollsFromFiles(previousMonthFiles);
 
-            var (curTotalGames, curEncountersBelow15th, curEncountersAbove15th) = this.GetPlayerEncountersInfo(currentMonthPolls, update.Message.From.Id);
-            var (previousTotalGames, previousEncountersBelow15th, previousEncountersAbove15th) = this.GetPlayerEncountersInfo(previousMonthPolls, update.Message.From.Id);
+                var (curTotalGames, curEncountersBelow15th, curEncountersAbove15th) = this.GetPlayerEncountersInfo(currentMonthPolls, update.Message.From.Id);
+                var (previousTotalGames, previousEncountersBelow15th, previousEncountersAbove15th) = this.GetPlayerEncountersInfo(previousMonthPolls, update.Message.From.Id);
 
-            message += $"Статистика по игроку @{update.Message.From.Username} {update.Message.From.FirstName}\n\n";
-            message += "ПРОШЛЫЙ МЕСЯЦ\n\n";
-            message += CreateTelegramMessage(previousTotalGames, previousEncountersBelow15th, previousEncountersAbove15th);
-            message += "\n\nТЕКУЩИЙ МЕСЯЦ\n\n";
-            message += CreateTelegramMessage(curTotalGames, curEncountersBelow15th, curEncountersAbove15th);
+                message += $"Статистика по игроку @{update.Message.From.Username} {update.Message.From.FirstName}\n\n";
+                message += "ПРОШЛЫЙ МЕСЯЦ\n\n";
+                message += CreateTelegramMessage(previousTotalGames, previousEncountersBelow15th, previousEncountersAbove15th);
+                message += "\n\nТЕКУЩИЙ МЕСЯЦ\n\n";
+                message += CreateTelegramMessage(curTotalGames, curEncountersBelow15th, curEncountersAbove15th);
 
-
-
-            return message;
+                return message;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при получении статистики: {ex.Message}");
+                return "Не удалось получить статистику. Пожалуйста, попробуйте позже.";
+            }
         }
         string CreateTelegramMessage(int X, int Y, int Z)
         {
@@ -107,12 +113,12 @@ namespace BallBotGui
                 {
                     continue; // Пропускаем неодобренные опросы
                 }
-                
+
                 totalGames++;
                 var player = poll.playrsList.FirstOrDefault(p => p.id == playerId);
                 if (player != null)
                 {
-                    
+
                     var playerIndex = poll.playrsList.IndexOf(player);
                     if (playerIndex < 15)
                     {

@@ -159,73 +159,80 @@ namespace BallBotGui
 
         private async void updateRatingGameListMessage(Poll curPoll)
         {
-            if (curPoll == null) return;
-
-            var sb = new StringBuilder();
-            sb.AppendLine("<b>Рейтинговый список</b>");
-            if (curPoll.curGame != null && !string.IsNullOrWhiteSpace(curPoll.curGame.Title))
-            {
-                sb.AppendLine(curPoll.curGame.Title.Replace("@GameDayName", curPoll.date));
-            }
-            sb.AppendLine();
-
-            var players = curPoll.playrsList ?? new List<PlayerVote>();
-            if (!players.Any())
-            {
-                sb.AppendLine("Список пока пуст.");
-            }
-            else
-            {
-                int idx = 1;
-                foreach (var p in players)
-                {
-                    var statePlayer = stateManager.players.FirstOrDefault(pl => pl.id == p.id);
-                    var displayName = !string.IsNullOrWhiteSpace(statePlayer?.normalName) ? statePlayer.normalName : p.firstName;
-                    var ratingText = p.rating > 0 ? $"{GetLetterRating(p.rating)} ({p.rating})" : "—";
-
-                    // Экранируем пользовательские строки для HTML
-                    string nameHtml = System.Net.WebUtility.HtmlEncode(displayName);
-                    string usernameHtml = System.Net.WebUtility.HtmlEncode(p.name);
-
-                    sb.AppendLine($"{idx}. {nameHtml} @{usernameHtml}");
-                    idx++;
-                }
-            }
-
-            sb.AppendLine();
-            sb.AppendLine(DateTime.Now.ToString("HH:mm"));
-
-            string text = sb.ToString();
-
             try
             {
-                if (curPoll.ratingMessageId > 0)
+                if (curPoll == null) return;
+
+                var sb = new StringBuilder();
+                sb.AppendLine("<b>Рейтинговый список</b>");
+                if (curPoll.curGame != null && !string.IsNullOrWhiteSpace(curPoll.curGame.Title))
                 {
-                    await botClient.EditMessageText(
-                        chatId: chatId,
-                        messageId: curPoll.ratingMessageId,
-                        text: text,
-                        parseMode: ParseMode.Html
-                    );
+                    sb.AppendLine(curPoll.curGame.Title.Replace("@GameDayName", curPoll.date));
+                }
+                sb.AppendLine();
+
+                var players = curPoll.playrsList ?? new List<PlayerVote>();
+                if (!players.Any())
+                {
+                    sb.AppendLine("Список пока пуст.");
                 }
                 else
                 {
-                    var sent = await botClient.SendMessage(
-                        chatId: chatId,
-                        text: text,
-                        parseMode: ParseMode.Html
-                    );
-
-                    if (sent != null)
+                    int idx = 1;
+                    foreach (var p in players)
                     {
-                        curPoll.ratingMessageId = sent.MessageId;
-                        stateManager.SaveState();
+                        var statePlayer = stateManager.players.FirstOrDefault(pl => pl.id == p.id);
+                        var displayName = !string.IsNullOrWhiteSpace(statePlayer?.normalName) ? statePlayer.normalName : p.firstName;
+                        var ratingText = p.rating > 0 ? $"{GetLetterRating(p.rating)} ({p.rating})" : "—";
+
+                        // Экранируем пользовательские строки для HTML
+                        string nameHtml = System.Net.WebUtility.HtmlEncode(displayName);
+                        string usernameHtml = System.Net.WebUtility.HtmlEncode(p.name);
+
+                        sb.AppendLine($"{idx}. {nameHtml} @{usernameHtml}");
+                        idx++;
                     }
+                }
+
+                sb.AppendLine();
+                sb.AppendLine(DateTime.Now.ToString("HH:mm"));
+
+                string text = sb.ToString();
+
+                try
+                {
+                    if (curPoll.ratingMessageId > 0)
+                    {
+                        await botClient.EditMessageText(
+                            chatId: chatId,
+                            messageId: curPoll.ratingMessageId,
+                            text: text,
+                            parseMode: ParseMode.Html
+                        );
+                    }
+                    else
+                    {
+                        var sent = await botClient.SendMessage(
+                            chatId: chatId,
+                            text: text,
+                            parseMode: ParseMode.Html
+                        );
+
+                        if (sent != null)
+                        {
+                            curPoll.ratingMessageId = sent.MessageId;
+                            stateManager.SaveState();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка при обновлении сообщения рейтинга: {ex.Message}");
                 }
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine($"Критическая ошибка в updateRatingGameListMessage: {ex.Message}");
             }
         }
 
@@ -381,24 +388,31 @@ namespace BallBotGui
 
         private async void removeFromCars(string idPoll, long idPlayer)
         {
-            // удаляем как пасажира
-            var curPoll = stateManager.state.pollList.FirstOrDefault(x => x.idPoll == idPoll);
-            if (curPoll != null)
+            try
             {
-                Poll? todayApprovedGamePoll = stateManager.getTodayApprovedGamePoll().FirstOrDefault(poll => poll.idPoll == idPoll);
-                if (todayApprovedGamePoll != null)
+                // удаляем как пасажира
+                var curPoll = stateManager.state.pollList.FirstOrDefault(x => x.idPoll == idPoll);
+                if (curPoll != null)
                 {
-                    // сегодняшний опрос и снялся человек и было уже сообщение
-                    if (curPoll.idPoll == todayApprovedGamePoll.idPoll && todayApprovedGamePoll.idCarsMessage > 0)
+                    Poll? todayApprovedGamePoll = stateManager.getTodayApprovedGamePoll().FirstOrDefault(poll => poll.idPoll == idPoll);
+                    if (todayApprovedGamePoll != null)
                     {
-                        freeSeat(idPlayer, todayApprovedGamePoll);
-                        // если есть машина которую ведет удаляемый игрок то нужно ее удалить и все пассажирма написать сообщение
-                        deleteCar(idPlayer, todayApprovedGamePoll);
-                        // обновляем сообщение с машинами
-                        await sendCarsMessage(todayApprovedGamePoll);
+                        // сегодняшний опрос и снялся человек и было уже сообщение
+                        if (curPoll.idPoll == todayApprovedGamePoll.idPoll && todayApprovedGamePoll.idCarsMessage > 0)
+                        {
+                            freeSeat(idPlayer, todayApprovedGamePoll);
+                            // если есть машина которую ведет удаляемый игрок то нужно ее удалить и все пассажирма написать сообщение
+                            deleteCar(idPlayer, todayApprovedGamePoll);
+                            // обновляем сообщение с машинами
+                            await sendCarsMessage(todayApprovedGamePoll);
+                        }
                     }
-                }
 
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка в removeFromCars: {ex.Message}");
             }
 
         }
@@ -446,56 +460,62 @@ namespace BallBotGui
 
         private async void inviteNextPlayer(string idPoll, User oldUser)
         {
-            // если сегодня игровой день
-            // и у нас время после объявления состава игроков ( проверили ранее перед функцией )
-            // и у нас игроков maxGameSpots как минимум осталось
-            // то отправляем приглашение maxPlayersCount-ому игроку
-
-
-
-
-            var now = DateTime.Now.ToString("dd.MM");
-
-            Poll? poll = this.stateManager.state.pollList.FirstOrDefault(x =>
-                    x.date == now && x.approved && x.idPoll == idPoll);
-
-            if (poll != null)
+            try
             {
-                string gameTime = $"{poll.curGame.GameStartHour}:{poll.curGame.GameStartMinute:D2}";
-                int maxGameSpots = poll.maxPlayersCount;
-                if (poll.playrsList.Count >= maxGameSpots)
+                // если сегодня игровой день
+                // и у нас время после объявления состава игроков ( проверили ранее перед функцией )
+                // и у нас игроков maxGameSpots как минимум осталось
+                // то отправляем приглашение maxPlayersCount-ому игроку
+
+
+
+
+                var now = DateTime.Now.ToString("dd.MM");
+
+                Poll? poll = this.stateManager.state.pollList.FirstOrDefault(x =>
+                        x.date == now && x.approved && x.idPoll == idPoll);
+
+                if (poll != null)
                 {
-                    PlayerVote voter = poll.playrsList[maxGameSpots - 1]; // берем последнего игрока
-                    string message = $"Игра в {gameTime}. Снялся @{oldUser.Username}. В игру вступает @{voter.name} {voter.firstName}!";
-
-                    await botClient.SendMessage(chatId, message);
-                    await sendPlayerInvitation(poll, voter);
-
-                    if (poll != null)
+                    string gameTime = $"{poll.curGame.GameStartHour}:{poll.curGame.GameStartMinute:D2}";
+                    int maxGameSpots = poll.maxPlayersCount;
+                    if (poll.playrsList.Count >= maxGameSpots)
                     {
-                        // сегодняшний опрос и снялся человек и было уже сообщение
-                        if (poll.idCarsMessage > 0)
+                        PlayerVote voter = poll.playrsList[maxGameSpots - 1]; // берем последнего игрока
+                        string message = $"Игра в {gameTime}. Снялся @{oldUser.Username}. В игру вступает @{voter.name} {voter.firstName}!";
+
+                        await botClient.SendMessage(chatId, message);
+                        await sendPlayerInvitation(poll, voter);
+
+                        if (poll != null)
                         {
-                            // обновляем сообщение с машинами
-                            await sendCarsMessage(poll);
+                            // сегодняшний опрос и снялся человек и было уже сообщение
+                            if (poll.idCarsMessage > 0)
+                            {
+                                // обновляем сообщение с машинами
+                                await sendCarsMessage(poll);
+                            }
                         }
+
+                    }
+                    else
+                    {
+                        int freeSpots = maxGameSpots - poll.playrsList.Count;
+                        string message = $"Игра в {gameTime}. Снялся @{oldUser.Username}. Свободных мест: {freeSpots} ";
+                        await botClient.SendMessage(chatId, message);
                     }
 
-                }
-                else
-                {
-                    int freeSpots = maxGameSpots - poll.playrsList.Count;
-                    string message = $"Игра в {gameTime}. Снялся @{oldUser.Username}. Свободных мест: {freeSpots} ";
-                    await botClient.SendMessage(chatId, message);
-                }
-
-                if (poll?.playrsList.Count < 12)
-                {
-                    string message = $"Игра в {gameTime}. После снятия  @{oldUser.Username} игроков осталось меньше 12. Штрафные санкции! ";
-                    await botClient.SendMessage(chatId, message);
+                    if (poll?.playrsList.Count < 12)
+                    {
+                        string message = $"Игра в {gameTime}. После снятия  @{oldUser.Username} игроков осталось меньше 12. Штрафные санкции! ";
+                        await botClient.SendMessage(chatId, message);
+                    }
                 }
             }
-
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка в inviteNextPlayer: {ex.Message}");
+            }
 
 
         }
@@ -619,32 +639,45 @@ namespace BallBotGui
 
         private async void sendRatingRequestMessage(Update update)
         {
-            // Ensure update.Message and update.Message.Chat are not null before dereferencing
-            if (update.Message?.Chat?.Id > 0)
+            try
             {
-                if (update.Message.Chat.Id.ToString() != chatId)
+                // Ensure update.Message and update.Message.Chat are not null before dereferencing
+                if (update.Message?.Chat?.Id > 0)
                 {
-                    var (message, type, player) = stateManager.getRatingRequestStatusText(update);
-
-                    if (type == "success" && player != null)
+                    if (update.Message.Chat.Id.ToString() != chatId)
                     {
-                        RequestPlayerRating(player);
-                    }
+                        var (message, type, player) = stateManager.getRatingRequestStatusText(update);
 
-                    botClient?.SendMessage(update.Message?.Chat?.Id, message);
+                        if (type == "success" && player != null)
+                        {
+                            await RequestPlayerRating(player);
+                        }
+
+                        if (botClient != null)
+                        {
+                            await botClient.SendMessage(update.Message.Chat.Id, message);
+                        }
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка в sendRatingRequestMessage: {ex.Message}");
             }
         }
 
         // Заглушка для функции запроса рейтинга
-        private void RequestPlayerRating(Player player)
+        private async Task RequestPlayerRating(Player player)
         {
             // Используем глобальную переменную AdminId
             string message = $"Пользователь запросил рейтинг:\nНик: @{player.name}\nID: {player.id}";
 
             try
             {
-                botClient?.SendMessage(AdminId, message);
+                if (botClient != null)
+                {
+                    await botClient.SendMessage(AdminId, message);
+                }
             }
             catch
             {
@@ -730,109 +763,121 @@ namespace BallBotGui
 
         private async void writePlayerStat(Update update)
         {
-            if (update != null)
+            try
             {
-                var statist = new StatisticsManager();
-                string message = statist.getPlayerStat(update);
-                // await botClient.SendMessage(chatId, message);
-                if (update.Message?.Chat.Id > 0)
+                if (update != null)
                 {
-                    try
+                    var statist = new StatisticsManager();
+                    string message = statist.getPlayerStat(update);
+                    // await botClient.SendMessage(chatId, message);
+                    if (update.Message?.Chat.Id > 0)
                     {
-                        await botClient.SendMessage(update.Message.Chat.Id, message);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Ошибка при отправке статистики: {ex.Message}");
+                        try
+                        {
+                            await botClient.SendMessage(update.Message.Chat.Id, message);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Ошибка при отправке статистики: {ex.Message}");
+                        }
                     }
                 }
-
-
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка в writePlayerStat: {ex.Message}");
             }
 
         }
 
         private void takeSeat(Update update)
         {
-            if (update.CallbackQuery?.Data == null)
+            try
             {
-                // Handle the case where Data is null, or simply return if it's not expected
-                return;
-            }
-
-            var todayApprovedGamePollList = stateManager.getTodayApprovedGamePoll();
-            foreach (var todayApprovedGamePoll in todayApprovedGamePollList)
-            {
-                if (todayApprovedGamePoll != null)  // сегодня есть игра....
+                if (update.CallbackQuery?.Data == null)
                 {
-                    // Разделяем строку по символу ':'
-                    // проверяем что у нас строка в правильном формате
-                    var values = update.CallbackQuery.Data.Split(":");
-                    // проверяем, что это текущее голосование
-                    if (values.Length != 4 || values[3] != todayApprovedGamePoll.idPoll)
+                    // Handle the case where Data is null, or simply return if it's not expected
+                    return;
+                }
+
+                var todayApprovedGamePollList = stateManager.getTodayApprovedGamePoll();
+                foreach (var todayApprovedGamePoll in todayApprovedGamePollList)
+                {
+                    if (todayApprovedGamePoll != null)  // сегодня есть игра....
                     {
-                        continue;
-                    }
-                    var idCurUser = update.CallbackQuery.From.Id;
-                    if (update.CallbackQuery.Data.StartsWith("takeaseat:0:0:"))
-                    {
-                        // если просящий есть среди тех кто уже занял место то удаляем его 
-                        if (freeSeat(idCurUser, todayApprovedGamePoll) > 0)
+                        // Разделяем строку по символу ':'
+                        // проверяем что у нас строка в правильном формате
+                        var values = update.CallbackQuery.Data.Split(":");
+                        // проверяем, что это текущее голосование
+                        if (values.Length != 4 || values[3] != todayApprovedGamePoll.idPoll)
                         {
-                            stateManager.SaveState();
-                            // обновляем сообщение с машинами
-                            sendCarsMessage(todayApprovedGamePoll);
+                            continue;
+                        }
+                        var idCurUser = update.CallbackQuery.From.Id;
+                        if (update.CallbackQuery.Data.StartsWith("takeaseat:0:0:"))
+                        {
+                            // если просящий есть среди тех кто уже занял место то удаляем его 
+                            if (freeSeat(idCurUser, todayApprovedGamePoll) > 0)
+                            {
+                                stateManager.SaveState();
+                                // обновляем сообщение с машинами
+                                sendCarsMessage(todayApprovedGamePoll);
+                            }
+
+                            return;
                         }
 
-                        return;
+                        long driverId = 0;
+                        int stopIdx = 0;
+
+                        var firstMaxPlayersCountIds = todayApprovedGamePoll.playrsList
+                                          .Take(todayApprovedGamePoll.maxPlayersCount)
+                                          .Select(player => player.id);
+
+                        // проверяем что остановка это число
+                        if (!int.TryParse(values[2], out stopIdx) || !long.TryParse(values[1], out driverId)) { return; }
+
+                        // проверяем что тот кто просится тоже среди первых todayApprovedGamePoll.maxPlayersCount
+                        if (update.CallbackQuery.From != null && idCurUser > 0)
+                        {
+                            if (!firstMaxPlayersCountIds.Contains(idCurUser) && 245566701 != idCurUser) { return; }
+                        }
+
+                        // проверяем что водитель есть среди первых todayApprovedGamePoll.maxPlayersCount
+                        if (!firstMaxPlayersCountIds.Contains(driverId)) { return; }
+
+                        // проверяем что данного водителя ещё есть места, без учета просящегося
+                        // Подсчет количества записей для конкретного пользователя
+                        int count = todayApprovedGamePoll.occupiedPlaces.Count(place => place.idCarOwner == driverId);
+                        Car foundCar = stateManager.state.carList.FirstOrDefault(car => car.idPlayer == driverId);
+                        if (foundCar == null || count >= foundCar.placeCount)
+                        {
+                            return;
+                        }
+
+                        // проверяем что он ещё не занял место в данной точке
+                        if (todayApprovedGamePoll.occupiedPlaces.Any(o => o.idCarOwner == driverId && o.stopIdx == stopIdx && o.idPlayer == idCurUser))
+                        {
+                            return;
+                        }
+
+                        // если просящий есть среди тех кто уже занял место то удаляем его 
+                        freeSeat(idCurUser, todayApprovedGamePoll);
+
+                        // записываем просящегося 
+                        var newTake = new OccupiedPlace(idCurUser, driverId, stopIdx, nickname: update.CallbackQuery.From.Username, update.CallbackQuery.From.FirstName);
+                        todayApprovedGamePoll.occupiedPlaces.Add(newTake);
+                        stateManager.SaveState();
+
+                        // обновляем сообщение с машинами
+                        sendCarsMessage(todayApprovedGamePoll);
+
                     }
-
-                    long driverId = 0;
-                    int stopIdx = 0;
-
-                    var firstMaxPlayersCountIds = todayApprovedGamePoll.playrsList
-                                      .Take(todayApprovedGamePoll.maxPlayersCount)
-                                      .Select(player => player.id);
-
-                    // проверяем что остановка это число
-                    if (!int.TryParse(values[2], out stopIdx) || !long.TryParse(values[1], out driverId)) { return; }
-
-                    // проверяем что тот кто просится тоже среди первых todayApprovedGamePoll.maxPlayersCount
-                    if (update.CallbackQuery.From != null && idCurUser > 0)
-                    {
-                        if (!firstMaxPlayersCountIds.Contains(idCurUser) && 245566701 != idCurUser) { return; }
-                    }
-
-                    // проверяем что водитель есть среди первых todayApprovedGamePoll.maxPlayersCount
-                    if (!firstMaxPlayersCountIds.Contains(driverId)) { return; }
-
-                    // проверяем что данного водителя ещё есть места, без учета просящегося
-                    // Подсчет количества записей для конкретного пользователя
-                    int count = todayApprovedGamePoll.occupiedPlaces.Count(place => place.idCarOwner == driverId);
-                    Car foundCar = stateManager.state.carList.FirstOrDefault(car => car.idPlayer == driverId);
-                    if (foundCar == null || count >= foundCar.placeCount)
-                    {
-                        return;
-                    }
-
-                    // проверяем что он ещё не занял место в данной точке
-                    if (todayApprovedGamePoll.occupiedPlaces.Any(o => o.idCarOwner == driverId && o.stopIdx == stopIdx && o.idPlayer == idCurUser))
-                    {
-                        return;
-                    }
-
-                    // если просящий есть среди тех кто уже занял место то удаляем его 
-                    freeSeat(idCurUser, todayApprovedGamePoll);
-
-                    // записываем просящегося 
-                    var newTake = new OccupiedPlace(idCurUser, driverId, stopIdx, nickname: update.CallbackQuery.From.Username, update.CallbackQuery.From.FirstName);
-                    todayApprovedGamePoll.occupiedPlaces.Add(newTake);
-                    stateManager.SaveState();
-
-                    // обновляем сообщение с машинами
-                    sendCarsMessage(todayApprovedGamePoll);
-
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка в takeSeat: {ex.Message}");
             }
         }
 
@@ -864,62 +909,74 @@ namespace BallBotGui
 
         internal async void suggectTeams(Update update)
         {
-
-            var teams = stateManager.Take2Teams(update);
-            if (teams.Team1.Count > 5 && teams.Team2.Count > 5)
+            try
             {
-
-
-                string team1Players = string.Join("\n", teams.Team1.Select(p => $"{(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)} @{p.name}"));
-                string team2Players = string.Join("\n", teams.Team2.Select(p => $"{(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)} @{p.name}"));
-
-
-                string message = $"Предлагаются команды:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}";
-                try
+                var teams = stateManager.Take2Teams(update);
+                if (teams.Team1.Count > 5 && teams.Team2.Count > 5)
                 {
-                    await botClient.SendMessage(chatId, message);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Ошибка при отправке команд: {ex.Message}");
-                }
 
-                // Сохраняем составы команд в опрос для истории
-                var poll = stateManager.GetClosestApprovedPollForToday();
-                if (poll != null)
-                {
-                    var teamComposition = new TeamComposition(
-                        DateTime.Now,
-                        teams.Team1.Select(p => p.id).ToList(),
-                        teams.Team2.Select(p => p.id).ToList()
-                    );
-                    poll.TeamCompositions.Add(teamComposition);
-                    stateManager.SaveState();
+
+                    string team1Players = string.Join("\n", teams.Team1.Select(p => $"{(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)} @{p.name}"));
+                    string team2Players = string.Join("\n", teams.Team2.Select(p => $"{(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)} @{p.name}"));
+
+
+                    string message = $"Предлагаются команды:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}";
+                    try
+                    {
+                        await botClient.SendMessage(chatId, message);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Ошибка при отправке команд: {ex.Message}");
+                    }
+
+                    // Сохраняем составы команд в опрос для истории
+                    var poll = stateManager.GetClosestApprovedPollForToday();
+                    if (poll != null)
+                    {
+                        var teamComposition = new TeamComposition(
+                            DateTime.Now,
+                            teams.Team1.Select(p => p.id).ToList(),
+                            teams.Team2.Select(p => p.id).ToList()
+                        );
+                        poll.TeamCompositions.Add(teamComposition);
+                        stateManager.SaveState();
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка в suggectTeams: {ex.Message}");
             }
         }
         internal async void suggect4Teams(Update update)
         {
-
-            var teams = stateManager.Take4Teams(update);
-            if (teams.Team1.Count > 5 && teams.Team2.Count > 5)
+            try
             {
-
-
-                string team1Players = string.Join("\n", teams.Team1.Select(p => $"@{p.name} {p.firstName}"));
-                string team2Players = string.Join("\n", teams.Team2.Select(p => $"@{p.name} {p.firstName}"));
-                string team3Players = string.Join("\n", teams.Team3.Select(p => $"@{p.name} {p.firstName}"));
-                string team4Players = string.Join("\n", teams.Team4.Select(p => $"@{p.name} {p.firstName}"));
-
-                string message = $"!Предлагаются следующие составы команд:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}\n\nКоманда 3:\n{team3Players}\n\nКоманда 4:\n{team4Players}";
-                try
+                var teams = stateManager.Take4Teams(update);
+                if (teams.Team1.Count > 5 && teams.Team2.Count > 5)
                 {
-                    await botClient.SendMessage(chatId, message);
+
+
+                    string team1Players = string.Join("\n", teams.Team1.Select(p => $"@{p.name} {p.firstName}"));
+                    string team2Players = string.Join("\n", teams.Team2.Select(p => $"@{p.name} {p.firstName}"));
+                    string team3Players = string.Join("\n", teams.Team3.Select(p => $"@{p.name} {p.firstName}"));
+                    string team4Players = string.Join("\n", teams.Team4.Select(p => $"@{p.name} {p.firstName}"));
+
+                    string message = $"!Предлагаются следующие составы команд:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}\n\nКоманда 3:\n{team3Players}\n\nКоманда 4:\n{team4Players}";
+                    try
+                    {
+                        await botClient.SendMessage(chatId, message);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Ошибка при отправке 4 команд: {ex.Message}");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Ошибка при отправке 4 команд: {ex.Message}");
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка в suggect4Teams: {ex.Message}");
             }
         }
 
@@ -1900,31 +1957,38 @@ namespace BallBotGui
 
         private async void ProcessAdminSpamWordMessage(Update update)
         {
-            // Проверяем, что сообщение от администратора
-            if (update.Message?.From?.Id != 245566701)
-                return;
-
-            var text = update.Message?.Text?.Trim();
-            if (string.IsNullOrEmpty(text) || !text.StartsWith("spam:"))
-                return;
-
-            var parts = text.Split(':', 2);
-            if (parts.Length != 2)
-                return;
-
-            string word = parts[1].Trim().ToLower();
-            if (string.IsNullOrWhiteSpace(word))
-                return;
-
-            if (!stateManager.state.spamStopWords.Contains(word))
+            try
             {
-                stateManager.state.spamStopWords.Add(word);
-                stateManager.SaveState();
-                await botClient.SendMessage(update.Message.Chat.Id, $"Слово \"{word}\" добавлено в список стоп-слов.");
+                // Проверяем, что сообщение от администратора
+                if (update.Message?.From?.Id != 245566701)
+                    return;
+
+                var text = update.Message?.Text?.Trim();
+                if (string.IsNullOrEmpty(text) || !text.StartsWith("spam:"))
+                    return;
+
+                var parts = text.Split(':', 2);
+                if (parts.Length != 2)
+                    return;
+
+                string word = parts[1].Trim().ToLower();
+                if (string.IsNullOrWhiteSpace(word))
+                    return;
+
+                if (!stateManager.state.spamStopWords.Contains(word))
+                {
+                    stateManager.state.spamStopWords.Add(word);
+                    stateManager.SaveState();
+                    await botClient.SendMessage(update.Message.Chat.Id, $"Слово \"{word}\" добавлено в список стоп-слов.");
+                }
+                else
+                {
+                    await botClient.SendMessage(update.Message.Chat.Id, $"Слово \"{word}\" уже есть в списке стоп-слов.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                await botClient.SendMessage(update.Message.Chat.Id, $"Слово \"{word}\" уже есть в списке стоп-слов.");
+                Console.WriteLine($"Ошибка в ProcessAdminSpamWordMessage: {ex.Message}");
             }
         }
     }

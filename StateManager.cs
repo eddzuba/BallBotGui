@@ -18,10 +18,15 @@ namespace BallBotGui
 
         public void SaveState()
         {
-           
+            try
+            {
                 string json = JsonConvert.SerializeObject(state);
                 File.WriteAllText(fileName, json);
-            
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при сохранении состояния: {ex.Message}");
+            }
         }
 
         // Функция для загрузки опроса с диска из формата JSON
@@ -70,14 +75,21 @@ namespace BallBotGui
             }
             catch (Exception)
             {
-                 
+
             }
         }
 
         public void SavePlayers()
         {
-            string json = JsonConvert.SerializeObject(players);
-            File.WriteAllText(ratingFileName, json);
+            try
+            {
+                string json = JsonConvert.SerializeObject(players);
+                File.WriteAllText(ratingFileName, json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при сохранении игроков: {ex.Message}");
+            }
         }
 
         public void AddPlayersToRating(Poll poll)
@@ -411,8 +423,9 @@ namespace BallBotGui
             var curPoll = state.pollList.FirstOrDefault(x => x.idPoll == IdPoll);
             if (curPoll != null)
             {
-                var curPlayer  = players.FirstOrDefault( x => x.id == idPlayer);
-                if (curPlayer == null) {
+                var curPlayer = players.FirstOrDefault(x => x.id == idPlayer);
+                if (curPlayer == null)
+                {
                     curPlayer = new Player(idPlayer, firstName, userName, userName, false);
                     players.Add(curPlayer);
                 }
@@ -420,16 +433,16 @@ namespace BallBotGui
                 if (curPlayer != null)
                 {
                     curPoll.AddPlayerToList(idPlayer, userName, firstName, idVoute, curPlayer.rating);
-                    
-                    if(curPlayer.name !=  userName )
+
+                    if (curPlayer.name != userName)
                     {
                         curPlayer.name = userName;
                     }
-                   
+
                 }
                 AddPlayersToRating(curPoll);
                 SaveState();
-            
+
             }
         }
 
@@ -446,20 +459,27 @@ namespace BallBotGui
 
         internal void ArchPolls(TelegramBotClient botClient)
         {
-            var curTime = DateTime.Now; ;
-            // Архивировать опросы с датой раньше текущей даты
-            foreach (var poll in state.pollList.Where(p => p.GetGameDate() < curTime.AddDays(0)).ToList())
+            try
             {
-                ArchivePoll(poll);
-                state.pollList.Remove(poll);
-                if (poll.idMessage > 0)
+                var curTime = DateTime.Now; ;
+                // Архивировать опросы с датой раньше текущей даты
+                foreach (var poll in state.pollList.Where(p => p.GetGameDate() < curTime.AddDays(0)).ToList())
                 {
-                    botClient.UnpinChatMessage(Properties.Settings.Default.chatId, poll.idMessage);
+                    ArchivePoll(poll);
+                    state.pollList.Remove(poll);
+                    if (poll.idMessage > 0)
+                    {
+                        botClient.UnpinChatMessage(Properties.Settings.Default.chatId, poll.idMessage);
+                    }
+
                 }
 
+                SaveState();
             }
-
-            SaveState();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при архивации опросов: {ex.Message}");
+            }
 
         }
 
@@ -544,5 +564,5 @@ namespace BallBotGui
             return ("Запрос на рейтинг отправлен", "success", player);
         }
     }
-       
+
 }
