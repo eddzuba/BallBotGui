@@ -2,7 +2,8 @@
 {
     public class Player
     {
-        public Player(long id, string name, string firstName, string normalName, bool isFemale) { 
+        public Player(long id, string name, string firstName, string normalName, bool isFemale)
+        {
             this.id = id;
             this.name = name;
             this.firstName = firstName;
@@ -28,6 +29,7 @@
         */
 
         public bool isFemale = false;
+        public int FailedMessageCount { get; set; } = 0;
         public override bool Equals(object obj)
         {
             if (obj == null || GetType() != obj.GetType())

@@ -997,8 +997,18 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                message = $"Привет, @{voter.name} {voter.firstName}. Я скучаю, начни со мной общаться, пожалуйста! \n\nТвой @GadensVolleyballBot";
-                await botClient.SendMessage(chatId, message);
+                var player = stateManager.players.FirstOrDefault(p => p.id == voter.id);
+                if (player != null)
+                {
+                    player.FailedMessageCount++;
+                    stateManager.SavePlayers();
+
+                    if (player.FailedMessageCount <= 5)
+                    {
+                        message = $"Привет, @{voter.name} {voter.firstName}. Я скучаю, начни со мной общаться, пожалуйста! \n\nТвой @GadensVolleyballBot";
+                        await botClient.SendMessage(chatId, message);
+                    }
+                }
             }
         }
 
