@@ -885,6 +885,48 @@ namespace BallBotGui
 
         }
 
+        internal async Task DeleteUnansweredSurveys()
+        {
+            if (stateManager.state.pollList == null) return;
+
+            foreach (var poll in stateManager.state.pollList)
+            {
+                if (poll.SurveyMessages == null) continue;
+
+                var toRemove = new List<SurveyMessageInfo>();
+
+                foreach (var info in poll.SurveyMessages.ToList())
+                {
+                    // Проверяем, ответил ли игрок (есть ли его голос в PostGameVotes)
+                    bool answered = poll.PostGameVotes != null && poll.PostGameVotes.Any(v => v.VoterId == info.PlayerId);
+
+                    if (!answered)
+                    {
+                        // Удаляем сообщения
+                        foreach (var msgId in info.MessageIds)
+                        {
+                            try
+                            {
+                                await botClient.DeleteMessage(info.PlayerId, msgId);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Ошибка при удалении сообщения опроса: {ex.Message}");
+                            }
+                        }
+                        toRemove.Add(info);
+                    }
+                }
+
+                // Удаляем информацию из списка, так как сообщения удалены
+                foreach (var item in toRemove)
+                {
+                    poll.SurveyMessages.Remove(item);
+                }
+            }
+            stateManager.SaveState();
+        }
+
         internal async Task sendInvitation(Poll todayApprovedGamePoll)
         {
             int inviteCount = Math.Min(todayApprovedGamePoll.playrsList.Count, todayApprovedGamePoll.maxPlayersCount);
@@ -1351,11 +1393,13 @@ namespace BallBotGui
                                    "Можно выбрать до 2 человек в каждой категории.";
 
                 // ОТЛАДКА: Отправка вступления только администратору
-                await botClient.SendMessage(AdminId, introText, parseMode: ParseMode.Html);
+                // await botClient.SendMessage(AdminId, introText, parseMode: ParseMode.Html);
 
-                /* ОРИГИНАЛЬНЫЙ КОД - закомментирован для отладки
-                await botClient.SendMessage(voter.id, introText, parseMode: ParseMode.Html);
-                */
+
+                var sentIntro = await botClient.SendMessage(voter.id, introText, parseMode: ParseMode.Html);
+
+                var surveyInfo = new SurveyMessageInfo(voter.id);
+                surveyInfo.MessageIds.Add(sentIntro.MessageId);
 
                 // Отправляем три отдельных сообщения - по одному для каждой номинации
                 foreach (var (key, name) in nominations)
@@ -1367,13 +1411,16 @@ namespace BallBotGui
                     var replyMarkup = BuildKeyboardForNomination(poll.idPoll, key, otherPlayers, new Dictionary<string, HashSet<long>>());
 
                     // ОТЛАДКА: Отправка опроса только администратору
-                    await botClient.SendMessage(AdminId, text, parseMode: ParseMode.Html, replyMarkup: replyMarkup);
+                    // await botClient.SendMessage(AdminId, text, parseMode: ParseMode.Html, replyMarkup: replyMarkup);
 
-                    /* ОРИГИНАЛЬНЫЙ КОД - закомментирован для отладки
+
                     // Отправка опроса пользователю
-                    await botClient.SendMessage(voter.id, text, parseMode: ParseMode.Html, replyMarkup: replyMarkup);
-                    */
+                    var sentPoll = await botClient.SendMessage(voter.id, text, parseMode: ParseMode.Html, replyMarkup: replyMarkup);
+                    surveyInfo.MessageIds.Add(sentPoll.MessageId);
+
                 }
+
+                poll.SurveyMessages.Add(surveyInfo);
             }
             catch (Exception)
             {

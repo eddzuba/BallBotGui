@@ -494,5 +494,9 @@ namespace BallBotGui
             // Обработка изменения выбора в таблице машин
         }
 
+        private void button12_Click(object sender, EventArgs e)
+        {
+            telConnector?.DeleteUnansweredSurveys();
+        }
     }
 }

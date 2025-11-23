@@ -54,6 +54,7 @@
             button9 = new Button();
             button10 = new Button();
             button11 = new Button();
+            del_afterGameSurvey = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPoll).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPlayers).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewRating).BeginInit();
@@ -339,11 +340,23 @@
             button11.UseVisualStyleBackColor = true;
             button11.Click += button11_ClickAsync;
             // 
+            // del_afterGameSurvey
+            // 
+            del_afterGameSurvey.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            del_afterGameSurvey.Location = new Point(1784, 1291);
+            del_afterGameSurvey.Name = "del_afterGameSurvey";
+            del_afterGameSurvey.Size = new Size(303, 46);
+            del_afterGameSurvey.TabIndex = 19;
+            del_afterGameSurvey.Text = "Del Опрос после игры";
+            del_afterGameSurvey.UseVisualStyleBackColor = true;
+            del_afterGameSurvey.Click += button12_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(2164, 1374);
+            Controls.Add(del_afterGameSurvey);
             Controls.Add(button11);
             Controls.Add(button10);
             Controls.Add(button9);
@@ -405,5 +418,6 @@
         private Button button11;
         private Label label1;
         private TextBox filter;
+        private Button del_afterGameSurvey;
     }
 }

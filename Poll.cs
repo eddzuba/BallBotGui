@@ -28,6 +28,8 @@ namespace BallBotGui
 
         public List<TeamComposition> TeamCompositions { get; set; } = new(); // История составов команд
 
+        public List<SurveyMessageInfo> SurveyMessages { get; set; } = new(); // Сообщения опросов для удаления
+
 
         /********************************************************************************************/
         // Debounce config
