@@ -659,7 +659,14 @@ namespace BallBotGui
                 if (update.Message.Chat.Id.ToString() != chatId)
                 {
                     string message = "Ваш рейтинг: " + stateManager.getPlayerRatingText(update) + ". ( Справочно: A - сильный, D - начинающий )";
-                    await botClient.SendMessage(update.Message.Chat.Id, message);
+                    try
+                    {
+                        await botClient.SendMessage(update.Message.Chat.Id, message);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Ошибка при отправке рейтинга: {ex.Message}");
+                    }
                 }
             }
         }
@@ -678,8 +685,15 @@ namespace BallBotGui
 
                 if (stateManager.state.spamStopWords.Any(word => messageText.Contains(word)))
                 {
-                    botClient.DeleteMessage(chatId, update.Message.MessageId);
-                    botClient.BanChatMember(chatId, messUserId);
+                    try
+                    {
+                        botClient.DeleteMessage(chatId, update.Message.MessageId);
+                        botClient.BanChatMember(chatId, messUserId);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Ошибка при бане пользователя: {ex.Message}");
+                    }
 
                     // Используем глобальную переменную AdminId
                     string userName = update.Message.From.Username ?? "";
@@ -703,7 +717,14 @@ namespace BallBotGui
         {
             if (from != null)
             {
-                await botClient.SendMessage(from.Id, message);
+                try
+                {
+                    await botClient.SendMessage(from.Id, message);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка при отправке прямого сообщения: {ex.Message}");
+                }
             }
         }
 
@@ -716,7 +737,14 @@ namespace BallBotGui
                 // await botClient.SendMessage(chatId, message);
                 if (update.Message?.Chat.Id > 0)
                 {
-                    await botClient.SendMessage(update.Message.Chat.Id, message);
+                    try
+                    {
+                        await botClient.SendMessage(update.Message.Chat.Id, message);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Ошибка при отправке статистики: {ex.Message}");
+                    }
                 }
 
 
@@ -821,7 +849,14 @@ namespace BallBotGui
                 var inviteMessage = BallBotGui.Properties.Settings.Default.inviteMessage;
                 inviteMessage = inviteMessage.Replace("@Player", member.FirstName);
 
-                await botClient.SendMessage(chatId, inviteMessage);
+                try
+                {
+                    await botClient.SendMessage(chatId, inviteMessage);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка при отправке приветствия: {ex.Message}");
+                }
             }
         }
 
@@ -840,7 +875,14 @@ namespace BallBotGui
 
 
                 string message = $"Предлагаются команды:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}";
-                await botClient.SendMessage(chatId, message);
+                try
+                {
+                    await botClient.SendMessage(chatId, message);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка при отправке команд: {ex.Message}");
+                }
 
                 // Сохраняем составы команд в опрос для истории
                 var poll = stateManager.GetClosestApprovedPollForToday();
@@ -870,7 +912,14 @@ namespace BallBotGui
                 string team4Players = string.Join("\n", teams.Team4.Select(p => $"@{p.name} {p.firstName}"));
 
                 string message = $"!Предлагаются следующие составы команд:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}\n\nКоманда 3:\n{team3Players}\n\nКоманда 4:\n{team4Players}";
-                await botClient.SendMessage(chatId, message);
+                try
+                {
+                    await botClient.SendMessage(chatId, message);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка при отправке 4 команд: {ex.Message}");
+                }
             }
         }
 
@@ -949,7 +998,14 @@ namespace BallBotGui
             int inviteCount = Math.Min(todayApprovedGamePoll.playrsList.Count, todayApprovedGamePoll.maxPlayersCount);
             string gameTime = $"{todayApprovedGamePoll.curGame.GameStartHour}:{todayApprovedGamePoll.curGame.GameStartMinute:D2}";
 
-            await botClient.SendMessage(chatId, $"Игра в {gameTime} ");
+            try
+            {
+                await botClient.SendMessage(chatId, $"Игра в {gameTime} ");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при отправке времени игры: {ex.Message}");
+            }
             for (int i = 0; i < inviteCount; i += 5)
             {
                 StringBuilder messageBuilder = new StringBuilder();
@@ -962,7 +1018,14 @@ namespace BallBotGui
                 }
 
                 string message = messageBuilder.ToString();
-                await botClient.SendMessage(chatId, message);
+                try
+                {
+                    await botClient.SendMessage(chatId, message);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка при отправке списка игроков: {ex.Message}");
+                }
             }
 
             for (int i = 0; i < inviteCount; i++)
@@ -1093,20 +1156,27 @@ namespace BallBotGui
                 }
                 else
                 {
-                    var carInfoMessage = await botClient.SendMessage(
-                        chatId: chatId,
-                        text: message,
-                        parseMode: ParseMode.Html,
-                        linkPreviewOptions: true,
-                        replyMarkup: keyboard);
-                    todayApprovedGamePoll.idCarsMessage = carInfoMessage.MessageId;
+                    try
+                    {
+                        var carInfoMessage = await botClient.SendMessage(
+                            chatId: chatId,
+                            text: message,
+                            parseMode: ParseMode.Html,
+                            linkPreviewOptions: true,
+                            replyMarkup: keyboard);
+                        todayApprovedGamePoll.idCarsMessage = carInfoMessage.MessageId;
 
-                    // Закрепление опроса по машинам
-                    await botClient.PinChatMessage(
-                                chatId: chatId,
-                                messageId: carInfoMessage.MessageId
-                            );
-                    stateManager.SaveState();
+                        // Закрепление опроса по машинам
+                        await botClient.PinChatMessage(
+                                    chatId: chatId,
+                                    messageId: carInfoMessage.MessageId
+                                );
+                        stateManager.SaveState();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Ошибка при отправке сообщения о машинах: {ex.Message}");
+                    }
                 }
             }
             else
@@ -1128,8 +1198,15 @@ namespace BallBotGui
 
         public async void deleteCarMessage(Poll curPoll)
         {
-            await botClient.DeleteMessage(chatId, curPoll.idCarsMessage);
-            curPoll.idCarsMessage = 0;
+            try
+            {
+                await botClient.DeleteMessage(chatId, curPoll.idCarsMessage);
+                curPoll.idCarsMessage = 0;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при удалении сообщения о машинах: {ex.Message}");
+            }
         }
 
         private static int addStops(Poll todayApprovedGamePoll, List<StopInfo> stops, StringBuilder messageBuilder, int stopIdx, Car? car, PlayerVote? owner)
