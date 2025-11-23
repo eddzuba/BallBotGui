@@ -124,9 +124,31 @@ namespace BallBotGui
                 }
             }
 
+            if (curTime.Hour == 22 && curTime.Minute == 55)
+            {
+                // в 23.55 прекращаем голосование...чтобы ночью не слали
+                telConnector?.DeleteUnansweredSurveys();
+            }
+
             if (curTime.Hour == 23 && curTime.Minute == 55)
             {
-                telConnector.ArchPolls();
+                telConnector?.ArchPolls();
+            }
+
+            if (curTime.Hour == 11 && curTime.Minute == 00)
+            {
+                await sendInvitationAsync();
+                /*  await sendCarsInfo(); */
+                {
+                    bsPoll.ResetBindings(false);
+                    bsPlayer.ResetBindings(false);
+                }
+            }
+
+            if (curTime.Hour == 22 && curTime.Minute == 55)
+            {
+                telConnector?.DeleteUnansweredSurveys();
+                telConnector?.ArchPolls();
 
             }
 
