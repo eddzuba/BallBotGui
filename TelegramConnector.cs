@@ -965,11 +965,18 @@ namespace BallBotGui
                 await botClient.SendMessage(chatId, message);
             }
 
-
             for (int i = 0; i < inviteCount; i++)
             {
                 PlayerVote voter = todayApprovedGamePoll.playrsList[i];
                 await sendPlayerInvitation(todayApprovedGamePoll, voter);
+            }
+
+            // Send notifications to players in queue
+            for (int i = inviteCount; i < todayApprovedGamePoll.playrsList.Count; i++)
+            {
+                PlayerVote voter = todayApprovedGamePoll.playrsList[i];
+                int queueNumber = i - inviteCount + 1;
+                await sendPlayerQueueNotification(todayApprovedGamePoll, voter, queueNumber);
             }
         }
 
@@ -992,6 +999,20 @@ namespace BallBotGui
             {
                 message = $"Привет, @{voter.name} {voter.firstName}. Я скучаю, начни со мной общаться, пожалуйста! \n\nТвой @GadensVolleyballBot";
                 await botClient.SendMessage(chatId, message);
+            }
+        }
+
+        private async Task sendPlayerQueueNotification(Poll poll, PlayerVote voter, int queueNumber)
+        {
+            string message = $"Привет, {voter.firstName}! Ты сейчас в очереди на сегодняшнюю игру под номером {queueNumber}.\n" +
+                             "Если твои планы изменятся, пожалуйста, обязательно снимись с голосования!";
+            try
+            {
+                await botClient.SendMessage(voter.id, message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Не удалось отправить сообщение игроку {voter.id}: {ex.Message}");
             }
         }
 
