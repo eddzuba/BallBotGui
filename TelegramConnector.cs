@@ -1622,6 +1622,37 @@ namespace BallBotGui
                 poll.PostGameVotes.Add(vote);
 
                 stateManager.SaveState();
+
+                // Отправка уведомлений выбранным игрокам
+                if (!isNone && selectedIds.Count > 0)
+                {
+                    // Определяем имя голосующего
+                    var voter = stateManager.players.FirstOrDefault(p => p.id == voterId);
+                    string voterNormalName = voter?.normalName ?? "";
+                    string voterFirstName = voter?.firstName ?? callbackQuery.From.FirstName;
+                    string voterUserNameVal = voter?.name ?? callbackQuery.From.Username;
+
+                    string voterDisplayName = !string.IsNullOrEmpty(voterNormalName) ? voterNormalName : voterFirstName;
+                    string voterName = $"{voterDisplayName} {(!string.IsNullOrEmpty(voterUserNameVal) ? "@" + voterUserNameVal : "")}".Trim();
+
+                    string nominationTitle = NominationName(nomination);
+
+                    foreach (var recipientId in selectedIds)
+                    {
+                        try
+                        {
+                            if (recipientId == voterId) continue;
+
+                            string msg = $"🙏 <b>{voterName}</b> отметил(а) вас в номинации:\n✨ <b>{nominationTitle}</b>";
+                            // не нужно отсылать во время отладки    
+                            // await botClient.SendMessage(recipientId, msg, parseMode: ParseMode.Html);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Не удалось отправить уведомление игроку {recipientId}: {ex.Message}");
+                        }
+                    }
+                }
             }
 
             // Формируем сообщение подтверждения
