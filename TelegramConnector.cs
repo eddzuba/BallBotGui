@@ -897,28 +897,45 @@ namespace BallBotGui
 
                 foreach (var info in poll.SurveyMessages.ToList())
                 {
-                    // Проверяем, ответил ли игрок (есть ли его голос в PostGameVotes)
-                    bool answered = poll.PostGameVotes != null && poll.PostGameVotes.Any(v => v.VoterId == info.PlayerId);
+                    var messagesToRemove = new List<SurveyMessage>();
 
-                    if (!answered)
+                    foreach (var msg in info.Messages.ToList())
                     {
-                        // Удаляем сообщения
-                        foreach (var msgId in info.MessageIds)
+                        bool answered = false;
+                        if (msg.Nomination == "intro")
+                        {
+                            answered = false;
+                        }
+                        else
+                        {
+                            answered = poll.PostGameVotes != null && poll.PostGameVotes.Any(v => v.VoterId == info.PlayerId && v.Nomination == msg.Nomination);
+                        }
+
+                        if (!answered)
                         {
                             try
                             {
-                                await botClient.DeleteMessage(info.PlayerId, msgId);
+                                await botClient.DeleteMessage(info.PlayerId, msg.MessageId);
                             }
                             catch (Exception ex)
                             {
                                 Console.WriteLine($"Ошибка при удалении сообщения опроса: {ex.Message}");
                             }
+                            messagesToRemove.Add(msg);
                         }
+                    }
+
+                    foreach (var msg in messagesToRemove)
+                    {
+                        info.Messages.Remove(msg);
+                    }
+
+                    if (info.Messages.Count == 0)
+                    {
                         toRemove.Add(info);
                     }
                 }
 
-                // Удаляем информацию из списка, так как сообщения удалены
                 foreach (var item in toRemove)
                 {
                     poll.SurveyMessages.Remove(item);
@@ -1399,7 +1416,7 @@ namespace BallBotGui
                 var sentIntro = await botClient.SendMessage(voter.id, introText, parseMode: ParseMode.Html);
 
                 var surveyInfo = new SurveyMessageInfo(voter.id);
-                surveyInfo.MessageIds.Add(sentIntro.MessageId);
+                surveyInfo.Messages.Add(new SurveyMessage { MessageId = sentIntro.MessageId, Nomination = "intro" });
 
                 // Отправляем три отдельных сообщения - по одному для каждой номинации
                 foreach (var (key, name) in nominations)
@@ -1416,7 +1433,7 @@ namespace BallBotGui
 
                     // Отправка опроса пользователю
                     var sentPoll = await botClient.SendMessage(voter.id, text, parseMode: ParseMode.Html, replyMarkup: replyMarkup);
-                    surveyInfo.MessageIds.Add(sentPoll.MessageId);
+                    surveyInfo.Messages.Add(new SurveyMessage { MessageId = sentPoll.MessageId, Nomination = key });
 
                 }
 
