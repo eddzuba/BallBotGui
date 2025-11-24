@@ -926,6 +926,12 @@ namespace BallBotGui
 
             if (!dislikedEntry.dislikedPlayers.Contains(targetPlayer.id))
             {
+                if (dislikedEntry.dislikedPlayers.Count >= 5)
+                {
+                    await botClient.SendMessage(userId, "Ваш черный список переполнен (максимум 5 игроков). Удалите кого-нибудь, чтобы добавить нового.");
+                    return;
+                }
+
                 dislikedEntry.dislikedPlayers.Add(targetPlayer.id);
                 stateManager.SaveState();
                 await botClient.SendMessage(userId, $"Игрок @{targetPlayer.name} добавлен в ваш черный список.");
