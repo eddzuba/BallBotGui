@@ -24,6 +24,7 @@ namespace BallBotGui
 
         private readonly string chatId = Properties.Settings.Default.chatId;
         private System.Timers.Timer timerFirst = new System.Timers.Timer();
+        private Dictionary<long, string> userCommandStates = new();
 
         public TelegramConnector(TelegramBotClient botClient, StateManager stateManager, Form1 form)
         {
@@ -576,6 +577,7 @@ namespace BallBotGui
 
                     if (update.Message.Chat.Type == ChatType.Private)
                     {
+                        HandlePrivateCommands(update);
                         try
                         {
                             if (update.Message.Text?.Trim() == "/start")
@@ -796,6 +798,168 @@ namespace BallBotGui
 
         }
 
+
+
+        private async void HandlePrivateCommands(Update update)
+        {
+            if (update.Message == null || update.Message.From == null) return;
+
+            long userId = update.Message.From.Id;
+            string text = update.Message.Text?.Trim() ?? "";
+
+            if (string.IsNullOrEmpty(text)) return;
+
+            // Split text into command and arguments
+            var parts = text.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+            string command = parts[0];
+            string args = parts.Length > 1 ? parts[1] : "";
+
+            bool isCommand = command.StartsWith("/") ||
+                             command.Equals("getBanList", StringComparison.OrdinalIgnoreCase) ||
+                             command.Equals("addBanList", StringComparison.OrdinalIgnoreCase) ||
+                             command.Equals("delBanList", StringComparison.OrdinalIgnoreCase);
+
+            if (isCommand)
+            {
+                if (command.Equals("/getBanList", StringComparison.OrdinalIgnoreCase) || command.Equals("getBanList", StringComparison.OrdinalIgnoreCase))
+                {
+                    userCommandStates.Remove(userId);
+                    await SendBanList(userId);
+                    return;
+                }
+                if (command.Equals("/addBanList", StringComparison.OrdinalIgnoreCase) || command.Equals("addBanList", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!string.IsNullOrWhiteSpace(args))
+                    {
+                        await AddPlayerToBanList(userId, args);
+                        userCommandStates.Remove(userId);
+                    }
+                    else
+                    {
+                        userCommandStates[userId] = "WAITING_FOR_BAN_USERNAME";
+                        await botClient.SendMessage(userId, "Введите username игрока, которого вы хотите добавить в черный список (без @):");
+                    }
+                    return;
+                }
+                if (command.Equals("/delBanList", StringComparison.OrdinalIgnoreCase) || command.Equals("delBanList", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!string.IsNullOrWhiteSpace(args))
+                    {
+                        await RemovePlayerFromBanList(userId, args);
+                        userCommandStates.Remove(userId);
+                    }
+                    else
+                    {
+                        userCommandStates[userId] = "WAITING_FOR_UNBAN_USERNAME";
+                        await botClient.SendMessage(userId, "Введите username игрока, которого вы хотите удалить из черного списка (без @):");
+                    }
+                    return;
+                }
+            }
+
+            // Check if waiting for input
+            if (userCommandStates.ContainsKey(userId))
+            {
+                if (userCommandStates[userId] == "WAITING_FOR_BAN_USERNAME")
+                {
+                    await AddPlayerToBanList(userId, text);
+                    userCommandStates.Remove(userId);
+                }
+                else if (userCommandStates[userId] == "WAITING_FOR_UNBAN_USERNAME")
+                {
+                    await RemovePlayerFromBanList(userId, text);
+                    userCommandStates.Remove(userId);
+                }
+            }
+        }
+
+        private async Task SendBanList(long userId)
+        {
+            var disliked = stateManager.state.dislikedTeammates.FirstOrDefault(d => d.idPlayer == userId);
+            if (disliked == null || !disliked.dislikedPlayers.Any())
+            {
+                await botClient.SendMessage(userId, "Ваш список игнорируемых игроков пуст.");
+                return;
+            }
+
+            var names = new List<string>();
+            foreach (var bannedId in disliked.dislikedPlayers)
+            {
+                var player = stateManager.players.FirstOrDefault(p => p.id == bannedId);
+                if (player != null)
+                {
+                    names.Add($"@{player.name} ({player.normalName})");
+                }
+                else
+                {
+                    names.Add($"ID: {bannedId}");
+                }
+            }
+
+            await botClient.SendMessage(userId, "Ваш список игнорируемых игроков:\n" + string.Join("\n", names));
+        }
+
+        private async Task AddPlayerToBanList(long userId, string targetUsername)
+        {
+            targetUsername = targetUsername.Replace("@", "").Trim();
+
+            var targetPlayer = stateManager.players.FirstOrDefault(p => p.name != null && p.name.Equals(targetUsername, StringComparison.OrdinalIgnoreCase));
+
+            if (targetPlayer == null)
+            {
+                await botClient.SendMessage(userId, $"Игрок с username @{targetUsername} не найден в базе данных.");
+                return;
+            }
+
+            if (targetPlayer.id == userId)
+            {
+                await botClient.SendMessage(userId, "Вы не можете добавить самого себя в черный список.");
+                return;
+            }
+
+            var dislikedEntry = stateManager.state.dislikedTeammates.FirstOrDefault(d => d.idPlayer == userId);
+            if (dislikedEntry == null)
+            {
+                dislikedEntry = new DislikedTeammates { idPlayer = userId };
+                stateManager.state.dislikedTeammates.Add(dislikedEntry);
+            }
+
+            if (!dislikedEntry.dislikedPlayers.Contains(targetPlayer.id))
+            {
+                dislikedEntry.dislikedPlayers.Add(targetPlayer.id);
+                stateManager.SaveState();
+                await botClient.SendMessage(userId, $"Игрок @{targetPlayer.name} добавлен в ваш черный список.");
+            }
+            else
+            {
+                await botClient.SendMessage(userId, $"Игрок @{targetPlayer.name} уже находится в вашем черном списке.");
+            }
+        }
+
+        private async Task RemovePlayerFromBanList(long userId, string targetUsername)
+        {
+            targetUsername = targetUsername.Replace("@", "").Trim();
+
+            var targetPlayer = stateManager.players.FirstOrDefault(p => p.name != null && p.name.Equals(targetUsername, StringComparison.OrdinalIgnoreCase));
+
+            if (targetPlayer == null)
+            {
+                await botClient.SendMessage(userId, $"Игрок с username @{targetUsername} не найден в базе данных.");
+                return;
+            }
+
+            var dislikedEntry = stateManager.state.dislikedTeammates.FirstOrDefault(d => d.idPlayer == userId);
+            if (dislikedEntry != null && dislikedEntry.dislikedPlayers.Contains(targetPlayer.id))
+            {
+                dislikedEntry.dislikedPlayers.Remove(targetPlayer.id);
+                stateManager.SaveState();
+                await botClient.SendMessage(userId, $"Игрок @{targetPlayer.name} удален из вашего черного списка.");
+            }
+            else
+            {
+                await botClient.SendMessage(userId, $"Игрок @{targetPlayer.name} не найден в вашем черном списке.");
+            }
+        }
         private void takeSeat(Update update)
         {
             try
@@ -1381,8 +1545,8 @@ namespace BallBotGui
 
         }
         /*
-         
-         
+
+
           internal List<PlayerVote> GetFirstTimePlayers(List<Poll> polls, Poll todayApprovedGamePoll)
         {
             var previousPlayerIds = new HashSet<long>();
@@ -1405,7 +1569,7 @@ namespace BallBotGui
 
             return newPlayers;
         }
-         
+
          */
 
         internal List<PlayerVote> askNewPlayers(List<Poll> todayApprovedGamePoll)
@@ -1664,13 +1828,13 @@ namespace BallBotGui
         }
 
         private string NominationName(string key) =>
-       key switch
-       {
-           "mood" => "😊 За хорошее настроение",
-           "support" => "🤝 За поддержку на площадке",
-           "skill" => "⭐ За отличную игру",
-           _ => key
-       };
+        key switch
+        {
+            "mood" => "😊 За хорошее настроение",
+            "support" => "🤝 За поддержку на площадке",
+            "skill" => "⭐ За отличную игру",
+            _ => key
+        };
 
 
         private async void HandleCallbackQuery(CallbackQuery callbackQuery)
