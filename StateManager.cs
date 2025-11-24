@@ -471,6 +471,10 @@ namespace BallBotGui
                     {
                         botClient.UnpinChatMessage(Properties.Settings.Default.chatId, poll.idMessage);
                     }
+                    if (poll.ratingMessageId > 0)
+                    {
+                        botClient.DeleteMessage(Properties.Settings.Default.chatId, poll.ratingMessageId);
+                    }
 
                 }
 

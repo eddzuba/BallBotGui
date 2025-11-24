@@ -129,6 +129,12 @@ namespace BallBotGui
                     parseMode: ParseMode.Html
                 );
                 idRatingMsg = ratingMsg.Id;
+
+                // Закрепление сообщения с рейтингом
+                await botClient.PinChatMessage(
+                    chatId: chatId,
+                    messageId: ratingMsg.MessageId
+                );
             }
 
 
