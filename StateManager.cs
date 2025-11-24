@@ -438,6 +438,10 @@ namespace BallBotGui
                     {
                         curPlayer.name = userName;
                     }
+                    if (curPlayer.firstName != firstName)
+                    {
+                        curPlayer.firstName = firstName;
+                    }
 
                 }
                 AddPlayersToRating(curPoll);
