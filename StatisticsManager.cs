@@ -134,5 +134,64 @@ namespace BallBotGui
             return (totalGames, encountersBelow15th, encountersAbove15th);
         }
 
+        internal bool CheckIfPlayersPlayedTogether(long requesterId, long targetId)
+        {
+            var files = GetArchivesLast3Months();
+
+            foreach (var file in files)
+            {
+                try
+                {
+                    var json = System.IO.File.ReadAllText(file);
+                    var poll = JsonConvert.DeserializeObject<Poll>(json);
+
+                    if (poll != null && poll.playrsList != null)
+                    {
+                        bool requesterPresent = poll.playrsList.Any(p => p.id == requesterId);
+                        bool targetPresent = poll.playrsList.Any(p => p.id == targetId);
+
+                        if (requesterPresent && targetPresent)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                catch
+                {
+                }
+            }
+            return false;
+        }
+
+        private List<string> GetArchivesLast3Months()
+        {
+            var archiveFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "Arch");
+            var recentFiles = new List<string>();
+
+            if (Directory.Exists(archiveFolderPath))
+            {
+                var allFiles = Directory.GetFiles(archiveFolderPath);
+                var cutoffDate = DateTime.Today.AddMonths(-3);
+
+                foreach (var file in allFiles)
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(file);
+                    // Format: ArchddMMyyyy
+                    if (fileName.StartsWith("Arch") && fileName.Length == 12)
+                    {
+                        string datePart = fileName.Substring(4);
+                        if (DateTime.TryParseExact(datePart, "ddMMyyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime fileDate))
+                        {
+                            if (fileDate >= cutoffDate)
+                            {
+                                recentFiles.Add(file);
+                            }
+                        }
+                    }
+                }
+            }
+            return recentFiles;
+        }
+
     }
 }

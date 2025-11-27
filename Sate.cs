@@ -10,6 +10,8 @@ namespace BallBotGui
         public List<DislikedTeammates> dislikedTeammates = new();
         public List<string> spamStopWords = new();
 
+        public List<SkillCheckRequest> skillCheckRequests = new();
+
         public Poll AddNewPoll(string idPoll, string date, string question, int messageId, VolleybollGame? curGame, int ratingMessageId)
         {
 
@@ -20,9 +22,23 @@ namespace BallBotGui
                 pollList.Add(newPoll);
                 return newPoll;
             }
-           
+
             return oldPoll;
 
+        }
+    }
+
+    public class SkillCheckRequest
+    {
+        public long RequesterId { get; set; }
+        public long TargetUserId { get; set; }
+        public DateTime RequestDate { get; set; }
+
+        public SkillCheckRequest(long requesterId, long targetUserId)
+        {
+            RequesterId = requesterId;
+            TargetUserId = targetUserId;
+            RequestDate = DateTime.Now;
         }
     }
 }

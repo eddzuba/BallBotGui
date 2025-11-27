@@ -29,6 +29,9 @@
         */
 
         public bool isFemale = false;
+        public bool IsLevelChecked { get; set; } = false;
+        public bool IsSentForLevelCheck { get; set; } = false;
+        public DateTime? SentForLevelCheckDate { get; set; } = null;
         public int FailedMessageCount { get; set; } = 0;
         public override bool Equals(object obj)
         {

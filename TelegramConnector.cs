@@ -833,6 +833,20 @@ namespace BallBotGui
 
             if (isCommand)
             {
+                if (command.Equals("/check_level", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!string.IsNullOrWhiteSpace(args))
+                    {
+                        await ProcessCheckLevelRequest(userId, args);
+                    }
+                    else
+                    {
+                        userCommandStates[userId] = "WAITING_FOR_CHECK_LEVEL_USERNAME";
+                        await botClient.SendMessage(userId, "Введите username игрока, которого вы хотите проверить (без @):");
+                    }
+                    return;
+                }
+
                 if (command.Equals("/getBanList", StringComparison.OrdinalIgnoreCase) || command.Equals("getBanList", StringComparison.OrdinalIgnoreCase))
                 {
                     userCommandStates.Remove(userId);
@@ -882,6 +896,95 @@ namespace BallBotGui
                     await RemovePlayerFromBanList(userId, text);
                     userCommandStates.Remove(userId);
                 }
+                else if (userCommandStates[userId] == "WAITING_FOR_CHECK_LEVEL_USERNAME")
+                {
+                    await ProcessCheckLevelRequest(userId, text);
+                    userCommandStates.Remove(userId);
+                }
+            }
+        }
+
+        private async Task ProcessCheckLevelRequest(long userId, string targetUsername)
+        {
+            targetUsername = targetUsername.Trim().TrimStart('@');
+
+            // Find player by username in stateManager
+            var targetPlayer = stateManager.players.FirstOrDefault(p => p.name != null && p.name.Equals(targetUsername, StringComparison.OrdinalIgnoreCase));
+
+            if (targetPlayer == null)
+            {
+                await botClient.SendMessage(userId, $"Игрок @{targetUsername} не найден в базе данных.");
+                return;
+            }
+
+            long targetUserId = targetPlayer.id;
+
+            if (targetUserId == userId)
+            {
+                await botClient.SendMessage(userId, "Нельзя проверять самого себя.");
+                return;
+            }
+
+            // Check if player already passed the check
+            if (targetPlayer.IsLevelChecked || targetPlayer.rating != 0)
+            {
+                await botClient.SendMessage(userId, $"Игрок @{targetUsername} уже прошел проверку на минимальный уровень игры.");
+                return;
+            }
+
+            // Check if player is already sent for level check
+            if (targetPlayer.IsSentForLevelCheck)
+            {
+                await botClient.SendMessage(userId, $"Игрок @{targetUsername} уже отправлен на проверку минимального уровня.");
+                return;
+            }
+
+            // Check if already requested
+            bool alreadyRequested = stateManager.state.skillCheckRequests.Any(r => r.RequesterId == userId && r.TargetUserId == targetUserId);
+
+            if (alreadyRequested)
+            {
+                await botClient.SendMessage(userId, $"Вы уже запрашивали проверку для игрока @{targetUsername}.");
+                return;
+            }
+
+            // Check if played together
+            var statist = new StatisticsManager();
+            bool playedTogether = statist.CheckIfPlayersPlayedTogether(userId, targetUserId);
+
+            if (playedTogether)
+            {
+                stateManager.state.skillCheckRequests.Add(new SkillCheckRequest(userId, targetUserId));
+
+                // Check if we have 3 requests for this user
+                int requestCount = stateManager.state.skillCheckRequests.Count(r => r.TargetUserId == targetUserId);
+                if (requestCount >= 3)
+                {
+                    targetPlayer.IsSentForLevelCheck = true;
+                    targetPlayer.SentForLevelCheckDate = DateTime.Now;
+                    stateManager.SavePlayers();
+
+                    // Notify user
+                    try
+                    {
+                        await botClient.SendMessage(targetUserId, "Вам необходимо пройти проверку на минимальный уровень игры. Несколько игроков запроси проверить ваш минимальный уровень. Пожалуйста, свяжитесь с администратором.");
+                    }
+                    catch { }
+
+                    // Notify admin
+                    try
+                    {
+                        await botClient.SendMessage(AdminId, $"Пользователь @{targetUsername} (ID: {targetUserId}) отправлен на проверку минимального уровня игры.");
+                    }
+                    catch { }
+                }
+
+                stateManager.SaveState();
+                await botClient.SendMessage(userId, $"Запрос на проверку уровня игрока @{targetUsername} принят.");
+            }
+            else
+            {
+                await botClient.SendMessage(userId, $"Вы не можете запросить проверку, так как не играли с игроком @{targetUsername} ни разу за последние 3 месяца.");
             }
         }
 
