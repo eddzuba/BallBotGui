@@ -965,6 +965,7 @@ namespace BallBotGui
             {
                 await botClient.SendMessage(userId, $"Игрок @{targetPlayer.name} не найден в вашем черном списке.");
             }
+        private async Task SendTodayBansToAdmin(long adminId)
         }
         private void takeSeat(Update update)
         {
