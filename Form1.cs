@@ -143,6 +143,7 @@ namespace BallBotGui
                     bsPoll.ResetBindings(false);
                     bsPlayer.ResetBindings(false);
                 }
+                await askNewPlayesrsAsync();
             }
 
             if (curTime.Hour == 22 && curTime.Minute == 55)
@@ -151,14 +152,6 @@ namespace BallBotGui
                 telConnector?.ArchPolls();
 
             }
-
-            if (curTime.Hour == 11 && curTime.Minute == 00)
-            {
-                await sendInvitationAsync();
-                /*  await sendCarsInfo(); */
-                await askNewPlayesrsAsync();
-            }
-
 
             var polls = stateManager.getTodayApprovedGamePoll();
             if (polls != null)

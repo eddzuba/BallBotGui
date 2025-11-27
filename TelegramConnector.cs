@@ -595,7 +595,18 @@ namespace BallBotGui
                     }
                     if (update.Message.Text?.Trim() == "#teams")
                     {
-                        suggectTeams(update);
+                        if (update.Message.Chat.Type == ChatType.Private)
+                        {
+                            if (update.Message.From != null && update.Message.From.Id == AdminId)
+                            {
+                                suggectTeams(update, update.Message.From.Id);
+                                _ = SendTodayBansToAdmin(update.Message.From.Id);
+                            }
+                        }
+                        else
+                        {
+                            suggectTeams(update);
+                        }
                     }
 
                     if (update.Message.Text?.Trim() == "#teams4")
@@ -817,7 +828,8 @@ namespace BallBotGui
             bool isCommand = command.StartsWith("/") ||
                              command.Equals("getBanList", StringComparison.OrdinalIgnoreCase) ||
                              command.Equals("addBanList", StringComparison.OrdinalIgnoreCase) ||
-                             command.Equals("delBanList", StringComparison.OrdinalIgnoreCase);
+                             command.Equals("delBanList", StringComparison.OrdinalIgnoreCase) ||
+                             command.Equals("#team", StringComparison.OrdinalIgnoreCase);
 
             if (isCommand)
             {
@@ -965,7 +977,56 @@ namespace BallBotGui
             {
                 await botClient.SendMessage(userId, $"Игрок @{targetPlayer.name} не найден в вашем черном списке.");
             }
+        }
+
         private async Task SendTodayBansToAdmin(long adminId)
+        {
+            var polls = stateManager.getTodayApprovedGamePoll();
+            if (polls == null || !polls.Any())
+            {
+                await botClient.SendMessage(adminId, "На сегодня нет утвержденных игр.");
+                return;
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendLine("<b>Баны на сегодняшние игры:</b>");
+
+            foreach (var poll in polls)
+            {
+                sb.AppendLine($"\nИгра: {poll.curGame?.Title ?? "Без названия"}");
+
+                var playersInGame = poll.playrsList.Take(poll.maxPlayersCount).ToList();
+                var playerIdsInGame = playersInGame.Select(p => p.id).ToHashSet();
+
+                bool bansFound = false;
+
+                foreach (var player in playersInGame)
+                {
+                    var dislikedEntry = stateManager.state.dislikedTeammates.FirstOrDefault(d => d.idPlayer == player.id);
+                    if (dislikedEntry != null)
+                    {
+                        foreach (var dislikedId in dislikedEntry.dislikedPlayers)
+                        {
+                            if (playerIdsInGame.Contains(dislikedId))
+                            {
+                                var dislikedPlayer = playersInGame.FirstOrDefault(p => p.id == dislikedId);
+                                if (dislikedPlayer != null)
+                                {
+                                    sb.AppendLine($"- @{player.name} ({player.firstName}) ❌ @{dislikedPlayer.name} ({dislikedPlayer.firstName})");
+                                    bansFound = true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!bansFound)
+                {
+                    sb.AppendLine("Банов между игроками не найдено.");
+                }
+            }
+
+            await botClient.SendMessage(adminId, sb.ToString(), parseMode: ParseMode.Html);
         }
         private void takeSeat(Update update)
         {
@@ -1084,7 +1145,7 @@ namespace BallBotGui
 
 
 
-        internal async void suggectTeams(Update update)
+        internal async void suggectTeams(Update update, long? targetChatId = null)
         {
             try
             {
@@ -1100,7 +1161,8 @@ namespace BallBotGui
                     string message = $"Предлагаются команды:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}";
                     try
                     {
-                        await botClient.SendMessage(chatId, message);
+                        ChatId sendTo = targetChatId.HasValue ? (ChatId)targetChatId.Value : (ChatId)chatId;
+                        await botClient.SendMessage(sendTo, message);
                     }
                     catch (Exception ex)
                     {
