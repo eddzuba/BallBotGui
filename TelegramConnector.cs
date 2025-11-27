@@ -600,7 +600,7 @@ namespace BallBotGui
                             if (update.Message.From != null && update.Message.From.Id == AdminId)
                             {
                                 suggectTeams(update, update.Message.From.Id);
-                                _ = SendTodayBansToAdmin(update.Message.From.Id);
+                                _ = SendTodayBansToAdmin(AdminId);
                             }
                         }
                         else
@@ -1023,6 +1023,16 @@ namespace BallBotGui
                 if (!bansFound)
                 {
                     sb.AppendLine("Банов между игроками не найдено.");
+                }
+
+                sb.AppendLine("\n<b>Список игроков:</b>");
+                int count = 1;
+                foreach (var playerVote in playersInGame)
+                {
+                    var fullPlayer = stateManager.players.FirstOrDefault(p => p.id == playerVote.id);
+                    int level = fullPlayer?.group ?? 0;
+                    sb.AppendLine($"{count}. @{playerVote.name} ({playerVote.firstName}) - Уровень: {level}");
+                    count++;
                 }
             }
 
