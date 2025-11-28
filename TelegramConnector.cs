@@ -1,14 +1,11 @@
 ﻿using Newtonsoft.Json;
 using System.Globalization;
 using System.Text;
-using System.Windows.Forms;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using static System.Windows.Forms.AxHost;
-
 
 
 namespace BallBotGui
@@ -99,8 +96,6 @@ namespace BallBotGui
         {
             Console.WriteLine(exception); // just dump the exception to the console
         }
-
-
         public async Task createOnePoll(DateTime curDay, VolleybollGame curGame)
         {
             int idRatingMsg = 0;
@@ -351,11 +346,6 @@ namespace BallBotGui
 
         }
 
-        /* private void onNewPollUpdate(Update update)
-         {
-             stateManager.state.AddNewPoll(update.Poll.Id, string.Empty, update.Poll.Question);
-         }*/
-
         private void onNewPollAnswer(Update update)
         {
             if (update.PollAnswer != null)
@@ -384,10 +374,6 @@ namespace BallBotGui
                     {
                         var user = update.PollAnswer.User;
                         stateManager.AddVote(update.PollAnswer.PollId, user.Id, user.Username, user.FirstName, update.Id);
-
-                        // test
-
-                        // botClient?.SendMessage(AdminId, user.Username + " проголосовал ЗА! PollId:" + update.PollAnswer.PollId.ToString());
                     }
                 }
             }
@@ -428,8 +414,6 @@ namespace BallBotGui
         {
             try
             {
-
-
                 // Найти машину владельца
                 var car = stateManager.state.carList.FirstOrDefault(c => c.idPlayer == ownerId);
                 if (car == null) return;
@@ -473,9 +457,6 @@ namespace BallBotGui
                 // и у нас время после объявления состава игроков ( проверили ранее перед функцией )
                 // и у нас игроков maxGameSpots как минимум осталось
                 // то отправляем приглашение maxPlayersCount-ому игроку
-
-
-
 
                 var now = DateTime.Now.ToString("dd.MM");
 
@@ -649,10 +630,6 @@ namespace BallBotGui
                 onNewPollAnswer(update);
                 return true;
             }
-
-
-
-
             return false;
         }
 
@@ -1726,34 +1703,7 @@ namespace BallBotGui
 
 
         }
-        /*
-
-
-          internal List<PlayerVote> GetFirstTimePlayers(List<Poll> polls, Poll todayApprovedGamePoll)
-        {
-            var previousPlayerIds = new HashSet<long>();
-
-            // Iterate through all polls to collect unique player IDs  
-            foreach (var poll in polls)
-            {
-                if (poll != null && poll.approved)
-                {
-                    foreach (var player in poll.playrsList.Take(poll.maxPlayersCount))
-                    {
-                        previousPlayerIds.Add(player.id);
-                    }
-                }
-            }
-
-            // Find players in today's poll who are not in the previousPlayerIds set  
-            var curPlayersList = todayApprovedGamePoll.playrsList.Take(todayApprovedGamePoll.maxPlayersCount);
-            var newPlayers = curPlayersList.Where(p => !previousPlayerIds.Contains(p.id)).ToList();
-
-            return newPlayers;
-        }
-
-         */
-
+  
         internal List<PlayerVote> askNewPlayers(List<Poll> todayApprovedGamePoll)
         {
             var previousPlayerIds = new HashSet<long>();
@@ -1845,20 +1795,6 @@ namespace BallBotGui
 
         internal async Task sendAfterGameSurvey(Poll poll)
         {
-            /*   // ОТЛАДКА: Отправляем опрос только администратору
-               if (poll.playrsList != null && poll.playrsList.Any())
-               {
-                   // Чтобы список кандидатов не менялся при клике (когда срабатывает HandleVoteCallback с AdminId),
-                   // мы должны сформировать начальное сообщение так, как будто оно для AdminId.
-                   // Если админа нет в списке игроков, то просто используем фейкового игрока с AdminId.
-                   // Тогда логика исключения (p.id != voter.id) будет работать одинаково и при отправке, и при клике.
-
-                   var adminVoter = poll.playrsList.FirstOrDefault(p => p.id == AdminId)
-                                    ?? new PlayerVote(AdminId, "Admin", "", 0, 0);
-
-                   await sendPlayerAfterGameSurvey(poll, adminVoter);
-               }*/
-
             int inviteCount = Math.Min(poll.playrsList.Count, poll.maxPlayersCount);
 
             for (int i = 0; i < inviteCount; i++)
