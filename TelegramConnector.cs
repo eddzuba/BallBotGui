@@ -491,6 +491,23 @@ namespace BallBotGui
                         int freeSpots = maxGameSpots - poll.playrsList.Count;
                         string message = $"Игра в {gameTime}. Снялся @{oldUser.Username}. Свободных мест: {freeSpots} ";
                         await botClient.SendMessage(chatId, message);
+
+                        // Отправляем и закрепляем сообщение о свободном месте только один раз
+                        if (poll.idFreeSpotMessage == -1)
+                        {
+                            string freeSpotMessage = $"На сегодня есть свободное место! Игра в {gameTime}.";
+                            var sentMessage = await botClient.SendMessage(chatId, freeSpotMessage);
+
+                            // Закрепляем сообщение
+                            await botClient.PinChatMessage(
+                                chatId: chatId,
+                                messageId: sentMessage.MessageId
+                            );
+
+                            // Сохраняем ID сообщения
+                            poll.idFreeSpotMessage = sentMessage.MessageId;
+                            stateManager.SaveState();
+                        }
                     }
 
                     if (poll?.playrsList.Count < 12)

@@ -16,6 +16,8 @@ namespace BallBotGui
 
         public int idCarsMessage { get; set; } = -1; // код сообщения о доступных машинах
 
+        public int idFreeSpotMessage { get; set; } = -1; // код сообщения о свободном месте
+
         public List<long> idleDrivers { get; set; } = new(); // список водителей кто не может сегодня подвозить
 
         public VolleybollGame curGame { get; set; }
