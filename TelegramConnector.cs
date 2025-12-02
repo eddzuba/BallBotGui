@@ -1703,7 +1703,7 @@ namespace BallBotGui
 
 
         }
-  
+
         internal List<PlayerVote> askNewPlayers(List<Poll> todayApprovedGamePoll)
         {
             var previousPlayerIds = new HashSet<long>();
