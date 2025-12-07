@@ -161,15 +161,12 @@ namespace BallBotGui
                     if (telConnector != null && poll.isTimeToSendBeforeGameInvite(curTime))
                     {
                         await telConnector.sendBeforeGameInvite(poll);
-                        break;
                     }
 
                     if (telConnector != null && poll.isTimeToSendAfterGameSurvey(curTime))
                     {
                         // опрос после игры
                         await telConnector.sendAfterGameSurvey(poll);
-                        break;
-
                     }
                 }
             }
