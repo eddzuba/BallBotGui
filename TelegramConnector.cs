@@ -465,12 +465,11 @@ namespace BallBotGui
 
                 if (poll != null)
                 {
-                    string gameTime = $"{poll.curGame.GameStartHour}:{poll.curGame.GameStartMinute:D2}";
                     int maxGameSpots = poll.maxPlayersCount;
                     if (poll.playrsList.Count >= maxGameSpots)
                     {
                         PlayerVote voter = poll.playrsList[maxGameSpots - 1]; // берем последнего игрока
-                        string message = $"Игра в {gameTime}. Снялся @{oldUser.Username}. В игру вступает @{voter.name} {voter.firstName}!";
+                        string message = $"{poll.question}\nСнялся @{oldUser.Username}. В игру вступает @{voter.name} {voter.firstName}!";
 
                         await botClient.SendMessage(chatId, message);
                         await sendPlayerInvitation(poll, voter);
@@ -489,7 +488,7 @@ namespace BallBotGui
                     else
                     {
                         int freeSpots = maxGameSpots - poll.playrsList.Count;
-                        string message = $"Игра в {gameTime}. Снялся @{oldUser.Username}. Свободных мест: {freeSpots} ";
+                        string message = $"{poll.question}\nСнялся @{oldUser.Username}. Свободных мест: {freeSpots}";
                         await botClient.SendMessage(chatId, message);
 
                         // Отправляем и закрепляем сообщение о свободном месте только один раз
@@ -512,7 +511,7 @@ namespace BallBotGui
 
                     if (poll?.playrsList.Count < 12)
                     {
-                        string message = $"Игра в {gameTime}. После снятия  @{oldUser.Username} игроков осталось меньше 12. Штрафные санкции! ";
+                        string message = $"{poll.question}\nПосле снятия @{oldUser.Username} игроков осталось меньше 12. Штрафные санкции!";
                         await botClient.SendMessage(chatId, message);
                     }
                 }
@@ -1405,15 +1404,14 @@ namespace BallBotGui
         internal async Task sendInvitation(Poll todayApprovedGamePoll)
         {
             int inviteCount = Math.Min(todayApprovedGamePoll.playrsList.Count, todayApprovedGamePoll.maxPlayersCount);
-            string gameTime = $"{todayApprovedGamePoll.curGame.GameStartHour}:{todayApprovedGamePoll.curGame.GameStartMinute:D2}";
 
             try
             {
-                await botClient.SendMessage(chatId, $"Игра в {gameTime} ");
+                await botClient.SendMessage(chatId, todayApprovedGamePoll.question);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при отправке времени игры: {ex.Message}");
+                Console.WriteLine($"Ошибка при отправке заголовка игры: {ex.Message}");
             }
             for (int i = 0; i < inviteCount; i += 5)
             {
