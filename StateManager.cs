@@ -137,10 +137,10 @@ namespace BallBotGui
             };
         }
 
-        public Teams Take2Teams(Update update)
+        public Teams Take2Teams(string idPoll, Update update)
         {
-            // получает ближайщий опрос на сегодняшний день
-            Poll? poll = GetClosestApprovedPollForToday();
+            // Находим конкретную игру по idPoll
+            Poll? poll = state.pollList.FirstOrDefault(p => p.idPoll == idPoll);
             Teams teams = new();
 
             if (poll != null)
@@ -518,22 +518,33 @@ namespace BallBotGui
             return polls;
         }
 
-        internal Poll? GetClosestApprovedPollForToday()
+        internal Poll? GetClosestApprovedPollForToday(long? playerId = null)
         {
             var now = DateTime.Now;
 
             // Получаем все опросы, которые соответствуют сегодняшней дате и одобрены
             var todayPolls = state.pollList
-                .Where(x => x.date == now.ToString("dd.MM") && x.approved)
-                .OrderBy(p => new DateTime(now.Year, now.Month, now.Day, p.curGame.GameStartHour, p.curGame.GameStartMinute, 0)) // Сортируем по времени начала игры
+                .Where(x => x.date == now.ToString("dd.MM") && x.approved);
+
+            // Фильтруем по участию игрока, если playerId указан
+            if (playerId.HasValue && playerId.Value > 0)
+            {
+                todayPolls = todayPolls.Where(p =>
+                    p.playrsList.Take(p.maxPlayersCount)
+                        .Any(player => player.id == playerId.Value));
+            }
+
+            // Сортируем по времени начала игры
+            var sortedPolls = todayPolls
+                .OrderBy(p => new DateTime(now.Year, now.Month, now.Day, p.curGame.GameStartHour, p.curGame.GameStartMinute, 0))
                 .ToList();
 
-            if (!todayPolls.Any())
+            if (!sortedPolls.Any())
                 return null; // Если опросов нет, возвращаем null
 
             // Проверяем, есть ли игры, которые уже начались
             // TODO: нужно не отнимать один час, это должна быть настройка, для разных часовых поясов
-            var startedPolls = todayPolls.Where(p =>
+            var startedPolls = sortedPolls.Where(p =>
                   new DateTime(now.Year, now.Month, now.Day, p.curGame.GameStartHour - 1, p.curGame.GameStartMinute, 0) <= now).ToList();
 
             if (startedPolls.Any())
@@ -543,7 +554,7 @@ namespace BallBotGui
             }
 
             // Если ни одна игра ещё не началась, возвращаем самую раннюю из всех
-            return todayPolls.First();
+            return sortedPolls.First();
         }
 
         internal (string message, string type, Player? player) getRatingRequestStatusText(Update update)

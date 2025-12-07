@@ -1256,7 +1256,17 @@ namespace BallBotGui
         {
             try
             {
-                var teams = stateManager.Take2Teams(update);
+                // Получаем игру для данного игрока
+                long? playerId = update?.Message?.From?.Id;
+                var poll = stateManager.GetClosestApprovedPollForToday(playerId);
+
+                if (poll == null)
+                {
+                    // Нет подходящей игры для этого игрока
+                    return;
+                }
+
+                var teams = stateManager.Take2Teams(poll.idPoll, update);
                 if (teams.Team1.Count > 5 && teams.Team2.Count > 5)
                 {
 
@@ -1277,17 +1287,13 @@ namespace BallBotGui
                     }
 
                     // Сохраняем составы команд в опрос для истории
-                    var poll = stateManager.GetClosestApprovedPollForToday();
-                    if (poll != null)
-                    {
-                        var teamComposition = new TeamComposition(
-                            DateTime.Now,
-                            teams.Team1.Select(p => p.id).ToList(),
-                            teams.Team2.Select(p => p.id).ToList()
-                        );
-                        poll.TeamCompositions.Add(teamComposition);
-                        stateManager.SaveState();
-                    }
+                    var teamComposition = new TeamComposition(
+                        DateTime.Now,
+                        teams.Team1.Select(p => p.id).ToList(),
+                        teams.Team2.Select(p => p.id).ToList()
+                    );
+                    poll.TeamCompositions.Add(teamComposition);
+                    stateManager.SaveState();
                 }
             }
             catch (Exception ex)
