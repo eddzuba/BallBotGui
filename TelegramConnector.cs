@@ -1452,7 +1452,7 @@ namespace BallBotGui
 
         private async Task sendPlayerInvitation(Poll todayApprovedGamePoll, PlayerVote voter)
         {
-            string message = $" {voter.firstName}. Вы сегодня играете в волейбол в {todayApprovedGamePoll.curGame.GameStartHour}:{todayApprovedGamePoll.curGame.GameStartMinute:D2}";
+            string message = $"{todayApprovedGamePoll.question}\n{voter.firstName}, Вы сегодня играете!";
             try
             {
                 await botClient.SendMessage(voter.id, message);
@@ -1514,8 +1514,8 @@ namespace BallBotGui
             if (carsWithOwnersInFirstMaxPlayersCount.Count > 0)
             {
                 StringBuilder messageBuilder = new StringBuilder();
-                string gameTime = $"{todayApprovedGamePoll.curGame.GameStartHour}:{todayApprovedGamePoll.curGame.GameStartMinute:D2}";
-                messageBuilder.AppendLine($"К {gameTime}  помогают добраться:");
+                messageBuilder.AppendLine(todayApprovedGamePoll.question);
+                messageBuilder.AppendLine("Помогают добраться:");
 
                 int stopIdx = 1;
                 foreach (var car in carsWithOwnersInFirstMaxPlayersCount)
@@ -1786,7 +1786,7 @@ namespace BallBotGui
         {
             try
             {
-                string message = $"Через час волейбол! Пора собираться!";
+                string message = $"{poll.question}\nЧерез час игра! Пора собираться!";
                 // Проверяем, есть ли пассажиры у текущего водителя
                 var passengers = poll.occupiedPlaces
                     .Where(p => p.idCarOwner == voter.id)
