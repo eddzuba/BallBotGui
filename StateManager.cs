@@ -503,8 +503,17 @@ namespace BallBotGui
             }
 
             string json = JsonConvert.SerializeObject(poll);
+
+            // Сначала пробуем стандартное имя файла
             var fileName = $"Arch{pollDate}.json";
             var filePath = Path.Combine(archiveFolderPath, fileName);
+
+            // Если файл уже существует (вторая игра в тот же день), добавляем idPoll
+            if (File.Exists(filePath))
+            {
+                fileName = $"Arch{pollDate}_{poll.idPoll}.json";
+                filePath = Path.Combine(archiveFolderPath, fileName);
+            }
 
             File.WriteAllText(filePath, json);
 
