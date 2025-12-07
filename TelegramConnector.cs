@@ -495,7 +495,7 @@ namespace BallBotGui
                         // Отправляем и закрепляем сообщение о свободном месте только один раз
                         if (poll.idFreeSpotMessage == -1)
                         {
-                            string freeSpotMessage = $"На сегодня есть свободное место! Игра в {gameTime}.";
+                            string freeSpotMessage = $"{poll.question}\nЕсть свободное место!";
                             var sentMessage = await botClient.SendMessage(chatId, freeSpotMessage);
 
                             // Закрепляем сообщение
