@@ -125,10 +125,10 @@ namespace BallBotGui
                 if (curGame.RatingGame)
                 {
                     // Если удалили топового игрока (rating == 1) и он был в первых 8
-                    if (removedPlayer is PlayerVote rp && rp.rating == 1 && index < 8)
+                    if (removedPlayer is PlayerVote rp && rp.rating == 1 && index < 40) // поменял 8 на 40
                     {
                         // Ищем следующего топового игрока с рейтингом 1, который стоит после первых 8
-                        int candidateIndex = playrsList.FindIndex(8, p => p is PlayerVote pv && pv.rating == 1);
+                        int candidateIndex = playrsList.FindIndex(40, p => p is PlayerVote pv && pv.rating == 1);
 
                         if (candidateIndex != -1)
                         {
@@ -136,7 +136,7 @@ namespace BallBotGui
                             // Удаляем кандидата из его позиции
                             playrsList.RemoveAt(candidateIndex);
                             // Вставляем его на 8-ю позицию (или в конец списка, если игроков меньше 8)
-                            playrsList.Insert(Math.Min(7, playrsList.Count), candidate);
+                            playrsList.Insert(Math.Min(39, playrsList.Count), candidate);
                         }
                     }
                     // schedule coalesced update
@@ -175,7 +175,7 @@ namespace BallBotGui
                         // Считаем, сколько игроков с рейтингом 1 уже есть
                         int topPlayersCount = playrsList.Count(p => p is PlayerVote pv && pv.rating == 1);
 
-                        if (topPlayersCount >= 8)
+                        if (topPlayersCount >= 40)   //чтобы не менять код
                         {
                             // Если уже есть 8 и больше топовых игроков, 
                             // то текущего игрока трактуем как "B" (поставим rating = 0 временно)
