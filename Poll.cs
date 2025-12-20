@@ -125,7 +125,7 @@ namespace BallBotGui
                 if (curGame.RatingGame)
                 {
                     // Если удалили топового игрока (rating == 1) и он был в первых 8
-                    if (removedPlayer is PlayerVote rp && rp.rating == 1 && index < 40) // поменял 8 на 40
+                    /*if (removedPlayer is PlayerVote rp && rp.rating == 1 && index < 40) // поменял 8 на 40
                     {
                         // Ищем следующего топового игрока с рейтингом 1, который стоит после первых 8
                         int candidateIndex = playrsList.FindIndex(40, p => p is PlayerVote pv && pv.rating == 1);
@@ -138,11 +138,11 @@ namespace BallBotGui
                             // Вставляем его на 8-ю позицию (или в конец списка, если игроков меньше 8)
                             playrsList.Insert(Math.Min(39, playrsList.Count), candidate);
                         }
-                    }
+                    }*/
                     // schedule coalesced update
                     SchedulePlayersUpdate();
                 }
-
+                
                 // Проверяем, был ли удален игрок из первых maxPlayersCount
                 return index < maxPlayersCount;
             }
