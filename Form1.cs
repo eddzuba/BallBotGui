@@ -65,6 +65,20 @@ namespace BallBotGui
             gameManager = new GameManager(telConnector);
 
             initDs();
+
+            // Handle DataError to prevent the default error dialog
+            dataGridViewPoll.DataError += dataGridView_DataError;
+            dataGridViewPlayers.DataError += dataGridView_DataError;
+            dataGridViewRating.DataError += dataGridView_DataError;
+            dgvCars.DataError += dataGridView_DataError;
+        }
+
+        private void dataGridView_DataError(object? sender, DataGridViewDataErrorEventArgs e)
+        {
+            // Log the error but don't show the dialog
+            string gridName = (sender as Control)?.Name ?? "UnknownGrid";
+            Logger.Log($"UI DataError in {gridName}: {e.Exception?.Message}");
+            e.ThrowException = false;
         }
         private void DataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
@@ -92,6 +106,23 @@ namespace BallBotGui
             dataGridViewRating.DataSource = bsRating;
             dataGridViewRating.AutoGenerateColumns = true;
 
+            // Bindings for editing controls
+            txtEditId.DataBindings.Add("Text", bsRating, "id", true, DataSourceUpdateMode.OnPropertyChanged);
+            txtEditName.DataBindings.Add("Text", bsRating, "name", true, DataSourceUpdateMode.OnPropertyChanged);
+            txtEditFirstName.DataBindings.Add("Text", bsRating, "firstName", true, DataSourceUpdateMode.OnPropertyChanged);
+            txtEditNormalName.DataBindings.Add("Text", bsRating, "normalName", true, DataSourceUpdateMode.OnPropertyChanged);
+            numEditRating.DataBindings.Add("Value", bsRating, "rating", true, DataSourceUpdateMode.OnPropertyChanged);
+            numEditGroup.DataBindings.Add("Value", bsRating, "group", true, DataSourceUpdateMode.OnPropertyChanged);
+            chkEditIsFemale.DataBindings.Add("Checked", bsRating, "isFemale", true, DataSourceUpdateMode.OnPropertyChanged);
+            chkEditLevelChecked.DataBindings.Add("Checked", bsRating, "IsLevelChecked", true, DataSourceUpdateMode.OnPropertyChanged);
+
+            // Save player data on any change in the binding list
+            bsRating.ListChanged += (s, e) => {
+                if (e.ListChangedType == ListChangedType.ItemChanged)
+                {
+                    stateManager.SavePlayers();
+                }
+            };
 
             bsCars.DataSource = stateManager.state.carList;
             dgvCars.DataSource = bsCars;
@@ -133,31 +164,21 @@ namespace BallBotGui
 
                 if (curTime.Hour == 22 && curTime.Minute == 55)
                 {
-                    // в 23.55 прекращаем голосование...чтобы ночью не слали
-                    telConnector?.DeleteUnansweredSurveys();
+                    if (telConnector != null) await telConnector.DeleteUnansweredSurveys();
+                    safeArchPolls();
                 }
 
                 if (curTime.Hour == 23 && curTime.Minute == 55)
                 {
-                    telConnector?.ArchPolls();
+                    safeArchPolls();
                 }
 
                 if (curTime.Hour == 11 && curTime.Minute == 00)
                 {
                     await sendInvitationAsync();
-                    /*  await sendCarsInfo(); */
-                    {
-                        bsPoll.ResetBindings(false);
-                        bsPlayer.ResetBindings(false);
-                    }
+                    bsPoll.ResetBindings(false);
+                    bsPlayer.ResetBindings(false);
                     await askNewPlayesrsAsync();
-                }
-
-                if (curTime.Hour == 22 && curTime.Minute == 55)
-                {
-                    telConnector?.DeleteUnansweredSurveys();
-                    telConnector?.ArchPolls();
-
                 }
 
                 var polls = stateManager.getTodayApprovedGamePoll();
@@ -287,7 +308,27 @@ namespace BallBotGui
 
         private void onPlayerSelect(object sender, EventArgs e)
         {
+            if (bsPlayer.Current is PlayerVote selectedVote)
+            {
+                // Clear filter to ensure the player is visible in the right list
+                if (!string.IsNullOrEmpty(filter.Text))
+                {
+                    filter.Text = "";
+                }
 
+                // Find player in bsRating by ID
+                for (int i = 0; i < bsRating.Count; i++)
+                {
+                    if (bsRating[i] is Player p && p.id == selectedVote.id)
+                    {
+                        bsRating.Position = i;
+                        
+                        // Switch tab to "Players" to make it obvious
+                        tabControl1.SelectedTab = Players;
+                        break;
+                    }
+                }
+            }
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -376,9 +417,30 @@ namespace BallBotGui
 
         private void ArchPools(object sender, EventArgs e)
         {
-            telConnector?.ArchPolls();
-            bsPoll.ResetBindings(false);
-            bsPlayer.ResetBindings(false);
+            safeArchPolls();
+        }
+
+        private void safeArchPolls()
+        {
+            SafeInvoke(() =>
+            {
+                try
+                {
+                    // Reset position to safe row before modification
+                    if (bsPoll.Count > 0) bsPoll.Position = 0;
+                    
+                    telConnector?.ArchPolls();
+                    
+                    bsPoll.ResetBindings(false);
+                    bsPlayer.ResetBindings(false);
+                    
+                    Logger.Log("Архивация опросов выполнена успешно.");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log("Ошибка при архивации опросов", ex);
+                }
+            });
         }
 
         private void clickSendInvitation(object sender, EventArgs e)
@@ -516,6 +578,9 @@ namespace BallBotGui
                 }
 
                 cm.ResumeBinding();
+                
+                // Force a refresh to sync UI indices
+                dataGridViewRating.Refresh();
 
                 // Если остались видимые строки — выделим первую
                 if (anyVisible)
@@ -524,8 +589,8 @@ namespace BallBotGui
                     {
                         if (row.Visible && row.Cells.Count > 0)
                         {
-                            row.Selected = true;
                             dataGridViewRating.CurrentCell = row.Cells[0];
+                            row.Selected = true;
                             break;
                         }
                     }
@@ -533,7 +598,7 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                Logger.Log(ex.Message, ex);
+                Logger.Log("Error in filter_TextChanged", ex);
             }
         }
 

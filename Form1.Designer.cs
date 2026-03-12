@@ -1,4 +1,4 @@
-﻿namespace BallBotGui
+namespace BallBotGui
 {
     partial class Form1
     {
@@ -55,9 +55,26 @@
             button10 = new Button();
             button11 = new Button();
             del_afterGameSurvey = new Button();
+            gbEditPlayer = new GroupBox();
+            lblEditName = new Label();
+            txtEditName = new TextBox();
+            lblEditFirstName = new Label();
+            txtEditFirstName = new TextBox();
+            lblEditNormalName = new Label();
+            txtEditNormalName = new TextBox();
+            lblEditRating = new Label();
+            numEditRating = new NumericUpDown();
+            lblEditGroup = new Label();
+            numEditGroup = new NumericUpDown();
+            chkEditIsFemale = new CheckBox();
+            chkEditLevelChecked = new CheckBox();
+            lblEditId = new Label();
+            txtEditId = new TextBox();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPoll).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPlayers).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewRating).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numEditRating).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numEditGroup).BeginInit();
             tabControl1.SuspendLayout();
             Players.SuspendLayout();
             Cars.SuspendLayout();
@@ -210,9 +227,152 @@
             dataGridViewRating.RowHeadersWidth = 82;
             dataGridViewRating.RowTemplate.Height = 30;
             dataGridViewRating.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridViewRating.Size = new Size(990, 961);
+            dataGridViewRating.Size = new Size(990, 450);
             dataGridViewRating.TabIndex = 11;
             dataGridViewRating.CellEndEdit += dataGridViewRating_CellEndEdit;
+            // 
+            // gbEditPlayer
+            // 
+            gbEditPlayer.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            gbEditPlayer.Controls.Add(chkEditLevelChecked);
+            gbEditPlayer.Controls.Add(chkEditIsFemale);
+            gbEditPlayer.Controls.Add(numEditGroup);
+            gbEditPlayer.Controls.Add(lblEditGroup);
+            gbEditPlayer.Controls.Add(numEditRating);
+            gbEditPlayer.Controls.Add(lblEditRating);
+            gbEditPlayer.Controls.Add(txtEditNormalName);
+            gbEditPlayer.Controls.Add(lblEditNormalName);
+            gbEditPlayer.Controls.Add(txtEditFirstName);
+            gbEditPlayer.Controls.Add(lblEditFirstName);
+            gbEditPlayer.Controls.Add(txtEditName);
+            gbEditPlayer.Controls.Add(lblEditName);
+            gbEditPlayer.Controls.Add(txtEditId);
+            gbEditPlayer.Controls.Add(lblEditId);
+            gbEditPlayer.Location = new Point(3, 526);
+            gbEditPlayer.Name = "gbEditPlayer";
+            gbEditPlayer.Size = new Size(990, 508);
+            gbEditPlayer.TabIndex = 14;
+            gbEditPlayer.TabStop = false;
+            gbEditPlayer.Text = "Редактирование игрока";
+            // 
+            // lblEditId
+            // 
+            lblEditId.AutoSize = true;
+            lblEditId.Location = new Point(15, 45);
+            lblEditId.Name = "lblEditId";
+            lblEditId.Size = new Size(41, 32);
+            lblEditId.TabIndex = 12;
+            lblEditId.Text = "ID:";
+            // 
+            // txtEditId
+            // 
+            txtEditId.Location = new Point(204, 42);
+            txtEditId.Name = "txtEditId";
+            txtEditId.ReadOnly = true;
+            txtEditId.Size = new Size(488, 39);
+            txtEditId.TabIndex = 13;
+            // 
+            // lblEditName
+            // 
+            lblEditName.AutoSize = true;
+            lblEditName.Location = new Point(15, 95);
+            lblEditName.Name = "lblEditName";
+            lblEditName.Size = new Size(125, 32);
+            lblEditName.TabIndex = 0;
+            lblEditName.Text = "Имя (ник):";
+            // 
+            // txtEditName
+            // 
+            txtEditName.Location = new Point(204, 92);
+            txtEditName.Name = "txtEditName";
+            txtEditName.Size = new Size(488, 39);
+            txtEditName.TabIndex = 1;
+            // 
+            // lblEditFirstName
+            // 
+            lblEditFirstName.AutoSize = true;
+            lblEditFirstName.Location = new Point(15, 145);
+            lblEditFirstName.Name = "lblEditFirstName";
+            lblEditFirstName.Size = new Size(66, 32);
+            lblEditFirstName.TabIndex = 2;
+            lblEditFirstName.Text = "Имя:";
+            // 
+            // txtEditFirstName
+            // 
+            txtEditFirstName.Location = new Point(204, 142);
+            txtEditFirstName.Name = "txtEditFirstName";
+            txtEditFirstName.Size = new Size(488, 39);
+            txtEditFirstName.TabIndex = 3;
+            // 
+            // lblEditNormalName
+            // 
+            lblEditNormalName.AutoSize = true;
+            lblEditNormalName.Location = new Point(15, 195);
+            lblEditNormalName.Name = "lblEditNormalName";
+            lblEditNormalName.Size = new Size(149, 32);
+            lblEditNormalName.TabIndex = 4;
+            lblEditNormalName.Text = "Норм. имя:";
+            // 
+            // txtEditNormalName
+            // 
+            txtEditNormalName.Location = new Point(204, 192);
+            txtEditNormalName.Name = "txtEditNormalName";
+            txtEditNormalName.Size = new Size(488, 39);
+            txtEditNormalName.TabIndex = 5;
+            // 
+            // lblEditRating
+            // 
+            lblEditRating.AutoSize = true;
+            lblEditRating.Location = new Point(15, 245);
+            lblEditRating.Name = "lblEditRating";
+            lblEditRating.Size = new Size(107, 32);
+            lblEditRating.TabIndex = 6;
+            lblEditRating.Text = "Рейтинг:";
+            // 
+            // numEditRating
+            // 
+            numEditRating.Location = new Point(204, 242);
+            numEditRating.Maximum = new decimal(new int[] { 5000, 0, 0, 0 });
+            numEditRating.Name = "numEditRating";
+            numEditRating.Size = new Size(240, 39);
+            numEditRating.TabIndex = 7;
+            // 
+            // lblEditGroup
+            // 
+            lblEditGroup.AutoSize = true;
+            lblEditGroup.Location = new Point(15, 295);
+            lblEditGroup.Name = "lblEditGroup";
+            lblEditGroup.Size = new Size(95, 32);
+            lblEditGroup.TabIndex = 8;
+            lblEditGroup.Text = "Группа:";
+            // 
+            // numEditGroup
+            // 
+            numEditGroup.Location = new Point(204, 292);
+            numEditGroup.Maximum = new decimal(new int[] { 10, 0, 0, 0 });
+            numEditGroup.Name = "numEditGroup";
+            numEditGroup.Size = new Size(240, 39);
+            numEditGroup.TabIndex = 9;
+            // 
+            // chkEditIsFemale
+            // 
+            chkEditIsFemale.AutoSize = true;
+            chkEditIsFemale.Location = new Point(204, 345);
+            chkEditIsFemale.Name = "chkEditIsFemale";
+            chkEditIsFemale.Size = new Size(146, 36);
+            chkEditIsFemale.TabIndex = 10;
+            chkEditIsFemale.Text = "Женщина";
+            chkEditIsFemale.UseVisualStyleBackColor = true;
+            // 
+            // chkEditLevelChecked
+            // 
+            chkEditLevelChecked.AutoSize = true;
+            chkEditLevelChecked.Location = new Point(204, 395);
+            chkEditLevelChecked.Name = "chkEditLevelChecked";
+            chkEditLevelChecked.Size = new Size(211, 36);
+            chkEditLevelChecked.TabIndex = 11;
+            chkEditLevelChecked.Text = "Уровень пров.";
+            chkEditLevelChecked.UseVisualStyleBackColor = true;
             // 
             // tabControl1
             // 
@@ -230,6 +390,7 @@
             Players.Controls.Add(label1);
             Players.Controls.Add(filter);
             Players.Controls.Add(dataGridViewRating);
+            Players.Controls.Add(gbEditPlayer);
             Players.Location = new Point(8, 46);
             Players.Name = "Players";
             Players.Padding = new Padding(3);
@@ -381,6 +542,8 @@
             ((System.ComponentModel.ISupportInitialize)dataGridViewPoll).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPlayers).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewRating).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numEditRating).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numEditGroup).EndInit();
             tabControl1.ResumeLayout(false);
             Players.ResumeLayout(false);
             Players.PerformLayout();
@@ -419,5 +582,20 @@
         private Label label1;
         private TextBox filter;
         private Button del_afterGameSurvey;
+        private GroupBox gbEditPlayer;
+        private Label lblEditName;
+        private TextBox txtEditName;
+        private Label lblEditFirstName;
+        private TextBox txtEditFirstName;
+        private Label lblEditNormalName;
+        private TextBox txtEditNormalName;
+        private Label lblEditRating;
+        private NumericUpDown numEditRating;
+        private Label lblEditGroup;
+        private NumericUpDown numEditGroup;
+        private CheckBox chkEditIsFemale;
+        private CheckBox chkEditLevelChecked;
+        private Label lblEditId;
+        private TextBox txtEditId;
     }
 }

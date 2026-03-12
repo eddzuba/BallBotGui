@@ -1,4 +1,4 @@
-﻿namespace BallBotGui
+namespace BallBotGui
 {
     public class Player
     {
@@ -28,7 +28,7 @@
            3 начинающие
         */
 
-        public bool isFemale = false;
+        public bool isFemale { get; set; } = false;
         public bool IsLevelChecked { get; set; } = false;
         public bool IsSentForLevelCheck { get; set; } = false;
         public DateTime? SentForLevelCheckDate { get; set; } = null;
