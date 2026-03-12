@@ -222,6 +222,7 @@ namespace BallBotGui
         {
             bool changesMade;
             List<DislikedTeammates> dislikedTeammates = state.dislikedTeammates;
+            int iterations = 0;
 
             do
             {
@@ -266,6 +267,13 @@ namespace BallBotGui
                     }
                     if (changesMade) break;
                 }
+                
+                iterations++;
+                if (iterations > 100)
+                {
+                    Logger.Log("Warning: FixConflicts reached max iterations. Some conflicts might remain.");
+                    break;
+                }
             } while (changesMade);
         }
 
@@ -273,10 +281,17 @@ namespace BallBotGui
         {
             var dislikedTeammates = state.dislikedTeammates;
             bool changed = true;
+            int iterations = 0;
 
             // Будем пытаться выравнивать, пока происходят успешные обмены
             while (changed)
             {
+                iterations++;
+                if (iterations > 100)
+                {
+                    Logger.Log("Warning: DistributeFemalesEvenly reached max iterations.");
+                    break;
+                }
                 changed = false;
                 
                 // Сортируем команды по количеству девушек (от большего к меньшему)
@@ -347,24 +362,68 @@ namespace BallBotGui
                 foreach (var male in potentials)
                 {
                     int mRating = playersWithRatings.FirstOrDefault(pr => pr.player.id == male.id).rating;
+                    int diff = fRating - mRating;
 
                     // Проверяем допуск по рейтингу
-                    if (Math.Abs(fRating - mRating) <= tolerance)
+                    if (Math.Abs(diff) <= tolerance)
                     {
-                        // Проверяем конфликты (disliked)
-                        if (HasConflictWithTeam(female, toTeam.Where(p => p.id != male.id), dislikedTeammates)) continue;
-                        if (HasConflictWithTeam(male, fromTeam.Where(p => p.id != female.id), dislikedTeammates)) continue;
+                        // Если есть разница в рейтинге, пробуем найти компенсирующий обмен среди ПАРНЕЙ
+                        if (diff != 0)
+                        {
+                            var compMaleFrom = fromTeam.Where(p => !p.isFemale && p.id != male.id).ToList();
+                            var compMaleTo = toTeam.Where(p => !p.isFemale && p.id != female.id).ToList();
 
-                        // Выполняем обмен
-                        fromTeam.Remove(female);
-                        toTeam.Remove(male);
-                        fromTeam.Add(male);
-                        toTeam.Add(female);
-                        return true;
+                            // Ищем пару парней для компенсации
+                            foreach (var p1 in compMaleFrom)
+                            {
+                                int r1 = playersWithRatings.FirstOrDefault(pr => pr.player.id == p1.id).rating;
+                                foreach (var p2 in compMaleTo)
+                                {
+                                    int r2 = playersWithRatings.FirstOrDefault(pr => pr.player.id == p2.id).rating;
+                                    
+                                    if (r1 - r2 == -diff)
+                                    {
+                                        // Моделируем новые составы для полной проверки совместимости
+                                        var nextFrom = fromTeam.Where(p => p.id != female.id && p.id != p1.id).Append(male).Append(p2).ToList();
+                                        var nextTo = toTeam.Where(p => p.id != male.id && p.id != p2.id).Append(female).Append(p1).ToList();
+
+                                        if (IsTeamCompatible(nextFrom, dislikedTeammates) && IsTeamCompatible(nextTo, dislikedTeammates))
+                                        {
+                                            // Выполняем двойной обмен
+                                            fromTeam.Clear(); fromTeam.AddRange(nextFrom);
+                                            toTeam.Clear(); toTeam.AddRange(nextTo);
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Если разница 0 или компенсация не удалась, пробуем обычный обмен (только если соблюдена совместимость)
+                        var simFrom = fromTeam.Where(p => p.id != female.id).Append(male).ToList();
+                        var simTo = toTeam.Where(p => p.id != male.id).Append(female).ToList();
+
+                        if (IsTeamCompatible(simFrom, dislikedTeammates) && IsTeamCompatible(simTo, dislikedTeammates))
+                        {
+                            fromTeam.Clear(); fromTeam.AddRange(simFrom);
+                            toTeam.Clear(); toTeam.AddRange(simTo);
+                            return true;
+                        }
                     }
                 }
             }
             return false;
+        }
+
+        private bool IsTeamCompatible(IEnumerable<Player> team, List<DislikedTeammates> dislikedTeammates)
+        {
+            var list = team.ToList();
+            foreach (var player in list)
+            {
+                if (HasConflictWithTeam(player, list.Where(p => p.id != player.id), dislikedTeammates))
+                    return false;
+            }
+            return true;
         }
 
         private bool HasConflictWithTeam(Player player, IEnumerable<Player> team, List<DislikedTeammates> dislikedTeammates)
