@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System.Globalization;
 using System.Text;
 using Telegram.Bot;
@@ -94,69 +94,76 @@ namespace BallBotGui
         }
         async Task OnError(Exception exception, HandleErrorSource source)
         {
-            Console.WriteLine(exception); // just dump the exception to the console
+            Logger.Log("Telegram Bot Error", exception);
         }
         public async Task createOnePoll(DateTime curDay, VolleybollGame curGame)
         {
-            int idRatingMsg = 0;
-
-            string curQuest = curGame.GetQuest(curDay);
-            var poll = await botClient.SendPoll(
-                            chatId: chatId,
-                            question: curQuest,
-
-                            options: new InputPollOption[]
-                                {
-                                    Properties.Settings.Default.mainQuestion,
-                                    Properties.Settings.Default.questSkip
-                                 },
-                            allowsMultipleAnswers: false,
-                            isAnonymous: false
-                        );
-
-            var gameTime = curDay.AddDays(curGame.PullBeforeDay);
-
-            if (curGame != null && curGame.RatingGame)
+            try
             {
-                // Создаем пустое сообщение с текстом-заглушкой для рейтингового списка
-                var ratingMsg = await botClient.SendMessage(
-                    chatId: chatId,
-                    text: "Здесь появится рейтинговый список.\n" + curGame.Title,
-                    parseMode: ParseMode.Html
-                );
-                idRatingMsg = ratingMsg.Id;
+                int idRatingMsg = 0;
 
-                // Закрепление сообщения с рейтингом
-                await botClient.PinChatMessage(
-                    chatId: chatId,
-                    messageId: ratingMsg.MessageId
-                );
-            }
+                string curQuest = curGame.GetQuest(curDay);
+                var poll = await botClient.SendPoll(
+                                chatId: chatId,
+                                question: curQuest,
 
+                                options: new InputPollOption[]
+                                    {
+                                        Properties.Settings.Default.mainQuestion,
+                                        Properties.Settings.Default.questSkip
+                                     },
+                                allowsMultipleAnswers: false,
+                                isAnonymous: false
+                            );
 
+                var gameTime = curDay.AddDays(curGame.PullBeforeDay);
 
-            // сохранение опроса в статусе
-            stateManager.state.AddNewPoll(poll.Poll.Id, gameTime.ToString("dd.MM", new CultureInfo("ru-RU")), curQuest, poll.MessageId, curGame, idRatingMsg);
-            stateManager.SaveState();
-
-            if (curGame != null && curGame.RatingGame)
-            {
-                var curPollInstance = stateManager.state.pollList.Find(p => p.idPoll == poll.Poll.Id);
-                if (curPollInstance != null)
+                if (curGame != null && curGame.RatingGame)
                 {
-                    curPollInstance.PlayersUpdated = curPoll =>
-                    {
-                        updateRatingGameListMessage(curPoll);
-                    };
-                }
-            }
-
-            await Task.Delay(30000); // ждем 30 секунд, чтобы не прыгал чат
-            // Закрепление опроса
-            await botClient.PinChatMessage(
+                    // Создаем пустое сообщение с текстом-заглушкой для рейтингового списка
+                    var ratingMsg = await botClient.SendMessage(
                         chatId: chatId,
-                        messageId: poll.MessageId
+                        text: "Здесь появится рейтинговый список.\n" + curGame.Title,
+                        parseMode: ParseMode.Html
                     );
+                    idRatingMsg = ratingMsg.Id;
+
+                    // Закрепление сообщения с рейтингом
+                    await botClient.PinChatMessage(
+                        chatId: chatId,
+                        messageId: ratingMsg.MessageId
+                    );
+                }
+
+
+
+                // сохранение опроса в статусе
+                stateManager.state.AddNewPoll(poll.Poll.Id, gameTime.ToString("dd.MM", new CultureInfo("ru-RU")), curQuest, poll.MessageId, curGame, idRatingMsg);
+                stateManager.SaveState();
+
+                if (curGame != null && curGame.RatingGame)
+                {
+                    var curPollInstance = stateManager.state.pollList.Find(p => p.idPoll == poll.Poll.Id);
+                    if (curPollInstance != null)
+                    {
+                        curPollInstance.PlayersUpdated = curPoll =>
+                        {
+                            updateRatingGameListMessage(curPoll);
+                        };
+                    }
+                }
+
+                await Task.Delay(30000); // ждем 30 секунд, чтобы не прыгал чат
+                // Закрепление опроса
+                await botClient.PinChatMessage(
+                            chatId: chatId,
+                            messageId: poll.MessageId
+                        );
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Error in createOnePoll", ex);
+            }
         }
 
         private async void updateRatingGameListMessage(Poll curPoll)
@@ -185,8 +192,7 @@ namespace BallBotGui
                     {
                         var statePlayer = stateManager.players.FirstOrDefault(pl => pl.id == p.id);
                         var displayName = !string.IsNullOrWhiteSpace(statePlayer?.normalName) ? statePlayer.normalName : p.firstName;
-                        var ratingText = p.rating > 0 ? $"{GetLetterRating(p.rating)} ({p.rating})" : "—";
-
+                        
                         // Экранируем пользовательские строки для HTML
                         string nameHtml = System.Net.WebUtility.HtmlEncode(displayName);
                         string usernameHtml = System.Net.WebUtility.HtmlEncode(p.name);
@@ -229,12 +235,12 @@ namespace BallBotGui
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Ошибка при обновлении сообщения рейтинга: {ex.Message}");
+                   Logger.Log("Ошибка при обновлении сообщения рейтинга", ex);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Критическая ошибка в updateRatingGameListMessage: {ex.Message}");
+                Logger.Log("Критическая ошибка в updateRatingGameListMessage", ex);
             }
         }
 
@@ -405,7 +411,7 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка в removeFromCars: {ex.Message}");
+                Logger.Log(ex.Message, ex);
             }
 
         }
@@ -518,7 +524,7 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка в inviteNextPlayer: {ex.Message}");
+                Logger.Log(ex.Message, ex);
             }
 
 
@@ -596,19 +602,19 @@ namespace BallBotGui
                         {
                             if (update.Message.From != null && update.Message.From.Id == AdminId)
                             {
-                                suggectTeams(update, update.Message.From.Id);
+                                suggestTeams(update, update.Message.From.Id);
                                 _ = SendTodayBansToAdmin(AdminId);
                             }
                         }
                         else
                         {
-                            suggectTeams(update);
+                            suggestTeams(update);
                         }
                     }
 
                     if (update.Message.Text?.Trim() == "#teams4")
                     {
-                        suggect4Teams(update);
+                        suggest4Teams(update);
                     }
 
                     if ((update.Message?.Text == "#mystat" || update.Message?.Text == "#mystats" || update.Message?.Text == "/mystat"))
@@ -643,7 +649,14 @@ namespace BallBotGui
             }
             if (update.Type == UpdateType.PollAnswer)
             {
-                onNewPollAnswer(update);
+                try
+                {
+                    onNewPollAnswer(update);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log("Error in onNewPollAnswer", ex);
+                }
                 return true;
             }
             return false;
@@ -674,7 +687,7 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка в sendRatingRequestMessage: {ex.Message}");
+                Logger.Log(ex.Message, ex);
             }
         }
 
@@ -691,8 +704,9 @@ namespace BallBotGui
                     await botClient.SendMessage(AdminId, message);
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.Log("Error sending rating request to admin", ex);
                 // Игнорируем ошибки отправки
             }
         }
@@ -710,7 +724,7 @@ namespace BallBotGui
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Ошибка при отправке рейтинга: {ex.Message}");
+                Logger.Log(ex.Message, ex);
                     }
                 }
             }
@@ -737,7 +751,7 @@ namespace BallBotGui
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Ошибка при бане пользователя: {ex.Message}");
+                Logger.Log(ex.Message, ex);
                     }
 
                     // Используем глобальную переменную AdminId
@@ -768,7 +782,7 @@ namespace BallBotGui
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Ошибка при отправке прямого сообщения: {ex.Message}");
+                Logger.Log(ex.Message, ex);
                 }
             }
         }
@@ -790,14 +804,14 @@ namespace BallBotGui
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Ошибка при отправке статистики: {ex.Message}");
+                Logger.Log(ex.Message, ex);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка в writePlayerStat: {ex.Message}");
+                Logger.Log(ex.Message, ex);
             }
 
         }
@@ -1221,7 +1235,7 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка в takeSeat: {ex.Message}");
+                Logger.Log(ex.Message, ex);
             }
         }
 
@@ -1244,14 +1258,14 @@ namespace BallBotGui
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Ошибка при отправке приветствия: {ex.Message}");
+                Logger.Log(ex.Message, ex);
                 }
             }
         }
 
 
 
-        internal async void suggectTeams(Update update, long? targetChatId = null)
+        internal async void suggestTeams(Update update, long? targetChatId = null)
         {
             try
             {
@@ -1259,22 +1273,18 @@ namespace BallBotGui
                 long? playerId = update?.Message?.From?.Id;
                 var poll = stateManager.GetClosestApprovedPollForToday(playerId);
 
-                if (poll == null)
-                {
-                    // Нет подходящей игры для этого игрока
-                    return;
-                }
+                if (poll == null) return;
 
                 var teams = stateManager.Take2Teams(poll.idPoll, update);
-                if (teams.Team1.Count > 5 && teams.Team2.Count > 5)
+                if (teams.Team1.Count > 0 && teams.Team2.Count > 0)
                 {
+                    string formatTeam(List<Player> team) =>
+                        string.Join("\n", team.Select(p => $"{(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)} @{p.name}"));
 
+                    string team1Players = formatTeam(teams.Team1);
+                    string team2Players = formatTeam(teams.Team2);
 
-                    string team1Players = string.Join("\n", teams.Team1.Select(p => $"{(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)} @{p.name}"));
-                    string team2Players = string.Join("\n", teams.Team2.Select(p => $"{(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)} @{p.name}"));
-
-
-                    string message = $"Предлагаются команды:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}";
+                    string message = $"Предлагаются команды:\n\n🟢 Команда 1:\n{team1Players}\n\n🟡 Команда 2:\n{team2Players}";
                     try
                     {
                         ChatId sendTo = targetChatId.HasValue ? (ChatId)targetChatId.Value : (ChatId)chatId;
@@ -1282,7 +1292,7 @@ namespace BallBotGui
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Ошибка при отправке команд: {ex.Message}");
+                Logger.Log(ex.Message, ex);
                     }
 
                     // Сохраняем составы команд в опрос для истории
@@ -1297,37 +1307,55 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка в suggectTeams: {ex.Message}");
+                Logger.Log(ex.Message, ex);
             }
         }
-        internal async void suggect4Teams(Update update)
+        internal async void suggest4Teams(Update update)
         {
             try
             {
                 var teams = stateManager.Take4Teams(update);
-                if (teams.Team1.Count > 5 && teams.Team2.Count > 5)
+                if (teams.Team1.Count > 0 && teams.Team2.Count > 0 && teams.Team3.Count > 0 && teams.Team4.Count > 0)
                 {
+                    string formatTeam(List<Player> team) =>
+                        string.Join("\n", team.Select(p => $"{(string.IsNullOrWhiteSpace(p.normalName) ? p.firstName : p.normalName)} @{p.name}"));
 
+                    string team1Players = formatTeam(teams.Team1);
+                    string team2Players = formatTeam(teams.Team2);
+                    string team3Players = formatTeam(teams.Team3);
+                    string team4Players = formatTeam(teams.Team4);
 
-                    string team1Players = string.Join("\n", teams.Team1.Select(p => $"@{p.name} {p.firstName}"));
-                    string team2Players = string.Join("\n", teams.Team2.Select(p => $"@{p.name} {p.firstName}"));
-                    string team3Players = string.Join("\n", teams.Team3.Select(p => $"@{p.name} {p.firstName}"));
-                    string team4Players = string.Join("\n", teams.Team4.Select(p => $"@{p.name} {p.firstName}"));
-
-                    string message = $"!Предлагаются следующие составы команд:\n\nКоманда 1:\n{team1Players}\n\nКоманда 2:\n{team2Players}\n\nКоманда 3:\n{team3Players}\n\nКоманда 4:\n{team4Players}";
+                    string message = $"Предлагаются команды:\n\n" +
+                                     $"🟢 Команда 1:\n{team1Players}\n\n" +
+                                     $"🟡 Команда 2:\n{team2Players}\n\n" +
+                                     $"🟠 Команда 3:\n{team3Players}\n\n" +
+                                     $"🟣 Команда 4:\n{team4Players}";
                     try
                     {
                         await botClient.SendMessage(chatId, message);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Ошибка при отправке 4 команд: {ex.Message}");
+                Logger.Log(ex.Message, ex);
+                    }
+
+                    // Сохраняем составы команд в опрос для истории
+                    var poll = stateManager.GetClosestApprovedPollForToday(update?.Message?.From?.Id);
+                    if (poll != null)
+                    {
+                        var teamComposition = new TeamComposition(
+                            DateTime.Now,
+                            teams.Team1.Select(p => p.id).ToList(),
+                            teams.Team2.Select(p => p.id).ToList()
+                        );
+                        poll.TeamCompositions.Add(teamComposition);
+                        stateManager.SaveState();
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка в suggect4Teams: {ex.Message}");
+                Logger.Log(ex.Message, ex);
             }
         }
 
@@ -1376,7 +1404,7 @@ namespace BallBotGui
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Ошибка при удалении сообщения опроса: {ex.Message}");
+                Logger.Log(ex.Message, ex);
                             }
                             messagesToRemove.Add(msg);
                         }
@@ -1411,7 +1439,7 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при отправке заголовка игры: {ex.Message}");
+                Logger.Log(ex.Message, ex);
             }
             for (int i = 0; i < inviteCount; i += 5)
             {
@@ -1431,7 +1459,7 @@ namespace BallBotGui
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Ошибка при отправке списка игроков: {ex.Message}");
+                Logger.Log(ex.Message, ex);
                 }
             }
 
@@ -1492,7 +1520,7 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Не удалось отправить сообщение игроку {voter.id}: {ex.Message}");
+                Logger.Log(ex.Message, ex);
             }
         }
 
@@ -1582,7 +1610,7 @@ namespace BallBotGui
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Ошибка при отправке сообщения о машинах: {ex.Message}");
+                        Logger.Log(ex.Message, ex);
                     }
                 }
             }
@@ -1612,7 +1640,7 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при удалении сообщения о машинах: {ex.Message}");
+                Logger.Log(ex.Message, ex);
             }
         }
 
@@ -1718,8 +1746,7 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                var dd = ex;
-                throw;
+                Logger.Log("Error in sendTestMessageAsync", ex);
             }
 
 
@@ -1997,7 +2024,7 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling callback: {ex.Message}");
+                Logger.Log(ex.Message, ex);
             }
         }
 
@@ -2113,7 +2140,7 @@ namespace BallBotGui
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Не удалось отправить уведомление игроку {recipientId}: {ex.Message}");
+                            Logger.Log($"Не удалось отправить уведомление игроку {recipientId}", ex);
                         }
                     }
                 }
@@ -2258,9 +2285,9 @@ namespace BallBotGui
                 // Уведомление игрока
                 await botClient.SendMessage(player.id, $"Ваш рейтинг установлен администратором: {letterRating} . ( Справочно: A - сильный, D - начинающий )");
             }
-            catch
+            catch (Exception ex)
             {
-                // Игнорируем ошибку, если не удалось отправить сообщение игроку
+                Logger.Log("Ошибка при уведомлении игрока об установке рейтинга", ex);
             }
         }
 
@@ -2297,7 +2324,7 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка в ProcessAdminSpamWordMessage: {ex.Message}");
+                Logger.Log(ex.Message, ex);
             }
         }
     }

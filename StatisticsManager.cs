@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +32,7 @@ namespace BallBotGui
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при получении статистики: {ex.Message}");
+                Logger.Log("Ошибка при получении статистики", ex);
                 return "Не удалось получить статистику. Пожалуйста, попробуйте позже.";
             }
         }
@@ -70,16 +70,21 @@ namespace BallBotGui
                 foreach (var file in allFiles)
                 {
                     var fileName = Path.GetFileNameWithoutExtension(file);
-                    var fileMonth = int.Parse(fileName.Substring(6, 2));
-                    var fileYear = int.Parse(fileName.Substring(8, 4));
-
-                    if (fileYear == currentYear && fileMonth == currentMonth)
+                    // Ожидаемый формат: ArchddMMyyyy или ArchddMMyyyy_id
+                    if (fileName.Length >= 12 && fileName.StartsWith("Arch"))
                     {
-                        currentMonthFiles.Add(file);
-                    }
-                    else if (fileYear == (currentMonth == 1 ? currentYear - 1 : currentYear) && fileMonth == previousMonth)
-                    {
-                        previousMonthFiles.Add(file);
+                        if (int.TryParse(fileName.Substring(6, 2), out int fileMonth) &&
+                            int.TryParse(fileName.Substring(8, 4), out int fileYear))
+                        {
+                            if (fileYear == currentYear && fileMonth == currentMonth)
+                            {
+                                currentMonthFiles.Add(file);
+                            }
+                            else if (fileYear == (currentMonth == 1 ? currentYear - 1 : currentYear) && fileMonth == previousMonth)
+                            {
+                                previousMonthFiles.Add(file);
+                            }
+                        }
                     }
                 }
             }
@@ -176,10 +181,10 @@ namespace BallBotGui
                 foreach (var file in allFiles)
                 {
                     var fileName = Path.GetFileNameWithoutExtension(file);
-                    // Format: ArchddMMyyyy
-                    if (fileName.StartsWith("Arch") && fileName.Length == 12)
+                    // Format: ArchddMMyyyy or ArchddMMyyyy_id
+                    if (fileName.StartsWith("Arch") && fileName.Length >= 12)
                     {
-                        string datePart = fileName.Substring(4);
+                        string datePart = fileName.Substring(4, 8); // Всегда берем первые 8 цифр после Arch
                         if (DateTime.TryParseExact(datePart, "ddMMyyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime fileDate))
                         {
                             if (fileDate >= cutoffDate)

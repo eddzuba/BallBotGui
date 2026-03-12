@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 
 
@@ -71,9 +71,10 @@ namespace BallBotGui
                 // Invoke subscriber on threadpool. Subscriber must handle UI marshaling.
                 PlayersUpdated?.Invoke(this);
             }
-            catch
+            catch (Exception ex)
             {
                 // ignore exceptions from delay/notify to keep debounce resilient
+                Logger.Log("Error in DelayedNotifyAsync", ex);
                 lock (_notifyLock)
                 {
                     _updateScheduled = false;
@@ -266,9 +267,9 @@ namespace BallBotGui
                 }
 
             }
-            catch
+            catch (Exception ex)
             {
-
+                Logger.Log("Ошибка при парсинге даты игры", ex);
             }
             return DateTime.MinValue;
         }

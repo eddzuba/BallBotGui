@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
@@ -31,22 +31,27 @@ namespace BallBotGui
             InitializeComponent();
         }
 
-        public void refreshGrids()
+        public void SafeInvoke(Action action)
         {
-            if (dataGridViewPoll.InvokeRequired)
+            if (this.InvokeRequired)
             {
-                dataGridViewPoll.Invoke(new Action(() =>
-                {
-                    bsPoll.ResetBindings(false);
-                    bsPlayer.ResetBindings(false);
-                }));
+                this.BeginInvoke(action);
             }
             else
             {
+                action();
+            }
+        }
+
+        public void refreshGrids()
+        {
+            SafeInvoke(() =>
+            {
                 bsPoll.ResetBindings(false);
                 bsPlayer.ResetBindings(false);
-            }
-
+                bsRating.ResetBindings(false);
+                bsCars.ResetBindings(false);
+            });
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -112,77 +117,81 @@ namespace BallBotGui
 
         private async void MinuteTimer_Tick(object sender, EventArgs e)
         {
-            DateTime curTime = DateTime.Now;
-
-            if (gameManager != null)
+            try
             {
-                var pullCreated = await gameManager.CheckScheduleAndCreatePollAsync(curTime);
-                if (pullCreated)
+                DateTime curTime = DateTime.Now;
+
+                if (gameManager != null)
                 {
-                    bsPoll.ResetBindings(false);
-                    bsPlayer.ResetBindings(false);
-                }
-            }
-
-            if (curTime.Hour == 22 && curTime.Minute == 55)
-            {
-                // в 23.55 прекращаем голосование...чтобы ночью не слали
-                telConnector?.DeleteUnansweredSurveys();
-            }
-
-            if (curTime.Hour == 23 && curTime.Minute == 55)
-            {
-                telConnector?.ArchPolls();
-            }
-
-            if (curTime.Hour == 11 && curTime.Minute == 00)
-            {
-                await sendInvitationAsync();
-                /*  await sendCarsInfo(); */
-                {
-                    bsPoll.ResetBindings(false);
-                    bsPlayer.ResetBindings(false);
-                }
-                await askNewPlayesrsAsync();
-            }
-
-            if (curTime.Hour == 22 && curTime.Minute == 55)
-            {
-                telConnector?.DeleteUnansweredSurveys();
-                telConnector?.ArchPolls();
-
-            }
-
-            var polls = stateManager.getTodayApprovedGamePoll();
-            if (polls != null)
-            {
-                foreach (var poll in polls)
-                {
-                    if (telConnector != null && poll.isTimeToSendBeforeGameInvite(curTime))
+                    var pullCreated = await gameManager.CheckScheduleAndCreatePollAsync(curTime);
+                    if (pullCreated)
                     {
-                        await telConnector.sendBeforeGameInvite(poll);
-                    }
-
-                    if (telConnector != null && poll.isTimeToSendAfterGameSurvey(curTime))
-                    {
-                        // опрос после игры
-                        await telConnector.sendAfterGameSurvey(poll);
+                        bsPoll.ResetBindings(false);
+                        bsPlayer.ResetBindings(false);
                     }
                 }
-            }
 
-
-
-            if ((curTime.Hour == 10 && curTime.Minute == 00))
-            {
-                foreach (var curPoll in this.stateManager.state.pollList)
+                if (curTime.Hour == 22 && curTime.Minute == 55)
                 {
-                    stateManager.AddPlayersToRating(curPoll);
+                    // в 23.55 прекращаем голосование...чтобы ночью не слали
+                    telConnector?.DeleteUnansweredSurveys();
                 }
 
-                bsRating.ResetBindings(false);
-            }
+                if (curTime.Hour == 23 && curTime.Minute == 55)
+                {
+                    telConnector?.ArchPolls();
+                }
 
+                if (curTime.Hour == 11 && curTime.Minute == 00)
+                {
+                    await sendInvitationAsync();
+                    /*  await sendCarsInfo(); */
+                    {
+                        bsPoll.ResetBindings(false);
+                        bsPlayer.ResetBindings(false);
+                    }
+                    await askNewPlayesrsAsync();
+                }
+
+                if (curTime.Hour == 22 && curTime.Minute == 55)
+                {
+                    telConnector?.DeleteUnansweredSurveys();
+                    telConnector?.ArchPolls();
+
+                }
+
+                var polls = stateManager.getTodayApprovedGamePoll();
+                if (polls != null)
+                {
+                    foreach (var poll in polls)
+                    {
+                        if (telConnector != null && poll.isTimeToSendBeforeGameInvite(curTime))
+                        {
+                            await telConnector.sendBeforeGameInvite(poll);
+                        }
+
+                        if (telConnector != null && poll.isTimeToSendAfterGameSurvey(curTime))
+                        {
+                            // опрос после игры
+                            await telConnector.sendAfterGameSurvey(poll);
+                        }
+                    }
+                }
+
+                if ((curTime.Hour == 10 && curTime.Minute == 00))
+                {
+                    foreach (var curPoll in this.stateManager.state.pollList)
+                    {
+                        stateManager.AddPlayersToRating(curPoll);
+                    }
+
+                    bsRating.ResetBindings(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Error in MinuteTimer_Tick", ex);
+            }
         }
 
         private async Task askNewPlayesrsAsync()
@@ -216,7 +225,7 @@ namespace BallBotGui
                 }
                 else
                 {
-                    Console.WriteLine($"Unable to parse the string {stringArray[i]} to an integer.");
+                    Logger.Log($"Unable to parse the string {stringArray[i]} to an integer.");
                 }
             }
 
@@ -225,23 +234,31 @@ namespace BallBotGui
 
         private async void btnCreatePoll_press(object sender, EventArgs e)
         {
-            //  createNewPoll();
-            DateTime now = DateTime.Now; // Текущее время
-            int targetDay = 0; // День недели (1 = понедельник, 2 = вторник, ..., 7 = воскресенье). Например, 4 = четверг.
-
-            int currentDay = (int)now.DayOfWeek == 0 ? 7 : (int)now.DayOfWeek; // Преобразуем DayOfWeek (0 = воскресенье) в систему, где 1 = понедельник
-            int daysUntilTarget = (targetDay - currentDay + 7) % 7; // Количество дней до цели
-
-            if (daysUntilTarget == 0 && now.TimeOfDay > new TimeSpan(23, 0, 0))
+            try
             {
-                // Если сегодня целевой день, но время уже больше 23:00, берём следующий такой день
-                daysUntilTarget = 7;
+                //  createNewPoll();
+                DateTime now = DateTime.Now; // Текущее время
+                int targetDay = 0; // День недели (1 = понедельник, 2 = вторник, ..., 7 = воскресенье). Например, 4 = четверг.
+
+                int currentDay = (int)now.DayOfWeek == 0 ? 7 : (int)now.DayOfWeek; // Преобразуем DayOfWeek (0 = воскресенье) в систему, где 1 = понедельник
+                int daysUntilTarget = (targetDay - currentDay + 7) % 7; // Количество дней до цели
+
+                if (daysUntilTarget == 0 && now.TimeOfDay > new TimeSpan(23, 0, 0))
+                {
+                    // Если сегодня целевой день, но время уже больше 23:00, берём следующий такой день
+                    daysUntilTarget = 7;
+                }
+
+                DateTime nextTargetDayAt23 = now.Date.AddDays(daysUntilTarget).AddHours(22).AddMinutes(00);
+                if (gameManager != null)
+                {
+                    var pullCreated = await gameManager.CheckScheduleAndCreatePollAsync(nextTargetDayAt23);
+                }
             }
-
-            DateTime nextTargetDayAt23 = now.Date.AddDays(daysUntilTarget).AddHours(22).AddMinutes(00);
-            if (gameManager != null)
+            catch (Exception ex)
             {
-                var pullCreated = await gameManager.CheckScheduleAndCreatePollAsync(nextTargetDayAt23);
+                Logger.Log("Error in btnCreatePoll_press", ex);
+                Logger.Log(ex.Message, ex);
             }
         }
 
@@ -258,7 +275,14 @@ namespace BallBotGui
 
         private async void ReadUpdates(object sender, EventArgs e)
         {
-            await telConnector.ReadMessages(0);
+            try
+            {
+                await telConnector.ReadMessages(0);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Error in ReadUpdates", ex);
+            }
         }
 
         private void onPlayerSelect(object sender, EventArgs e)
@@ -268,27 +292,36 @@ namespace BallBotGui
 
         private void button4_Click(object sender, EventArgs e)
         {
+            if (dataGridViewPlayers.SelectedRows.Count == 0 || dataGridViewPoll.SelectedRows.Count == 0)
+                return;
+
             int selectedIndex = dataGridViewPlayers.SelectedRows[0].Index;
-            var list = stateManager.state.pollList[dataGridViewPoll.SelectedRows[0].Index].playrsList;
+            int pollIndex = dataGridViewPoll.SelectedRows[0].Index;
+
+            if (pollIndex < 0 || pollIndex >= stateManager.state.pollList.Count)
+                return;
+
+            var list = stateManager.state.pollList[pollIndex].playrsList;
             movePlayerUp(list, selectedIndex);
 
             if (selectedIndex > 0)
             {
                 bsPoll.ResetBindings(false);
                 bsPlayer.ResetBindings(false);
-                dataGridViewPlayers.Rows[selectedIndex].Selected = false;
-                dataGridViewPlayers.Rows[selectedIndex - 1].Selected = true;
+                if (dataGridViewPlayers.Rows.Count > selectedIndex)
+                {
+                    dataGridViewPlayers.Rows[selectedIndex].Selected = false;
+                    dataGridViewPlayers.Rows[selectedIndex - 1].Selected = true;
+                }
                 stateManager.SaveState();
             }
-
-
         }
 
         void movePlayerDown(List<PlayerVote> players, int index)
         {
             if (index < 0 || index >= players.Count - 1)
             {
-                Console.WriteLine("Игрок уже находится на нижней позиции.");
+                Logger.Log("Игрок уже находится на нижней позиции.");
                 return;
             }
 
@@ -304,7 +337,7 @@ namespace BallBotGui
         {
             if (index <= 0 || index >= players.Count)
             {
-                Console.WriteLine("Игрок уже находится на верхней позиции.");
+                Logger.Log("Игрок уже находится на верхней позиции.");
                 return;
             }
 
@@ -316,20 +349,29 @@ namespace BallBotGui
 
         private void button5_Click(object sender, EventArgs e) // DOWN
         {
+            if (dataGridViewPlayers.SelectedRows.Count == 0 || dataGridViewPoll.SelectedRows.Count == 0)
+                return;
+
             int selectedIndex = dataGridViewPlayers.SelectedRows[0].Index;
-            var list = stateManager.state.pollList[dataGridViewPoll.SelectedRows[0].Index].playrsList;
+            int pollIndex = dataGridViewPoll.SelectedRows[0].Index;
+
+            if (pollIndex < 0 || pollIndex >= stateManager.state.pollList.Count)
+                return;
+
+            var list = stateManager.state.pollList[pollIndex].playrsList;
             movePlayerDown(list, selectedIndex);
 
             if (selectedIndex < list.Count - 1)
             {
-
                 bsPoll.ResetBindings(false);
                 bsPlayer.ResetBindings(false);
-                dataGridViewPlayers.Rows[selectedIndex].Selected = false;
-                dataGridViewPlayers.Rows[selectedIndex + 1].Selected = true;
+                if (dataGridViewPlayers.Rows.Count > selectedIndex + 1)
+                {
+                    dataGridViewPlayers.Rows[selectedIndex].Selected = false;
+                    dataGridViewPlayers.Rows[selectedIndex + 1].Selected = true;
+                }
                 stateManager.SaveState();
             }
-
         }
 
         private void ArchPools(object sender, EventArgs e)
@@ -441,45 +483,57 @@ namespace BallBotGui
 
         private void filter_TextChanged(object sender, EventArgs e)
         {
-            string filterText = (sender as TextBox)?.Text?.Trim().ToLower() ?? "";
-
-            CurrencyManager cm = (CurrencyManager)BindingContext[dataGridViewRating.DataSource];
-            cm.SuspendBinding();
-
-            // Предварительно убираем текущую ячейку и выделение
-            dataGridViewRating.ClearSelection();
-            dataGridViewRating.CurrentCell = null;
-
-            bool anyVisible = false;
-
-            foreach (DataGridViewRow row in dataGridViewRating.Rows)
+            try
             {
-                if (row.DataBoundItem is Player player)
-                {
-                    bool visible = string.IsNullOrEmpty(filterText) ||
-                                   (player.name != null && player.name.ToLower().Contains(filterText))
-                                   || player.id.ToString().Contains(filterText)
-                    || (player.firstName != null && player.firstName.ToLower().Contains(filterText));
-                    row.Visible = visible;
+                string filterText = (sender as TextBox)?.Text?.Trim().ToLower() ?? "";
 
-                    if (visible) anyVisible = true;
-                }
-            }
+                CurrencyManager cm = (CurrencyManager)BindingContext[dataGridViewRating.DataSource];
+                cm.SuspendBinding();
 
-            cm.ResumeBinding();
+                // Предварительно убираем текущую ячейку и выделение
+                dataGridViewRating.ClearSelection();
+                dataGridViewRating.CurrentCell = null;
 
-            // Если остались видимые строки — выделим первую
-            if (anyVisible)
-            {
+                bool anyVisible = false;
+
                 foreach (DataGridViewRow row in dataGridViewRating.Rows)
                 {
-                    if (row.Visible)
+                    if (row.DataBoundItem is Player player)
                     {
-                        row.Selected = true;
-                        dataGridViewRating.CurrentCell = row.Cells[0];
-                        break;
+                        bool visible = string.IsNullOrEmpty(filterText) ||
+                                       (player.name != null && player.name.ToLower().Contains(filterText))
+                                       || player.id.ToString().Contains(filterText)
+                        || (player.firstName != null && player.firstName.ToLower().Contains(filterText));
+                        
+                        // Безопасная установка видимости
+                        if (row.Visible != visible)
+                        {
+                            row.Visible = visible;
+                        }
+
+                        if (visible) anyVisible = true;
                     }
                 }
+
+                cm.ResumeBinding();
+
+                // Если остались видимые строки — выделим первую
+                if (anyVisible)
+                {
+                    foreach (DataGridViewRow row in dataGridViewRating.Rows)
+                    {
+                        if (row.Visible && row.Cells.Count > 0)
+                        {
+                            row.Selected = true;
+                            dataGridViewRating.CurrentCell = row.Cells[0];
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex.Message, ex);
             }
         }
 
