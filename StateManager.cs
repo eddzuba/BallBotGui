@@ -272,69 +272,99 @@ namespace BallBotGui
         private void DistributeFemalesEvenly(List<List<Player>> allTeams, List<(Player player, int rating)> playersWithRatings)
         {
             var dislikedTeammates = state.dislikedTeammates;
+            bool changed = true;
 
-            while (true)
+            // Будем пытаться выравнивать, пока происходят успешные обмены
+            while (changed)
             {
-                var teamFemaleCounts = allTeams.Select((t, i) => new { Index = i, Count = t.Count(p => p.isFemale) }).ToList();
-                int minCount = teamFemaleCounts.Min(c => c.Count);
-                int maxCount = teamFemaleCounts.Max(c => c.Count);
-
-                if (maxCount - minCount <= 1)
-                    return;
-
-                var fromTeamInfo = teamFemaleCounts.First(c => c.Count == maxCount);
-                var toTeamInfo = teamFemaleCounts.First(c => c.Count == minCount);
-
-                var fromTeam = allTeams[fromTeamInfo.Index];
-                var toTeam = allTeams[toTeamInfo.Index];
-
-                var femaleCandidates = fromTeam
-                    .Where(p => p.isFemale)
-                    .OrderBy(_ => Guid.NewGuid())
+                changed = false;
+                
+                // Сортируем команды по количеству девушек (от большего к меньшему)
+                var teamInfos = allTeams
+                    .Select((t, i) => new { Index = i, Count = t.Count(p => p.isFemale) })
+                    .OrderByDescending(x => x.Count)
                     .ToList();
 
-                bool swapped = false;
+                var maxCount = teamInfos.First().Count;
+                var minCount = teamInfos.Last().Count;
 
-                foreach (var female in femaleCandidates)
-                {
-                    var rating = playersWithRatings.FirstOrDefault(pr => pr.player.id == female.id).rating;
-
-                    var swapCandidate = toTeam.FirstOrDefault(p =>
-                        !p.isFemale &&
-                        playersWithRatings.Any(tp => tp.player.id == p.id && tp.rating == rating) &&
-                        !dislikedTeammates.Any(dt =>
-                            (dt.idPlayer == p.id && dt.dislikedPlayers.Contains(female.id)) ||
-                            (dt.idPlayer == female.id && dt.dislikedPlayers.Contains(p.id))
-                        ));
-
-                    if (swapCandidate == null)
-                        continue;
-
-                    // Исключаем игроков, которых заменяют
-                    var futureToTeam = toTeam.Where(p => p.id != swapCandidate.id).Append(female).ToList();
-                    var futureFromTeam = fromTeam.Where(p => p.id != female.id).Append(swapCandidate).ToList();
-
-                    // Проверяем отсутствие конфликтов в обеих новых командах
-                    if (HasConflictWithTeam(female, futureToTeam.Where(p => p.id != female.id), dislikedTeammates))
-                        continue;
-
-                    if (HasConflictWithTeam(swapCandidate, futureFromTeam.Where(p => p.id != swapCandidate.id), dislikedTeammates))
-                        continue;
-
-                    // Выполняем обмен
-                    fromTeam.Remove(female);
-                    toTeam.Remove(swapCandidate);
-
-                    fromTeam.Add(swapCandidate);
-                    toTeam.Add(female);
-
-                    swapped = true;
+                // Если разница между самой "женской" и самой "мужской" командой <= 1, то распределение идеальное
+                if (maxCount - minCount <= 1)
                     break;
+
+                // Сначала пытаемся найти идеальный обмен (с тем же рейтингом) между любыми подходящими парами команд
+                if (TryImproveBalance(allTeams, teamInfos, playersWithRatings, 0, dislikedTeammates))
+                {
+                    changed = true;
+                    continue;
                 }
 
-                if (!swapped)
-                    break;
+                // Если идеальных обменов нет, пробуем обмен с разницей в рейтинге +-1
+                if (TryImproveBalance(allTeams, teamInfos, playersWithRatings, 1, dislikedTeammates))
+                {
+                    changed = true;
+                    continue;
+                }
+                
+                // Если даже с допуском ничего не вышло - выходим
+                break;
             }
+        }
+
+        private bool TryImproveBalance(List<List<Player>> allTeams, dynamic teamInfos, List<(Player player, int rating)> playersWithRatings, int tolerance, List<DislikedTeammates> dislikedTeammates)
+        {
+            foreach (var fromInfo in teamInfos)
+            {
+                // Пробуем команды с количеством девушек выше среднего
+                if (fromInfo.Count <= 1) continue; 
+
+                foreach (var toInfo in teamInfos)
+                {
+                    // Пробуем перекинуть в команду, где девушек заметно меньше
+                    if (fromInfo.Count - toInfo.Count <= 1) continue;
+
+                    var teamA = allTeams[fromInfo.Index];
+                    var teamB = allTeams[toInfo.Index];
+
+                    if (TrySwapBetweenTeams(teamA, teamB, playersWithRatings, tolerance, dislikedTeammates))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool TrySwapBetweenTeams(List<Player> fromTeam, List<Player> toTeam, List<(Player player, int rating)> playersWithRatings, int tolerance, List<DislikedTeammates> dislikedTeammates)
+        {
+            var females = fromTeam.Where(p => p.isFemale).OrderBy(_ => Guid.NewGuid()).ToList();
+            var potentials = toTeam.Where(p => !p.isFemale).OrderBy(_ => Guid.NewGuid()).ToList();
+
+            foreach (var female in females)
+            {
+                int fRating = playersWithRatings.FirstOrDefault(pr => pr.player.id == female.id).rating;
+
+                foreach (var male in potentials)
+                {
+                    int mRating = playersWithRatings.FirstOrDefault(pr => pr.player.id == male.id).rating;
+
+                    // Проверяем допуск по рейтингу
+                    if (Math.Abs(fRating - mRating) <= tolerance)
+                    {
+                        // Проверяем конфликты (disliked)
+                        if (HasConflictWithTeam(female, toTeam.Where(p => p.id != male.id), dislikedTeammates)) continue;
+                        if (HasConflictWithTeam(male, fromTeam.Where(p => p.id != female.id), dislikedTeammates)) continue;
+
+                        // Выполняем обмен
+                        fromTeam.Remove(female);
+                        toTeam.Remove(male);
+                        fromTeam.Add(male);
+                        toTeam.Add(female);
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         private bool HasConflictWithTeam(Player player, IEnumerable<Player> team, List<DislikedTeammates> dislikedTeammates)
