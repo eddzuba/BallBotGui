@@ -150,7 +150,7 @@ namespace BallBotGui
 
                 Random random = new();
 
-                if (poll.playrsList.Count >= 12 && playerExistsInTopPlayers)
+                if (poll.playrsList.Count >= poll.maxPlayersCount && playerExistsInTopPlayers)
                 {
                     // Ограничение списка проголосовавших игроков до poll.maxPlayersCount
                     var votedPlayersLimited = poll.playrsList.Take(poll.maxPlayersCount).ToList();
@@ -174,28 +174,30 @@ namespace BallBotGui
                         groupedPlayersDictionary[group.Key] = shuffledGroup;
                     }
 
-                    // Создание списка первых poll.maxPlayersCount игроков с учетом рейтинга и порядка в группе
-                    List<(Player player, int rating)> topPlayers = new();
-                    foreach (var group in groupedPlayersDictionary.Values)
-                    {
-                        int countToAdd = Math.Min(group.Count, poll.maxPlayersCount - topPlayers.Count);
-                        topPlayers.AddRange(group.Take(countToAdd));
-                        if (topPlayers.Count >= poll.maxPlayersCount)
-                        {
-                            break;
-                        }
-                    }
-
                     // Распределение игроков по двум командам
-                    for (int i = 0; i < topPlayers.Count; i++)
+                    int totalAdded = 0;
+                    int teamToggle = 0;
+                    foreach (var groupPlayers in groupedPlayersDictionary.Values)
                     {
-                        if (i % 2 == 0)
+                        // Сначала берем девушек в группе, затем парней
+                        var sortedGroup = groupPlayers.Where(p => p.player.isFemale)
+                            .Concat(groupPlayers.Where(p => !p.player.isFemale))
+                            .ToList();
+
+                        foreach (var p in sortedGroup)
                         {
-                            teams.Team1.Add(topPlayers[i].player);
-                        }
-                        else
-                        {
-                            teams.Team2.Add(topPlayers[i].player);
+                            if (totalAdded >= poll.maxPlayersCount) break;
+
+                            if (teamToggle % 2 == 0)
+                            {
+                                teams.Team1.Add(p.player);
+                            }
+                            else
+                            {
+                                teams.Team2.Add(p.player);
+                            }
+                            teamToggle++;
+                            totalAdded++;
                         }
                     }
                     var pList = playersWithRatings.Select(p =>
@@ -324,6 +326,13 @@ namespace BallBotGui
                 // Если даже с допуском ничего не вышло - выходим
                 break;
             }
+
+            // Логируем итоговое распределение для отладки
+            var finalCounts = allTeams.Select(t => t.Count(p => p.isFemale)).ToList();
+            if (finalCounts.Max() - finalCounts.Min() > 1)
+            {
+                Logger.Log($"Warning: Final female distribution is uneven: {string.Join("-", finalCounts)}");
+            }
         }
 
         private bool TryImproveBalance(List<List<Player>> allTeams, dynamic teamInfos, List<(Player player, int rating)> playersWithRatings, int tolerance, List<DislikedTeammates> dislikedTeammates)
@@ -450,7 +459,7 @@ namespace BallBotGui
 
                 Random random = new();
 
-                if (poll.playrsList.Count >= 20 && playerExistsInTopPlayers)
+                if (poll.playrsList.Count >= poll.maxPlayersCount && playerExistsInTopPlayers)
                 {
                     // Ограничение списка проголосовавших игроков до максимум maxPlayersCount
                     var votedPlayersLimited = poll.playrsList.Take(poll.maxPlayersCount).ToList();
@@ -474,27 +483,29 @@ namespace BallBotGui
                         groupedPlayersDictionary[group.Key] = shuffledGroup;
                     }
 
-                    // Создание списка первых poll.maxPlayersCount игроков с учетом рейтинга и порядка в группе
-                    List<(Player player, int rating)> topPlayers = new();
-                    foreach (var group in groupedPlayersDictionary.Values)
-                    {
-                        int countToAdd = Math.Min(group.Count, poll.maxPlayersCount - topPlayers.Count);
-                        topPlayers.AddRange(group.Take(countToAdd));
-                        if (topPlayers.Count >= poll.maxPlayersCount)
-                        {
-                            break;
-                        }
-                    }
-
                     // Распределение игроков по четырем командам
-                    for (int i = 0; i < topPlayers.Count; i++)
+                    int totalAdded = 0;
+                    int teamToggle = 0;
+                    foreach (var groupPlayers in groupedPlayersDictionary.Values)
                     {
-                        switch (i % 4)
+                        // Сначала берем девушек в группе, затем парней
+                        var sortedGroup = groupPlayers.Where(p => p.player.isFemale)
+                            .Concat(groupPlayers.Where(p => !p.player.isFemale))
+                            .ToList();
+
+                        foreach (var p in sortedGroup)
                         {
-                            case 0: teams.Team1.Add(topPlayers[i].player); break;
-                            case 1: teams.Team2.Add(topPlayers[i].player); break;
-                            case 2: teams.Team3.Add(topPlayers[i].player); break;
-                            case 3: teams.Team4.Add(topPlayers[i].player); break;
+                            if (totalAdded >= poll.maxPlayersCount) break;
+
+                            switch (teamToggle % 4)
+                            {
+                                case 0: teams.Team1.Add(p.player); break;
+                                case 1: teams.Team2.Add(p.player); break;
+                                case 2: teams.Team3.Add(p.player); break;
+                                case 3: teams.Team4.Add(p.player); break;
+                            }
+                            teamToggle++;
+                            totalAdded++;
                         }
                     }
 
