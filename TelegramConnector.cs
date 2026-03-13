@@ -244,6 +244,120 @@ namespace BallBotGui
             }
         }
 
+        public async Task updatePostGameSummaryMessage(Poll poll)
+
+
+        {
+            try
+            {
+                if (poll == null) return;
+
+                var sb = new StringBuilder();
+                sb.AppendLine("✨ <b>Звезды сегодняшней игры!</b> ✨");
+                if (poll.curGame != null && !string.IsNullOrWhiteSpace(poll.curGame.Title))
+                {
+                    sb.AppendLine($"<i>{poll.curGame.Title.Replace("@GameDayName", poll.date)}</i>");
+                }
+                sb.AppendLine();
+
+                var allSelectedIds = poll.PostGameVotes
+                    .SelectMany(v => v.SelectedPlayerIds)
+                    .ToList();
+
+                int totalStars = allSelectedIds.Count;
+                int maxPlayers = Math.Min(poll.playrsList.Count, poll.maxPlayersCount);
+                int maxPossibleStars = maxPlayers * 6;
+
+                sb.AppendLine($"Всего звезд: <b>{totalStars}</b> / <b>{maxPossibleStars}</b> ⭐");
+
+
+
+                if (totalStars == 0)
+                {
+                    sb.AppendLine();
+                    sb.AppendLine("Пока никто не проголосовал.");
+                }
+                else
+                {
+                    sb.AppendLine();
+                    sb.AppendLine("🏆 <b>Топ:</b>");
+
+
+
+                    var playerStars = allSelectedIds
+                        .GroupBy(id => id)
+                        .Select(g => new { PlayerId = g.Key, Stars = g.Count() })
+                        .OrderByDescending(x => x.Stars)
+                        .ToList();
+
+                    int idx = 1;
+                    int cutoffStars = playerStars.Count >= 5 ? playerStars[4].Stars : 0;
+
+                    foreach (var ps in playerStars)
+                    {
+                        if (idx > 5 && ps.Stars < cutoffStars)
+                            break;
+
+                        var player = stateManager.players.FirstOrDefault(p => p.id == ps.PlayerId);
+                        var pollPlayer = poll.playrsList.FirstOrDefault(p => p.id == ps.PlayerId);
+
+                        string displayName = player?.normalName ?? pollPlayer?.firstName ?? pollPlayer?.name ?? "Игрок";
+                        sb.AppendLine($"{idx}. {System.Net.WebUtility.HtmlEncode(displayName)} — <b>{ps.Stars}</b> ⭐");
+                        idx++;
+                    }
+
+                }
+
+
+
+                sb.AppendLine();
+
+
+                string text = sb.ToString();
+
+                if (poll.postGameSummaryMessageId > 0)
+                {
+                    try
+                    {
+                        await botClient.EditMessageText(
+                            chatId: chatId,
+                            messageId: poll.postGameSummaryMessageId,
+                            text: text,
+                            parseMode: ParseMode.Html
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        if (!ex.Message.Contains("message is not modified"))
+                            Logger.Log("Ошибка при редактировании итогового сообщения", ex);
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        var sent = await botClient.SendMessage(
+                            chatId: chatId,
+                            text: text,
+                            parseMode: ParseMode.Html
+                        );
+                        poll.postGameSummaryMessageId = sent.MessageId;
+                        stateManager.SaveState();
+                    }
+                    catch (Exception ex)
+
+                    {
+                        Logger.Log("Ошибка при отправке итогового сообщения", ex);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Ошибка в updatePostGameSummaryMessage", ex);
+            }
+        }
+
+
 
 
         /// <summary>
@@ -2114,6 +2228,13 @@ namespace BallBotGui
                 poll.PostGameVotes.Add(vote);
 
                 stateManager.SaveState();
+                if (poll.date == DateTime.Now.ToString("dd.MM") && poll.approved)
+                {
+                    await updatePostGameSummaryMessage(poll);
+                }
+
+
+
 
                 // Отправка уведомлений выбранным игрокам
                 if (!isNone && selectedIds.Count > 0)

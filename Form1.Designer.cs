@@ -55,7 +55,9 @@ namespace BallBotGui
             button10 = new Button();
             button11 = new Button();
             del_afterGameSurvey = new Button();
+            btnUpdateSummary = new Button();
             gbEditPlayer = new GroupBox();
+
             lblEditName = new Label();
             txtEditName = new TextBox();
             lblEditFirstName = new Label();
@@ -512,13 +514,26 @@ namespace BallBotGui
             del_afterGameSurvey.UseVisualStyleBackColor = true;
             del_afterGameSurvey.Click += button12_Click;
             // 
+            // btnUpdateSummary
+            // 
+            btnUpdateSummary.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnUpdateSummary.Location = new Point(1460, 1178);
+            btnUpdateSummary.Name = "btnUpdateSummary";
+            btnUpdateSummary.Size = new Size(309, 46);
+            btnUpdateSummary.TabIndex = 20;
+            btnUpdateSummary.Text = "Обновить итоги (звезды)";
+            btnUpdateSummary.UseVisualStyleBackColor = true;
+            btnUpdateSummary.Click += btnUpdateSummary_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(2164, 1374);
+            Controls.Add(btnUpdateSummary);
             Controls.Add(del_afterGameSurvey);
             Controls.Add(button11);
+
             Controls.Add(button10);
             Controls.Add(button9);
             Controls.Add(getCars);
@@ -582,7 +597,9 @@ namespace BallBotGui
         private Label label1;
         private TextBox filter;
         private Button del_afterGameSurvey;
+        private Button btnUpdateSummary;
         private GroupBox gbEditPlayer;
+
         private Label lblEditName;
         private TextBox txtEditName;
         private Label lblEditFirstName;

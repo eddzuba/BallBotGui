@@ -588,6 +588,8 @@ namespace BallBotGui
                         botClient.DeleteMessage(Properties.Settings.Default.chatId, poll.ratingMessageId);
                     }
 
+
+
                 }
 
                 SaveState();

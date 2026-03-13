@@ -629,5 +629,27 @@ namespace BallBotGui
         {
             telConnector?.DeleteUnansweredSurveys();
         }
+
+        private async void btnUpdateSummary_Click(object sender, EventArgs e)
+        {
+            if (stateManager.state.pollList != null && stateManager.state.pollList.Any())
+            {
+                // Пытаемся найти опрос на сегодня
+                var today = DateTime.Now.ToString("dd.MM");
+                var targetPoll = stateManager.state.pollList.FirstOrDefault(p => p.date == today && p.approved);
+
+
+                if (targetPoll != null && telConnector != null)
+                {
+                    await telConnector.updatePostGameSummaryMessage(targetPoll);
+                    MessageBox.Show($"Сообщение с итогами обновлено для игры: {targetPoll.date}", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+
+            }
+            else
+            {
+                MessageBox.Show("Нет доступных игр для обновления итогов", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
     }
-}
+}

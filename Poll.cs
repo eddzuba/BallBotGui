@@ -23,6 +23,8 @@ namespace BallBotGui
         public VolleybollGame curGame { get; set; }
 
         public int ratingMessageId { get; set; } // id рейтингового сообщения
+        public int postGameSummaryMessageId { get; set; } = 0; // id итогового сообщения с благодарностями
+
 
         public List<OccupiedPlace> occupiedPlaces { get; set; } = new List<OccupiedPlace>(); // доставка, брони
 
