@@ -22,6 +22,9 @@ namespace BallBotGui
         public string? ratingRequestDate { get; set; } // Дата запроса рейтинга
 
         public int group { get; set; } = 2;// Группа , по уровню игры
+        
+        [Newtonsoft.Json.JsonIgnore]
+        public string NameWithId => $"{name} ({firstName}) [ID:{id}]";
 
         /* 1 самые сильные
            2 средние

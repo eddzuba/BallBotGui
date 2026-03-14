@@ -56,6 +56,8 @@ namespace BallBotGui
             button11 = new Button();
             del_afterGameSurvey = new Button();
             btnUpdateSummary = new Button();
+            lblCarFilter = new Label();
+            txtCarFilter = new TextBox();
             tabGamesConfig = new TabPage();
             dgvGames = new DataGridView();
             gbEditGame = new GroupBox();
@@ -94,6 +96,32 @@ namespace BallBotGui
             lblGymChoice = new Label();
             cmbGym = new ComboBox();
             gbEditPlayer = new GroupBox();
+            gbEditCar = new GroupBox();
+            lblCarIdPlayer = new Label();
+            cmbCarIdPlayer = new ComboBox();
+            lblCarName = new Label();
+            txtCarName = new TextBox();
+            lblCarFirstName = new Label();
+            txtCarFirstName = new TextBox();
+            lblCarPlaceCount = new Label();
+            cmbCarPlaceCount = new ComboBox();
+            btnAddCar = new Button();
+            btnDeleteCar = new Button();
+            btnSaveCars = new Button();
+
+            gbEditStop = new GroupBox();
+            btnOpenStopLink = new Button();
+            lblStopName = new Label();
+            txtStopName = new TextBox();
+            lblStopLink = new Label();
+            txtStopLink = new TextBox();
+            lblStopMinBefore = new Label();
+            numStopMinBefore = new NumericUpDown();
+            btnAddStop = new Button();
+            btnDeleteStop = new Button();
+
+            lblCarsHeader = new Label();
+            lblStopsHeader = new Label();
 
             lblEditName = new Label();
             txtEditName = new TextBox();
@@ -117,6 +145,7 @@ namespace BallBotGui
             tabControl1.SuspendLayout();
             Players.SuspendLayout();
             Cars.SuspendLayout();
+            gbEditCar.SuspendLayout();
             tabGamesConfig.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvGames).BeginInit();
             gbEditGame.SuspendLayout();
@@ -467,8 +496,14 @@ namespace BallBotGui
             // 
             // Cars
             // 
-            Cars.Controls.Add(dataGridViewCarStops);
+            Cars.Controls.Add(btnSaveCars);
+            Cars.Controls.Add(btnAddCar);
+            Cars.Controls.Add(btnDeleteCar);
+            Cars.Controls.Add(gbEditCar);
+            Cars.Controls.Add(lblCarFilter);
+            Cars.Controls.Add(txtCarFilter);
             Cars.Controls.Add(dgvCars);
+            Cars.Controls.Add(lblCarsHeader);
             Cars.Location = new Point(8, 46);
             Cars.Name = "Cars";
             Cars.Padding = new Padding(3);
@@ -854,32 +889,298 @@ namespace BallBotGui
             // 
             // dataGridViewCarStops
             // 
-            dataGridViewCarStops.AllowUserToOrderColumns = true;
-            dataGridViewCarStops.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCarStops.Dock = DockStyle.Bottom;
+            dataGridViewCarStops.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            dataGridViewCarStops.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridViewCarStops.Dock = DockStyle.None;
             dataGridViewCarStops.EditMode = DataGridViewEditMode.EditProgrammatically;
-            dataGridViewCarStops.Location = new Point(3, 575);
+            dataGridViewCarStops.Location = new Point(15, 175);
             dataGridViewCarStops.MultiSelect = false;
             dataGridViewCarStops.Name = "dataGridViewCarStops";
             dataGridViewCarStops.RowHeadersWidth = 82;
             dataGridViewCarStops.RowTemplate.Height = 30;
             dataGridViewCarStops.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridViewCarStops.Size = new Size(990, 459);
+            dataGridViewCarStops.Size = new Size(960, 150);
             dataGridViewCarStops.TabIndex = 15;
+            // 
+            // lblStopsHeader
+            // 
+            lblStopsHeader.AutoSize = true;
+            lblStopsHeader.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblStopsHeader.Location = new Point(15, 140);
+            lblStopsHeader.Name = "lblStopsHeader";
+            lblStopsHeader.Size = new Size(141, 32);
+            lblStopsHeader.TabIndex = 22;
+            lblStopsHeader.Text = "Остановки:";
             // 
             // dgvCars
             // 
-            dgvCars.AllowUserToOrderColumns = true;
             dgvCars.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvCars.Dock = DockStyle.Top;
-            dgvCars.Location = new Point(3, 3);
+            dgvCars.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            dgvCars.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvCars.Dock = DockStyle.None;
+            dgvCars.EditMode = DataGridViewEditMode.EditProgrammatically;
+            dgvCars.Location = new Point(3, 90);
             dgvCars.MultiSelect = false;
             dgvCars.Name = "dgvCars";
+            dgvCars.ReadOnly = true;
             dgvCars.RowHeadersWidth = 82;
             dgvCars.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvCars.Size = new Size(990, 489);
+            dgvCars.Size = new Size(990, 160);
             dgvCars.TabIndex = 14;
             dgvCars.SelectionChanged += dgvCars_SelectionChanged;
+            // 
+            // lblCarFilter
+            // 
+            lblCarFilter.AutoSize = true;
+            lblCarFilter.Location = new Point(3, 45);
+            lblCarFilter.Name = "lblCarFilter";
+            lblCarFilter.Size = new Size(100, 32);
+            lblCarFilter.TabIndex = 23;
+            lblCarFilter.Text = "Фильтр:";
+            // 
+            // txtCarFilter
+            // 
+            txtCarFilter.Location = new Point(140, 42);
+            txtCarFilter.Name = "txtCarFilter";
+            txtCarFilter.Size = new Size(400, 39);
+            txtCarFilter.TabIndex = 24;
+            txtCarFilter.TextChanged += txtCarFilter_TextChanged;
+            // 
+            // lblCarsHeader
+            // 
+            lblCarsHeader.AutoSize = true;
+            lblCarsHeader.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblCarsHeader.Location = new Point(3, 5);
+            lblCarsHeader.Name = "lblCarsHeader";
+            lblCarsHeader.Size = new Size(122, 32);
+            lblCarsHeader.TabIndex = 21;
+            lblCarsHeader.Text = "Машины:";
+            // 
+            // gbEditCar
+            // 
+            gbEditCar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            gbEditCar.Controls.Add(lblStopsHeader);
+            gbEditCar.Controls.Add(gbEditStop);
+            gbEditCar.Controls.Add(dataGridViewCarStops);
+            gbEditCar.Controls.Add(cmbCarPlaceCount);
+            gbEditCar.Controls.Add(lblCarPlaceCount);
+            gbEditCar.Controls.Add(txtCarFirstName);
+            gbEditCar.Controls.Add(lblCarFirstName);
+            gbEditCar.Controls.Add(txtCarName);
+            gbEditCar.Controls.Add(lblCarName);
+            gbEditCar.Controls.Add(cmbCarIdPlayer);
+            gbEditCar.Controls.Add(lblCarIdPlayer);
+            gbEditCar.Location = new Point(3, 260);
+            gbEditCar.Name = "gbEditCar";
+            gbEditCar.Size = new Size(990, 540);
+            gbEditCar.TabIndex = 16;
+            gbEditCar.TabStop = false;
+            gbEditCar.Text = "Редактирование машины";
+            // 
+            // lblCarIdPlayer
+            // 
+            lblCarIdPlayer.AutoSize = true;
+            lblCarIdPlayer.Location = new Point(15, 45);
+            lblCarIdPlayer.Name = "lblCarIdPlayer";
+            lblCarIdPlayer.Size = new Size(110, 32);
+            lblCarIdPlayer.TabIndex = 0;
+            lblCarIdPlayer.Text = "Игрок:";
+            // 
+            // cmbCarIdPlayer
+            // 
+            cmbCarIdPlayer.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            cmbCarIdPlayer.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbCarIdPlayer.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbCarIdPlayer.FormattingEnabled = true;
+            cmbCarIdPlayer.Location = new Point(130, 42);
+            cmbCarIdPlayer.Name = "cmbCarIdPlayer";
+            cmbCarIdPlayer.Size = new Size(820, 40);
+            cmbCarIdPlayer.TabIndex = 1;
+            cmbCarIdPlayer.SelectedIndexChanged += cmbCarIdPlayer_SelectedIndexChanged;
+            // 
+            // lblCarName
+            // 
+            lblCarName.AutoSize = true;
+            lblCarName.Location = new Point(320, 45);
+            lblCarName.Name = "lblCarName";
+            lblCarName.Size = new Size(60, 32);
+            lblCarName.TabIndex = 2;
+            lblCarName.Text = "Ник:";
+            lblCarName.Visible = false;
+            // 
+            // txtCarName
+            // 
+            txtCarName.Location = new Point(385, 42);
+            txtCarName.Name = "txtCarName";
+            txtCarName.ReadOnly = true;
+            txtCarName.Size = new Size(200, 39);
+            txtCarName.TabIndex = 3;
+            txtCarName.Visible = false;
+            // 
+            // lblCarFirstName
+            // 
+            lblCarFirstName.AutoSize = true;
+            lblCarFirstName.Location = new Point(600, 45);
+            lblCarFirstName.Name = "lblCarFirstName";
+            lblCarFirstName.Size = new Size(66, 32);
+            lblCarFirstName.TabIndex = 4;
+            lblCarFirstName.Text = "Имя:";
+            lblCarFirstName.Visible = false;
+            // 
+            // txtCarFirstName
+            // 
+            txtCarFirstName.Location = new Point(670, 42);
+            txtCarFirstName.Name = "txtCarFirstName";
+            txtCarFirstName.ReadOnly = true;
+            txtCarFirstName.Size = new Size(200, 39);
+            txtCarFirstName.TabIndex = 5;
+            txtCarFirstName.Visible = false;
+            // 
+            // lblCarPlaceCount
+            // 
+            lblCarPlaceCount.AutoSize = true;
+            lblCarPlaceCount.Location = new Point(15, 95);
+            lblCarPlaceCount.Name = "lblCarPlaceCount";
+            lblCarPlaceCount.Size = new Size(76, 32);
+            lblCarPlaceCount.TabIndex = 6;
+            lblCarPlaceCount.Text = "Мест:";
+            // 
+            // cmbCarPlaceCount
+            // 
+            cmbCarPlaceCount.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbCarPlaceCount.Location = new Point(130, 92);
+            cmbCarPlaceCount.Name = "cmbCarPlaceCount";
+            cmbCarPlaceCount.Size = new Size(120, 40);
+            cmbCarPlaceCount.TabIndex = 7;
+            // 
+            // btnAddCar
+            // 
+            btnAddCar.Location = new Point(15, 810);
+            btnAddCar.Name = "btnAddCar";
+            btnAddCar.Size = new Size(300, 46);
+            btnAddCar.TabIndex = 17;
+            btnAddCar.Text = "Добавить машину";
+            btnAddCar.UseVisualStyleBackColor = true;
+            btnAddCar.Click += btnAddCar_Click;
+            // 
+            // btnDeleteCar
+            // 
+            btnDeleteCar.Location = new Point(345, 810);
+            btnDeleteCar.Name = "btnDeleteCar";
+            btnDeleteCar.Size = new Size(300, 46);
+            btnDeleteCar.TabIndex = 18;
+            btnDeleteCar.Text = "Удалить машину";
+            btnDeleteCar.UseVisualStyleBackColor = true;
+            btnDeleteCar.Click += btnDeleteCar_Click;
+            // 
+            // btnSaveCars
+            // 
+            btnSaveCars.Location = new Point(675, 810);
+            btnSaveCars.Name = "btnSaveCars";
+            btnSaveCars.Size = new Size(300, 46);
+            btnSaveCars.TabIndex = 19;
+            btnSaveCars.Text = "Сохранить";
+            btnSaveCars.UseVisualStyleBackColor = true;
+            btnSaveCars.Click += btnSaveCars_Click;
+            // 
+            // gbEditStop
+            // 
+            gbEditStop.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            gbEditStop.Controls.Add(btnOpenStopLink);
+            gbEditStop.Controls.Add(btnAddStop);
+            gbEditStop.Controls.Add(btnDeleteStop);
+            gbEditStop.Controls.Add(numStopMinBefore);
+            gbEditStop.Controls.Add(lblStopMinBefore);
+            gbEditStop.Controls.Add(txtStopLink);
+            gbEditStop.Controls.Add(lblStopLink);
+            gbEditStop.Controls.Add(txtStopName);
+            gbEditStop.Controls.Add(lblStopName);
+            gbEditStop.Location = new Point(10, 330);
+            gbEditStop.Name = "gbEditStop";
+            gbEditStop.Size = new Size(970, 200);
+            gbEditStop.TabIndex = 20;
+            gbEditStop.TabStop = false;
+            gbEditStop.Text = "Редактирование остановки";
+            // 
+            // lblStopName
+            // 
+            lblStopName.AutoSize = true;
+            lblStopName.Location = new Point(15, 45);
+            lblStopName.Name = "lblStopName";
+            lblStopName.Size = new Size(125, 32);
+            lblStopName.TabIndex = 0;
+            lblStopName.Text = "Название:";
+            // 
+            // txtStopName
+            // 
+            txtStopName.Location = new Point(150, 42);
+            txtStopName.Name = "txtStopName";
+            txtStopName.Size = new Size(300, 39);
+            txtStopName.TabIndex = 1;
+            // 
+            // lblStopMinBefore
+            // 
+            lblStopMinBefore.AutoSize = true;
+            lblStopMinBefore.Location = new Point(470, 45);
+            lblStopMinBefore.Name = "lblStopMinBefore";
+            lblStopMinBefore.Size = new Size(200, 32);
+            lblStopMinBefore.TabIndex = 4;
+            lblStopMinBefore.Text = "Мин. до:";
+            // 
+            // numStopMinBefore
+            // 
+            numStopMinBefore.Location = new Point(590, 42);
+            numStopMinBefore.Name = "numStopMinBefore";
+            numStopMinBefore.Size = new Size(100, 39);
+            numStopMinBefore.TabIndex = 5;
+            // 
+            // lblStopLink
+            // 
+            lblStopLink.AutoSize = true;
+            lblStopLink.Location = new Point(15, 95);
+            lblStopLink.Name = "lblStopLink";
+            lblStopLink.Size = new Size(110, 32);
+            lblStopLink.TabIndex = 2;
+            lblStopLink.Text = "Ссылка:";
+            // 
+            // txtStopLink
+            // 
+            txtStopLink.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtStopLink.Location = new Point(140, 92);
+            txtStopLink.Name = "txtStopLink";
+            txtStopLink.Size = new Size(740, 39);
+            txtStopLink.TabIndex = 3;
+            // 
+            // btnOpenStopLink
+            // 
+            btnOpenStopLink.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnOpenStopLink.Location = new Point(890, 90);
+            btnOpenStopLink.Name = "btnOpenStopLink";
+            btnOpenStopLink.Size = new Size(60, 42);
+            btnOpenStopLink.TabIndex = 4;
+            btnOpenStopLink.Text = "🌐";
+            btnOpenStopLink.UseVisualStyleBackColor = true;
+            btnOpenStopLink.Click += btnOpenStopLink_Click;
+            // 
+            // btnAddStop
+            // 
+            btnAddStop.Location = new Point(15, 145);
+            btnAddStop.Name = "btnAddStop";
+            btnAddStop.Size = new Size(300, 42);
+            btnAddStop.TabIndex = 6;
+            btnAddStop.Text = "Добавить остановку";
+            btnAddStop.UseVisualStyleBackColor = true;
+            btnAddStop.Click += btnAddStop_Click;
+            // 
+            // btnDeleteStop
+            // 
+            btnDeleteStop.Location = new Point(345, 145);
+            btnDeleteStop.Name = "btnDeleteStop";
+            btnDeleteStop.Size = new Size(300, 42);
+            btnDeleteStop.TabIndex = 7;
+            btnDeleteStop.Text = "Удалить остановку";
+            btnDeleteStop.UseVisualStyleBackColor = true;
+            btnDeleteStop.Click += btnDeleteStop_Click;
             // 
             // getCars
             // 
@@ -985,6 +1286,11 @@ namespace BallBotGui
             Players.ResumeLayout(false);
             Players.PerformLayout();
             Cars.ResumeLayout(false);
+            gbEditCar.ResumeLayout(false);
+            gbEditCar.PerformLayout();
+            gbEditStop.ResumeLayout(false);
+            gbEditStop.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numStopMinBefore).EndInit();
             tabGamesConfig.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dgvGames).EndInit();
             gbEditGame.ResumeLayout(false);
@@ -1083,5 +1389,32 @@ namespace BallBotGui
         private CheckBox chkEditLevelChecked;
         private Label lblEditId;
         private TextBox txtEditId;
+        private GroupBox gbEditCar;
+        private Label lblCarIdPlayer;
+        private ComboBox cmbCarIdPlayer;
+        private Label lblCarName;
+        private TextBox txtCarName;
+        private Label lblCarFirstName;
+        private TextBox txtCarFirstName;
+        private Label lblCarPlaceCount;
+        private ComboBox cmbCarPlaceCount;
+        private Button btnAddCar;
+        private Button btnDeleteCar;
+        private Button btnSaveCars;
+
+        private GroupBox gbEditStop;
+        private Button btnOpenStopLink;
+        private Label lblStopName;
+        private TextBox txtStopName;
+        private Label lblStopLink;
+        private TextBox txtStopLink;
+        private Label lblStopMinBefore;
+        private NumericUpDown numStopMinBefore;
+        private Button btnAddStop;
+        private Button btnDeleteStop;
+        private Label lblCarsHeader;
+        private Label lblStopsHeader;
+        private Label lblCarFilter;
+        private TextBox txtCarFilter;
     }
 }

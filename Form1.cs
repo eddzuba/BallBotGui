@@ -60,6 +60,9 @@ namespace BallBotGui
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            stateManager.LoadState();
+            stateManager.LoadPlayers();
+
             // Подписываемся на событие CellFormatting
             dataGridViewPlayers.CellFormatting += DataGridView1_CellFormatting;
 
@@ -88,11 +91,21 @@ namespace BallBotGui
         }
         private void DataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            // Проверяем, что текущая ячейка принадлежит к столбцу с индексом 0 (первый столбец) и номер строки меньше 10
-            if (e.RowIndex < 14)
+            // Проверяем, что текущая ячейка принадлежит к столбцу с индексом 0 (первый столбец) и номер строки меньше 14
+            if (e.RowIndex >= 0 && e.RowIndex < 14)
             {
-                // Устанавливаем цвет фона для текущей ячейки
+                // Устанавливаем цвет фона для первых 14 игроков
                 e.CellStyle.BackColor = System.Drawing.Color.LightGreen;
+            }
+
+            // Индикация наличия машины
+            if (e.RowIndex >= 0 && dataGridViewPlayers.Columns[e.ColumnIndex].Name == "CarIcon")
+            {
+                if (dataGridViewPlayers.Rows[e.RowIndex].DataBoundItem is PlayerVote pv)
+                {
+                    bool hasCar = stateManager.state.carList.Any(c => c.idPlayer == pv.id);
+                    e.Value = hasCar ? "🚗" : "";
+                }
             }
         }
 
@@ -107,6 +120,19 @@ namespace BallBotGui
             bsPlayer.DataMember = "playrsList";
             dataGridViewPlayers.DataSource = bsPlayer;
             dataGridViewPlayers.AutoGenerateColumns = true;
+            bsPlayer.CurrentChanged += BsPlayer_CurrentChanged;
+
+            // Добавляем колонку-индикатор машины, если её еще нет
+            if (dataGridViewPlayers.Columns["CarIcon"] == null)
+            {
+                var col = new DataGridViewTextBoxColumn();
+                col.Name = "CarIcon";
+                col.HeaderText = "🚗";
+                col.Width = 40;
+                col.ReadOnly = true;
+                col.DisplayIndex = 0;
+                dataGridViewPlayers.Columns.Insert(0, col);
+            }
 
             bsRating.DataSource = new BindingList<Player>(stateManager.players);
             dataGridViewRating.DataSource = bsRating;
@@ -133,6 +159,33 @@ namespace BallBotGui
             bsCars.DataSource = stateManager.state.carList;
             dgvCars.DataSource = bsCars;
             dgvCars.AutoGenerateColumns = true;
+
+            // Настройка комбобокса мест
+            cmbCarPlaceCount.Items.Clear();
+            for (int i = 1; i <= 5; i++) cmbCarPlaceCount.Items.Add(i);
+
+            // Настройка биндинга для выбора игрока в машине
+            RefreshCarPlayerPicker();
+
+            // Биндинги для редактирования машин
+            txtCarName.DataBindings.Add("Text", bsCars, "name", true, DataSourceUpdateMode.Never);
+            txtCarFirstName.DataBindings.Add("Text", bsCars, "firstName", true, DataSourceUpdateMode.Never);
+            cmbCarPlaceCount.DataBindings.Add("SelectedItem", bsCars, "placeCount", true, DataSourceUpdateMode.OnPropertyChanged);
+
+            bsCars.CurrentChanged += BsCars_CurrentChanged;
+            
+            // Первичная подтяжка имен для всех машин
+            UpdateCarNamesFromPlayers();
+
+            // Инициализируем схему для остановок, чтобы биндинги не падали при отсутствии данных
+            bsCarStops.DataSource = typeof(CarStops);
+            dataGridViewCarStops.DataSource = bsCarStops;
+            dataGridViewCarStops.AutoGenerateColumns = true;
+
+            // Биндинги для редактирования остановок
+            txtStopName.DataBindings.Add("Text", bsCarStops, "name", true, DataSourceUpdateMode.OnPropertyChanged);
+            txtStopLink.DataBindings.Add("Text", bsCarStops, "link", true, DataSourceUpdateMode.OnPropertyChanged);
+            numStopMinBefore.DataBindings.Add("Value", bsCarStops, "minBefore", true, DataSourceUpdateMode.OnPropertyChanged);
 
             // Настройка биндинга для редактирования игр
             var gamesJson = AppConfigHelper.LoadSetting("GamesJson");
@@ -513,9 +566,6 @@ namespace BallBotGui
                     if (bsRating[i] is Player p && p.id == selectedVote.id)
                     {
                         bsRating.Position = i;
-                        
-                        // Switch tab to "Players" to make it obvious
-                        tabControl1.SelectedTab = Players;
                         break;
                     }
                 }
@@ -793,6 +843,60 @@ namespace BallBotGui
             }
         }
 
+        private void txtCarFilter_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                string filterText = (sender as TextBox)?.Text?.Trim().ToLower() ?? "";
+
+                CurrencyManager cm = (CurrencyManager)BindingContext[dgvCars.DataSource];
+                cm.SuspendBinding();
+
+                dgvCars.ClearSelection();
+                dgvCars.CurrentCell = null;
+
+                bool anyVisible = false;
+
+                foreach (DataGridViewRow row in dgvCars.Rows)
+                {
+                    if (row.DataBoundItem is Car car)
+                    {
+                        bool visible = string.IsNullOrEmpty(filterText) ||
+                                       (car.name != null && car.name.ToLower().Contains(filterText))
+                                       || car.idPlayer.ToString().Contains(filterText)
+                                       || (car.firstName != null && car.firstName.ToLower().Contains(filterText));
+
+                        if (row.Visible != visible)
+                        {
+                            row.Visible = visible;
+                        }
+
+                        if (visible) anyVisible = true;
+                    }
+                }
+
+                cm.ResumeBinding();
+                dgvCars.Refresh();
+
+                if (anyVisible)
+                {
+                    foreach (DataGridViewRow row in dgvCars.Rows)
+                    {
+                        if (row.Visible && row.Cells.Count > 0)
+                        {
+                            dgvCars.CurrentCell = row.Cells[0];
+                            row.Selected = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Error in txtCarFilter_TextChanged", ex);
+            }
+        }
+
         private void getStat(object sender, EventArgs e)
         {
             // Заглушка для статистики
@@ -811,9 +915,169 @@ namespace BallBotGui
             MessageBox.Show("Функция табло в разработке", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
+        private void BsPlayer_CurrentChanged(object? sender, EventArgs e)
+        {
+            // Если мы на вкладке "Машины", пытаемся найти машину выбранного игрока
+            if (tabControl1.SelectedTab == Cars && bsPlayer.Current is PlayerVote pv)
+            {
+                for (int i = 0; i < bsCars.Count; i++)
+                {
+                    if (bsCars[i] is Car car && car.idPlayer == pv.id)
+                    {
+                        bsCars.Position = i;
+                        break;
+                    }
+                }
+            }
+        }
+
         private void dgvCars_SelectionChanged(object sender, EventArgs e)
         {
-            // Обработка изменения выбора в таблице машин
+            if (bsCars.Current is Car selectedCar)
+            {
+                // Запрещаем редактирование ID у существующих машин, если нужно, 
+                // или просто обновляем селект в комбобоксе
+                UpdatePlayerPickerFromCurrentCar();
+                bsCarStops.DataSource = selectedCar.carStops;
+            }
+            else
+            {
+                // Вместо null используем тип, чтобы сохранить метаданные для биндингов
+                bsCarStops.DataSource = typeof(CarStops);
+            }
+        }
+
+        private void BsCars_CurrentChanged(object? sender, EventArgs e)
+        {
+            UpdatePlayerPickerFromCurrentCar();
+        }
+
+        private void UpdatePlayerPickerFromCurrentCar()
+        {
+            if (bsCars.Current is Car car)
+            {
+                cmbCarIdPlayer.SelectedIndexChanged -= cmbCarIdPlayer_SelectedIndexChanged;
+                // Ищем игрока в комбобоксе
+                int foundIndex = -1;
+                for (int i = 0; i < cmbCarIdPlayer.Items.Count; i++)
+                {
+                    if (cmbCarIdPlayer.Items[i] is Player p && p.id == car.idPlayer)
+                    {
+                        foundIndex = i;
+                        break;
+                    }
+                }
+                cmbCarIdPlayer.SelectedIndex = foundIndex;
+                cmbCarIdPlayer.SelectedIndexChanged += cmbCarIdPlayer_SelectedIndexChanged;
+            }
+        }
+
+        private void UpdateCarNamesFromPlayers()
+        {
+            foreach (var car in stateManager.state.carList)
+            {
+                var player = stateManager.players.FirstOrDefault(p => p.id == car.idPlayer);
+                if (player != null) car.UpdateFromPlayer(player);
+            }
+        }
+
+        private void RefreshCarPlayerPicker()
+        {
+            cmbCarIdPlayer.Items.Clear();
+            var sortedPlayers = stateManager.players.OrderBy(p => p.name).ToList();
+            foreach (var p in sortedPlayers)
+            {
+                cmbCarIdPlayer.Items.Add(p);
+            }
+            cmbCarIdPlayer.DisplayMember = "NameWithId";
+            cmbCarIdPlayer.DropDownWidth = 500;
+        }
+
+        private void cmbCarIdPlayer_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (bsCars.Current is Car car && cmbCarIdPlayer.SelectedItem is Player p)
+            {
+                car.idPlayer = p.id;
+                car.UpdateFromPlayer(p);
+                bsCars.ResetCurrentItem();
+            }
+        }
+
+        private void btnAddCar_Click(object sender, EventArgs e)
+        {
+            var newCar = new Car(0, "Ник", "Имя", 4);
+            stateManager.state.carList.Add(newCar);
+            bsCars.MoveLast();
+        }
+
+        private void btnDeleteCar_Click(object sender, EventArgs e)
+        {
+            if (bsCars.Current is Car car)
+            {
+                if (MessageBox.Show($"Удалить машину игрока {car.name}?", "Подтверждение", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    bsCars.RemoveCurrent();
+                }
+            }
+        }
+
+        private void btnSaveCars_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                this.Validate();
+                bsCars.EndEdit();
+                bsCarStops.EndEdit();
+                stateManager.SaveState();
+                MessageBox.Show("Данные о машинах и остановках сохранены.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при сохранении: {ex.Message}");
+            }
+        }
+
+        private void btnAddStop_Click(object sender, EventArgs e)
+        {
+            if (bsCars.Current is Car selectedCar)
+            {
+                var newStop = new CarStops("Новая остановка", "http://", 0);
+                selectedCar.carStops.Add(newStop);
+                bsCarStops.ResetBindings(false);
+                bsCarStops.MoveLast();
+            }
+        }
+
+        private void btnOpenStopLink_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string url = txtStopLink.Text;
+                if (!string.IsNullOrWhiteSpace(url))
+                {
+                    // Для Windows нужно указывать UseShellExecute = true, чтобы открыть URL в браузере по умолчанию
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = url,
+                        UseShellExecute = true
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Не удалось открыть ссылку: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnDeleteStop_Click(object sender, EventArgs e)
+        {
+            if (bsCarStops.Current is CarStops stop)
+            {
+                if (MessageBox.Show($"Удалить остановку {stop.name}?", "Подтверждение", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    bsCarStops.RemoveCurrent();
+                }
+            }
         }
 
         private void button12_Click(object sender, EventArgs e)
