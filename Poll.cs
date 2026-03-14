@@ -10,6 +10,7 @@ namespace BallBotGui
         public bool approved { get; set; } = true;
         public string date { get; set; }    // дата игры
         public string question { get; set; } // текст опроса
+        public int GymId { get; set; } // ID зала
 
         public int idMessage { get; set; }
         public string idPoll { get; set; }   // код опроса
@@ -99,6 +100,11 @@ namespace BallBotGui
             this.idMessage = idMessage;
             this.curGame = curGame;
             this.ratingMessageId = ratingMessageId;
+            
+            if (curGame != null)
+            {
+                this.GymId = curGame.GymId;
+            }
 
             if (date == string.Empty)
             {

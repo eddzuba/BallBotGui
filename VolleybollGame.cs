@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 
 namespace BallBotGui
 {
@@ -12,13 +12,14 @@ namespace BallBotGui
         
         public int GameStartHour { get; set; } // час когда играем 20
         public int GameStartMinute { get; set; } // минуты времени когда начинаем играть 00
+        public int GymId { get; set; } // ID зала из каталога залов
 
         public bool ActiveGame { get; set; } = true;
 
         public bool RatingGame { get; set; } = false; // признак того что это рейтинговая игра
+        public bool TrainingGame { get; set; } = false; // признак того что это тренировка
 
 
-        public string? Location { get; set; } // Место где играем, ссылка на карте
         public string? Title { get; set; } // Шаблон Заголовка в голосовалке
 
         // Проверка, совпадает ли текущее время с временем голосования

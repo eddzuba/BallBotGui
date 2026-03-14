@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+using System.Text.Json;
+using System.Text.Encodings.Web;
 using BallBotGui;
 
 internal class GameManager
@@ -11,9 +12,9 @@ internal class GameManager
         LoadGames();
     }   
 
-    private void LoadGames()
+    public void LoadGames()
     {
-        var json = BallBotGui.Properties.Settings.Default.GamesJson;
+        var json = AppConfigHelper.LoadSetting("GamesJson");
         if (string.IsNullOrWhiteSpace(json))
         {
             Games = new();
@@ -36,9 +37,14 @@ internal class GameManager
 
     public static void SaveGames(List<VolleybollGame> games)
     {
-        var json = JsonSerializer.Serialize(games, options: new JsonSerializerOptions { WriteIndented = true });
+        var json = JsonSerializer.Serialize(games, options: new JsonSerializerOptions 
+        { 
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        });
+        AppConfigHelper.SaveSetting("GamesJson", json);
+        // Также обновляем в памяти для текущей сессии
         BallBotGui.Properties.Settings.Default.GamesJson = json;
-        BallBotGui.Properties.Settings.Default.Save();
     }
 
     public  async Task<bool> CheckScheduleAndCreatePollAsync(DateTime currentTime)

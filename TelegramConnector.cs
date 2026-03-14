@@ -1549,7 +1549,13 @@ namespace BallBotGui
 
             try
             {
-                await botClient.SendMessage(chatId, todayApprovedGamePoll.question);
+                string message = todayApprovedGamePoll.question;
+                var gym = stateManager.GetGymById(todayApprovedGamePoll.GymId);
+                if (gym != null && !string.IsNullOrEmpty(gym.Location))
+                {
+                    message += $"\n\n📍 Место проведения: {gym.Location}";
+                }
+                await botClient.SendMessage(chatId, message);
             }
             catch (Exception ex)
             {
@@ -1595,6 +1601,12 @@ namespace BallBotGui
         private async Task sendPlayerInvitation(Poll todayApprovedGamePoll, PlayerVote voter)
         {
             string message = $"{todayApprovedGamePoll.question}\n{voter.firstName}, Вы сегодня играете!";
+            
+            var gym = stateManager.GetGymById(todayApprovedGamePoll.GymId);
+            if (gym != null && !string.IsNullOrEmpty(gym.Location))
+            {
+                message += $"\n\n📍 Место проведения: {gym.Location}";
+            }
             try
             {
                 await botClient.SendMessage(voter.id, message);
@@ -1628,6 +1640,12 @@ namespace BallBotGui
         {
             string message = $"Привет, {voter.firstName}! Ты сейчас в очереди на сегодняшнюю игру под номером {queueNumber}.\n" +
                              "Если твои планы изменятся, пожалуйста, обязательно снимись с голосования!";
+
+            var gym = stateManager.GetGymById(poll.GymId);
+            if (gym != null && !string.IsNullOrEmpty(gym.Location))
+            {
+                message += $"\n\n📍 Место проведения: {gym.Location}";
+            }
             try
             {
                 await botClient.SendMessage(voter.id, message);
@@ -1928,6 +1946,13 @@ namespace BallBotGui
             try
             {
                 string message = $"{poll.question}\nЧерез час игра! Пора собираться!";
+                
+                var gym = stateManager.GetGymById(poll.GymId);
+                if (gym != null && !string.IsNullOrEmpty(gym.Location))
+                {
+                    message += $"\n\n📍 Место проведения: {gym.Location}";
+                }
+
                 // Проверяем, есть ли пассажиры у текущего водителя
                 var passengers = poll.occupiedPlaces
                     .Where(p => p.idCarOwner == voter.id)

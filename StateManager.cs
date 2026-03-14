@@ -12,6 +12,7 @@ namespace BallBotGui
     {
         public State state = new();
         public List<Player> players = new();
+        public List<Gym> gyms = new();
 
         public string fileName = "pollState.json";
         public string ratingFileName = "playersRating.json";
@@ -32,6 +33,7 @@ namespace BallBotGui
         // Функция для загрузки опроса с диска из формата JSON
         public void LoadState()
         {
+            LoadGyms();
             try
             {
                 string json = File.ReadAllText(fileName);
@@ -55,8 +57,30 @@ namespace BallBotGui
             {
                 Logger.Log("Ошибка при загрузке состояния", ex);
             }
+        }
 
-
+        public void LoadGyms()
+        {
+            try
+            {
+                var gymsJson = AppConfigHelper.LoadSetting("GymsJson");
+                if (!string.IsNullOrEmpty(gymsJson))
+                {
+                    var loadedGyms = JsonConvert.DeserializeObject<List<Gym>>(gymsJson);
+                    if (loadedGyms != null)
+                    {
+                        gyms = loadedGyms;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Ошибка при загрузке залов", ex);
+            }
+        }
+        public Gym? GetGymById(int id)
+        {
+            return gyms.FirstOrDefault(g => g.Id == id);
         }
         public void LoadPlayers()
         {

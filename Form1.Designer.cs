@@ -56,6 +56,43 @@ namespace BallBotGui
             button11 = new Button();
             del_afterGameSurvey = new Button();
             btnUpdateSummary = new Button();
+            tabGamesConfig = new TabPage();
+            dgvGames = new DataGridView();
+            gbEditGame = new GroupBox();
+            lblTitle = new Label();
+            txtTitle = new TextBox();
+            lblGameDay = new Label();
+            cmbGameDay = new ComboBox();
+            lblGameStartHour = new Label();
+            cmbGameStartHour = new ComboBox();
+            lblGameStartMinute = new Label();
+            cmbGameStartMinute = new ComboBox();
+            lblPullBeforeDay = new Label();
+            numPullBeforeDay = new NumericUpDown();
+            lblPullHour = new Label();
+            cmbPullHour = new ComboBox();
+            lblPullMinute = new Label();
+            cmbPullMinute = new ComboBox();
+            chkActiveGame = new CheckBox();
+            chkRatingGame = new CheckBox();
+            chkTrainingGame = new CheckBox();
+            btnAddGame = new Button();
+            btnDeleteGame = new Button();
+            btnSaveGamesJson = new Button();
+            tabGyms = new TabPage();
+            dgvGyms = new DataGridView();
+            gbEditGym = new GroupBox();
+            lblGymId = new Label();
+            numGymId = new NumericUpDown();
+            lblGymName = new Label();
+            txtGymName = new TextBox();
+            lblGymLocation = new Label();
+            txtGymLocation = new TextBox();
+            btnAddGym = new Button();
+            btnDeleteGym = new Button();
+            btnSaveGyms = new Button();
+            lblGymChoice = new Label();
+            cmbGym = new ComboBox();
             gbEditPlayer = new GroupBox();
 
             lblEditName = new Label();
@@ -80,6 +117,14 @@ namespace BallBotGui
             tabControl1.SuspendLayout();
             Players.SuspendLayout();
             Cars.SuspendLayout();
+            tabGamesConfig.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvGames).BeginInit();
+            gbEditGame.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numPullBeforeDay).BeginInit();
+            tabGyms.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvGyms).BeginInit();
+            gbEditGym.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numGymId).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewCarStops).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvCars).BeginInit();
             ((System.ComponentModel.ISupportInitialize)carStopsBindingSource).BeginInit();
@@ -381,6 +426,8 @@ namespace BallBotGui
             tabControl1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tabControl1.Controls.Add(Players);
             tabControl1.Controls.Add(Cars);
+            tabControl1.Controls.Add(tabGamesConfig);
+            tabControl1.Controls.Add(tabGyms);
             tabControl1.Location = new Point(1140, 12);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
@@ -429,6 +476,381 @@ namespace BallBotGui
             Cars.TabIndex = 1;
             Cars.Text = "Машины";
             Cars.UseVisualStyleBackColor = true;
+            // 
+            // tabGamesConfig
+            // 
+            tabGamesConfig.Controls.Add(btnSaveGamesJson);
+            tabGamesConfig.Controls.Add(btnAddGame);
+            tabGamesConfig.Controls.Add(btnDeleteGame);
+            tabGamesConfig.Controls.Add(gbEditGame);
+            tabGamesConfig.Controls.Add(dgvGames);
+            tabGamesConfig.Location = new Point(8, 46);
+            tabGamesConfig.Name = "tabGamesConfig";
+            tabGamesConfig.Padding = new Padding(3);
+            tabGamesConfig.Size = new Size(996, 1037);
+            tabGamesConfig.TabIndex = 2;
+            tabGamesConfig.Text = "Настройки игр";
+            tabGamesConfig.UseVisualStyleBackColor = true;
+            // 
+            // dgvGames
+            // 
+            dgvGames.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvGames.Dock = DockStyle.Top;
+            dgvGames.Location = new Point(3, 3);
+            dgvGames.MultiSelect = false;
+            dgvGames.Name = "dgvGames";
+            dgvGames.RowHeadersWidth = 82;
+            dgvGames.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvGames.Size = new Size(990, 400);
+            dgvGames.TabIndex = 0;
+            // 
+            // gbEditGame
+            // 
+            gbEditGame.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            gbEditGame.Controls.Add(lblTitle);
+            gbEditGame.Controls.Add(txtTitle);
+            gbEditGame.Controls.Add(lblGameDay);
+            gbEditGame.Controls.Add(cmbGameDay);
+            gbEditGame.Controls.Add(lblGameStartHour);
+            gbEditGame.Controls.Add(cmbGameStartHour);
+            gbEditGame.Controls.Add(lblGameStartMinute);
+            gbEditGame.Controls.Add(cmbGameStartMinute);
+            gbEditGame.Controls.Add(lblPullBeforeDay);
+            gbEditGame.Controls.Add(numPullBeforeDay);
+            gbEditGame.Controls.Add(lblPullHour);
+            gbEditGame.Controls.Add(cmbPullHour);
+            gbEditGame.Controls.Add(lblPullMinute);
+            gbEditGame.Controls.Add(cmbPullMinute);
+            gbEditGame.Controls.Add(chkActiveGame);
+            gbEditGame.Controls.Add(chkRatingGame);
+            gbEditGame.Controls.Add(chkTrainingGame);
+            gbEditGame.Controls.Add(lblGymChoice);
+            gbEditGame.Controls.Add(cmbGym);
+            gbEditGame.Location = new Point(3, 420);
+            gbEditGame.Name = "gbEditGame";
+            gbEditGame.Size = new Size(990, 440);
+            gbEditGame.TabIndex = 1;
+            gbEditGame.TabStop = false;
+            gbEditGame.Text = "Редактирование игры";
+            // 
+            // lblTitle
+            // 
+            lblTitle.AutoSize = true;
+            lblTitle.Location = new Point(15, 45);
+            lblTitle.Name = "lblTitle";
+            lblTitle.Size = new Size(130, 32);
+            lblTitle.TabIndex = 0;
+            lblTitle.Text = "Заголовок:";
+            // 
+            // txtTitle
+            // 
+            txtTitle.Location = new Point(240, 42);
+            txtTitle.Name = "txtTitle";
+            txtTitle.Size = new Size(700, 39);
+            txtTitle.TabIndex = 1;
+            // 
+            // lblGymChoice
+            // 
+            lblGymChoice.AutoSize = true;
+            lblGymChoice.Location = new Point(15, 95);
+            lblGymChoice.Name = "lblGymChoice";
+            lblGymChoice.Size = new Size(134, 32);
+            lblGymChoice.TabIndex = 4;
+            lblGymChoice.Text = "Выбор зала:";
+            // 
+            // cmbGym
+            // 
+            cmbGym.Location = new Point(240, 92);
+            cmbGym.Name = "cmbGym";
+            cmbGym.Size = new Size(700, 40);
+            cmbGym.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbGym.TabIndex = 5;
+            // 
+            // cmbGameDay
+            // 
+            cmbGameDay.Location = new Point(240, 142);
+            cmbGameDay.Name = "cmbGameDay";
+            cmbGameDay.Size = new Size(200, 40);
+            cmbGameDay.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbGameDay.TabIndex = 7;
+            // 
+            // lblGameDay
+            // 
+            lblGameDay.AutoSize = true;
+            lblGameDay.Location = new Point(15, 145);
+            lblGameDay.Name = "lblGameDay";
+            lblGameDay.Size = new Size(160, 32);
+            lblGameDay.TabIndex = 6;
+            lblGameDay.Text = "День игры:";
+            // 
+            // lblGameStartHour
+            // 
+            lblGameStartHour.AutoSize = true;
+            lblGameStartHour.Location = new Point(15, 195);
+            lblGameStartHour.Name = "lblGameStartHour";
+            lblGameStartHour.Size = new Size(120, 32);
+            lblGameStartHour.TabIndex = 8;
+            lblGameStartHour.Text = "Час игры:";
+            // 
+            // cmbGameStartHour
+            // 
+            cmbGameStartHour.Location = new Point(240, 192);
+            cmbGameStartHour.Name = "cmbGameStartHour";
+            cmbGameStartHour.Size = new Size(120, 40);
+            cmbGameStartHour.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbGameStartHour.TabIndex = 9;
+            // 
+            // lblGameStartMinute
+            // 
+            lblGameStartMinute.AutoSize = true;
+            lblGameStartMinute.Location = new Point(15, 245);
+            lblGameStartMinute.Name = "lblGameStartMinute";
+            lblGameStartMinute.Size = new Size(130, 32);
+            lblGameStartMinute.TabIndex = 10;
+            lblGameStartMinute.Text = "Мин. игры:";
+            // 
+            // cmbGameStartMinute
+            // 
+            cmbGameStartMinute.Location = new Point(240, 242);
+            cmbGameStartMinute.Name = "cmbGameStartMinute";
+            cmbGameStartMinute.Size = new Size(120, 40);
+            cmbGameStartMinute.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbGameStartMinute.TabIndex = 11;
+            // 
+            // lblPullBeforeDay
+            // 
+            lblPullBeforeDay.AutoSize = true;
+            lblPullBeforeDay.Location = new Point(500, 145);
+            lblPullBeforeDay.Name = "lblPullBeforeDay";
+            lblPullBeforeDay.Size = new Size(190, 32);
+            lblPullBeforeDay.TabIndex = 12;
+            lblPullBeforeDay.Text = "За ск. дней опрос:";
+            // 
+            // numPullBeforeDay
+            // 
+            numPullBeforeDay.Location = new Point(750, 142);
+            numPullBeforeDay.Name = "numPullBeforeDay";
+            numPullBeforeDay.Size = new Size(120, 39);
+            numPullBeforeDay.TabIndex = 13;
+            // 
+            // lblPullHour
+            // 
+            lblPullHour.AutoSize = true;
+            lblPullHour.Location = new Point(500, 195);
+            lblPullHour.Name = "lblPullHour";
+            lblPullHour.Size = new Size(140, 32);
+            lblPullHour.TabIndex = 14;
+            lblPullHour.Text = "Час опроса:";
+            // 
+            // cmbPullHour
+            // 
+            cmbPullHour.Location = new Point(750, 192);
+            cmbPullHour.Name = "cmbPullHour";
+            cmbPullHour.Size = new Size(120, 40);
+            cmbPullHour.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbPullHour.TabIndex = 15;
+            // 
+            // lblPullMinute
+            // 
+            lblPullMinute.AutoSize = true;
+            lblPullMinute.Location = new Point(500, 245);
+            lblPullMinute.Name = "lblPullMinute";
+            lblPullMinute.Size = new Size(150, 32);
+            lblPullMinute.TabIndex = 16;
+            lblPullMinute.Text = "Мин. опроса:";
+            // 
+            // cmbPullMinute
+            // 
+            cmbPullMinute.Location = new Point(750, 242);
+            cmbPullMinute.Name = "cmbPullMinute";
+            cmbPullMinute.Size = new Size(120, 40);
+            cmbPullMinute.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbPullMinute.TabIndex = 17;
+            // 
+            // chkActiveGame
+            // 
+            chkActiveGame.AutoSize = true;
+            chkActiveGame.Location = new Point(15, 295);
+            chkActiveGame.Name = "chkActiveGame";
+            chkActiveGame.Size = new Size(200, 36);
+            chkActiveGame.TabIndex = 18;
+            chkActiveGame.Text = "Активная игра";
+            chkActiveGame.UseVisualStyleBackColor = true;
+            // 
+            // chkRatingGame
+            // 
+            chkRatingGame.AutoSize = true;
+            chkRatingGame.Location = new Point(240, 295);
+            chkRatingGame.Name = "chkRatingGame";
+            chkRatingGame.Size = new Size(200, 36);
+            chkRatingGame.TabIndex = 19;
+            chkRatingGame.Text = "Рейтинговая";
+            chkRatingGame.UseVisualStyleBackColor = true;
+            // 
+            // chkTrainingGame
+            // 
+            chkTrainingGame.AutoSize = true;
+            chkTrainingGame.Location = new Point(460, 295);
+            chkTrainingGame.Name = "chkTrainingGame";
+            chkTrainingGame.Size = new Size(200, 36);
+            chkTrainingGame.TabIndex = 22;
+            chkTrainingGame.Text = "Тренировка";
+            chkTrainingGame.UseVisualStyleBackColor = true;
+            btnAddGame.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnAddGame.Location = new Point(15, 900);
+            btnAddGame.Name = "btnAddGame";
+            btnAddGame.Size = new Size(300, 46);
+            btnAddGame.TabIndex = 3;
+            btnAddGame.Text = "Добавить игру";
+            btnAddGame.UseVisualStyleBackColor = true;
+            btnAddGame.Click += btnAddGame_Click;
+            // 
+            // btnDeleteGame
+            // 
+            btnDeleteGame.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnDeleteGame.Location = new Point(345, 900);
+            btnDeleteGame.Name = "btnDeleteGame";
+            btnDeleteGame.Size = new Size(300, 46);
+            btnDeleteGame.TabIndex = 4;
+            btnDeleteGame.Text = "Удалить игру";
+            btnDeleteGame.UseVisualStyleBackColor = true;
+            btnDeleteGame.Click += btnDeleteGame_Click;
+            // 
+            // btnSaveGamesJson
+            // 
+            btnSaveGamesJson.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnSaveGamesJson.Location = new Point(675, 900);
+            btnSaveGamesJson.Name = "btnSaveGamesJson";
+            btnSaveGamesJson.Size = new Size(300, 46);
+            btnSaveGamesJson.TabIndex = 1;
+            btnSaveGamesJson.Text = "Сохранить и применить";
+            btnSaveGamesJson.UseVisualStyleBackColor = true;
+            btnSaveGamesJson.Click += btnSaveGamesJson_Click;
+            // 
+            // tabGyms
+            // 
+            tabGyms.Controls.Add(btnSaveGyms);
+            tabGyms.Controls.Add(btnAddGym);
+            tabGyms.Controls.Add(btnDeleteGym);
+            tabGyms.Controls.Add(gbEditGym);
+            tabGyms.Controls.Add(dgvGyms);
+            tabGyms.Location = new Point(8, 46);
+            tabGyms.Name = "tabGyms";
+            tabGyms.Padding = new Padding(3);
+            tabGyms.Size = new Size(996, 1037);
+            tabGyms.TabIndex = 3;
+            tabGyms.Text = "Справочник залов";
+            tabGyms.UseVisualStyleBackColor = true;
+            // 
+            // dgvGyms
+            // 
+            dgvGyms.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvGyms.Dock = DockStyle.Top;
+            dgvGyms.Location = new Point(3, 3);
+            dgvGyms.MultiSelect = false;
+            dgvGyms.Name = "dgvGyms";
+            dgvGyms.RowHeadersWidth = 82;
+            dgvGyms.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvGyms.Size = new Size(990, 400);
+            dgvGyms.TabIndex = 0;
+            // 
+            // gbEditGym
+            // 
+            gbEditGym.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            gbEditGym.Controls.Add(lblGymId);
+            gbEditGym.Controls.Add(numGymId);
+            gbEditGym.Controls.Add(lblGymName);
+            gbEditGym.Controls.Add(txtGymName);
+            gbEditGym.Controls.Add(lblGymLocation);
+            gbEditGym.Controls.Add(txtGymLocation);
+            gbEditGym.Location = new Point(3, 420);
+            gbEditGym.Name = "gbEditGym";
+            gbEditGym.Size = new Size(990, 440);
+            gbEditGym.TabIndex = 1;
+            gbEditGym.TabStop = false;
+            gbEditGym.Text = "Редактирование зала";
+            // 
+            // lblGymId
+            // 
+            lblGymId.AutoSize = true;
+            lblGymId.Location = new Point(15, 45);
+            lblGymId.Name = "lblGymId";
+            lblGymId.Size = new Size(50, 32);
+            lblGymId.TabIndex = 0;
+            lblGymId.Text = "ID:";
+            // 
+            // numGymId
+            // 
+            numGymId.Location = new Point(240, 42);
+            numGymId.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
+            numGymId.Name = "numGymId";
+            numGymId.Size = new Size(120, 39);
+            numGymId.TabIndex = 1;
+            // 
+            // lblGymName
+            // 
+            lblGymName.AutoSize = true;
+            lblGymName.Location = new Point(15, 95);
+            lblGymName.Name = "lblGymName";
+            lblGymName.Size = new Size(130, 32);
+            lblGymName.TabIndex = 2;
+            lblGymName.Text = "Название:";
+            // 
+            // txtGymName
+            // 
+            txtGymName.Location = new Point(240, 92);
+            txtGymName.Name = "txtGymName";
+            txtGymName.Size = new Size(700, 39);
+            txtGymName.TabIndex = 3;
+            // 
+            // lblGymLocation
+            // 
+            lblGymLocation.AutoSize = true;
+            lblGymLocation.Location = new Point(15, 145);
+            lblGymLocation.Name = "lblGymLocation";
+            lblGymLocation.Size = new Size(110, 32);
+            lblGymLocation.TabIndex = 4;
+            lblGymLocation.Text = "Локация (URL):";
+            // 
+            // txtGymLocation
+            // 
+            txtGymLocation.Location = new Point(240, 142);
+            txtGymLocation.Name = "txtGymLocation";
+            txtGymLocation.Size = new Size(700, 39);
+            txtGymLocation.TabIndex = 5;
+            // 
+            // btnAddGym
+            // 
+            btnAddGym.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnAddGym.Location = new Point(15, 900);
+            btnAddGym.Name = "btnAddGym";
+            btnAddGym.Size = new Size(300, 46);
+            btnAddGym.TabIndex = 3;
+            btnAddGym.Text = "Добавить зал";
+            btnAddGym.UseVisualStyleBackColor = true;
+            btnAddGym.Click += btnAddGym_Click;
+            // 
+            // btnDeleteGym
+            // 
+            btnDeleteGym.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnDeleteGym.Location = new Point(345, 900);
+            btnDeleteGym.Name = "btnDeleteGym";
+            btnDeleteGym.Size = new Size(300, 46);
+            btnDeleteGym.TabIndex = 4;
+            btnDeleteGym.Text = "Удалить зал";
+            btnDeleteGym.UseVisualStyleBackColor = true;
+            btnDeleteGym.Click += btnDeleteGym_Click;
+            // 
+            // btnSaveGyms
+            // 
+            btnSaveGyms.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnSaveGyms.Location = new Point(675, 900);
+            btnSaveGyms.Name = "btnSaveGyms";
+            btnSaveGyms.Size = new Size(300, 46);
+            btnSaveGyms.TabIndex = 1;
+            btnSaveGyms.Text = "Сохранить";
+            btnSaveGyms.UseVisualStyleBackColor = true;
+            btnSaveGyms.Click += btnSaveGyms_Click;
             // 
             // dataGridViewCarStops
             // 
@@ -563,6 +985,16 @@ namespace BallBotGui
             Players.ResumeLayout(false);
             Players.PerformLayout();
             Cars.ResumeLayout(false);
+            tabGamesConfig.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)dgvGames).EndInit();
+            gbEditGame.ResumeLayout(false);
+            gbEditGame.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numPullBeforeDay).EndInit();
+            tabGyms.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)dgvGyms).EndInit();
+            gbEditGym.ResumeLayout(false);
+            gbEditGym.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numGymId).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewCarStops).EndInit();
             ((System.ComponentModel.ISupportInitialize)dgvCars).EndInit();
             ((System.ComponentModel.ISupportInitialize)carStopsBindingSource).EndInit();
@@ -587,6 +1019,29 @@ namespace BallBotGui
         private TabControl tabControl1;
         private TabPage Players;
         private TabPage Cars;
+        private TabPage tabGamesConfig;
+        private DataGridView dgvGames;
+        private GroupBox gbEditGame;
+        private Label lblTitle;
+        private TextBox txtTitle;
+        private Label lblGameDay;
+        private ComboBox cmbGameDay;
+        private Label lblGameStartHour;
+        private ComboBox cmbGameStartHour;
+        private Label lblGameStartMinute;
+        private ComboBox cmbGameStartMinute;
+        private Label lblPullBeforeDay;
+        private NumericUpDown numPullBeforeDay;
+        private Label lblPullHour;
+        private ComboBox cmbPullHour;
+        private Label lblPullMinute;
+        private ComboBox cmbPullMinute;
+        private CheckBox chkActiveGame;
+        private CheckBox chkRatingGame;
+        private Button btnAddGame;
+        private Button btnDeleteGame;
+        private Button btnSaveGamesJson;
+        private CheckBox chkTrainingGame;
         private DataGridView dgvCars;
         private DataGridView dataGridViewCarStops;
         private Button getCars;
@@ -598,6 +1053,20 @@ namespace BallBotGui
         private TextBox filter;
         private Button del_afterGameSurvey;
         private Button btnUpdateSummary;
+        private TabPage tabGyms;
+        private Label lblGymChoice;
+        private ComboBox cmbGym;
+        private DataGridView dgvGyms;
+        private GroupBox gbEditGym;
+        private Label lblGymId;
+        private NumericUpDown numGymId;
+        private Label lblGymName;
+        private TextBox txtGymName;
+        private Label lblGymLocation;
+        private TextBox txtGymLocation;
+        private Button btnAddGym;
+        private Button btnDeleteGym;
+        private Button btnSaveGyms;
         private GroupBox gbEditPlayer;
 
         private Label lblEditName;

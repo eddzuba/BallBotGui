@@ -1,4 +1,6 @@
 using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Encodings.Web;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
@@ -23,7 +25,9 @@ namespace BallBotGui
         private BindingSource bsCars = new();
         readonly BindingSource bsCarStops = new(); // CarStops
         private GameManager? gameManager;
-
+        
+        readonly BindingSource bsGames = new(); // Games
+        private BindingSource bsGyms = new BindingSource();
 
 
         public Form1()
@@ -65,12 +69,14 @@ namespace BallBotGui
             gameManager = new GameManager(telConnector);
 
             initDs();
-
+            
             // Handle DataError to prevent the default error dialog
             dataGridViewPoll.DataError += dataGridView_DataError;
             dataGridViewPlayers.DataError += dataGridView_DataError;
             dataGridViewRating.DataError += dataGridView_DataError;
             dgvCars.DataError += dataGridView_DataError;
+            dgvGames.DataError += dataGridView_DataError;
+            dgvGames.CellFormatting += dgvGames_CellFormatting;
         }
 
         private void dataGridView_DataError(object? sender, DataGridViewDataErrorEventArgs e)
@@ -128,22 +134,207 @@ namespace BallBotGui
             dgvCars.DataSource = bsCars;
             dgvCars.AutoGenerateColumns = true;
 
+            // Настройка биндинга для редактирования игр
+            var gamesJson = AppConfigHelper.LoadSetting("GamesJson");
+            var gameList = string.IsNullOrEmpty(gamesJson) ? new List<VolleybollGame>() : System.Text.Json.JsonSerializer.Deserialize<List<VolleybollGame>>(gamesJson) ?? new List<VolleybollGame>();
+            bsGames.DataSource = new BindingList<VolleybollGame>(gameList);
+            dgvGames.DataSource = bsGames;
+            dgvGames.AutoGenerateColumns = true;
+            dgvGames.ReadOnly = true;
+            dgvGames.AllowUserToAddRows = false;
+            dgvGames.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            
+            // Ждем завершения генерации колонок и перемещаем GameDay на первое место
+            void OnColumnsAdded(object? sender, EventArgs e)
+            {
+                // Список нужных колонок и их параметров
+                var columnsToSet = new[] {
+                    new { Name = "GameDay", Order = 0, Header = "День", Visible = true },
+                    new { Name = "GymId", Order = 1, Header = "Зал", Visible = true },
+                    new { Name = "GameStartHour", Order = 2, Header = "Время", Visible = true },
+                    new { Name = "ActiveGame", Order = 3, Header = "Активна", Visible = true },
+                    new { Name = "RatingGame", Order = 4, Header = "Рейтинговая", Visible = true },
+                    new { Name = "TrainingGame", Order = 5, Header = "Тренировка", Visible = true }
+                };
 
+                // Сначала скрываем всё
+                foreach (DataGridViewColumn col in dgvGames.Columns) {
+                    col.Visible = false;
+                }
 
-            /*bsCarStops.DataSource = bsCars;
-            bsCarStops.DataMember = "carStops";
+                // Затем показываем и настраиваем нужные
+                foreach (var info in columnsToSet) {
+                    if (dgvGames.Columns.Contains(info.Name)) {
+                        var col = dgvGames.Columns[info.Name];
+                        col.Visible = info.Visible;
+                        col.DisplayIndex = info.Order;
+                        col.HeaderText = info.Header;
+                    }
+                }
+                
+                dgvGames.DataBindingComplete -= OnColumnsAdded;
+            }
+            dgvGames.DataBindingComplete += OnColumnsAdded;
 
-            dataGridViewCarStops.DataSource = bsCarStops;
-            dataGridViewCarStops.AutoGenerateColumns = true;
-            // Разрешаем редактирование данных в таблице
-            dataGridViewCarStops.ReadOnly = false;
-*/
+            // Привязка контролов
+            txtTitle.DataBindings.Add("Text", bsGames, "Title", true, DataSourceUpdateMode.OnPropertyChanged);
 
+            var days = new List<DayInfo> {
+                new DayInfo { Value = 1, Name = "Понедельник" },
+                new DayInfo { Value = 2, Name = "Вторник" },
+                new DayInfo { Value = 3, Name = "Среда" },
+                new DayInfo { Value = 4, Name = "Четверг" },
+                new DayInfo { Value = 5, Name = "Пятница" },
+                new DayInfo { Value = 6, Name = "Суббота" },
+                new DayInfo { Value = 7, Name = "Воскресенье" }
+            };
+            cmbGameDay.DataSource = days;
+            cmbGameDay.DisplayMember = "Name";
+            cmbGameDay.ValueMember = "Value";
+            cmbGameDay.DataBindings.Add("SelectedValue", bsGames, "GameDay", true, DataSourceUpdateMode.OnPropertyChanged);
+            cmbGameDay.SelectionChangeCommitted += (s, e) => {
+                try {
+                    if (cmbGameDay.SelectedValue is int dayId && bsGames.Current is VolleybollGame current) {
+                        current.GameDay = dayId; // Принудительно синхронизируем значение
+                        string dayName = GetDayName(dayId);
+                        if (!string.IsNullOrEmpty(current.Title)) {
+                            string ratingPrefix = "Рейтинговая игра! ";
+                            string trainingPrefix = "Тренировка! ";
+                            
+                            string cleanTitle = current.Title;
+                            if (cleanTitle.StartsWith(ratingPrefix)) cleanTitle = cleanTitle.Substring(ratingPrefix.Length);
+                            else if (cleanTitle.StartsWith(trainingPrefix)) cleanTitle = cleanTitle.Substring(trainingPrefix.Length);
 
+                            // Ищем название дня перед первой запятой или просто в начале строки
+                            var dayRegex = new System.Text.RegularExpressions.Regex(@"^[^,]*", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                            if (dayRegex.IsMatch(cleanTitle)) {
+                                cleanTitle = dayRegex.Replace(cleanTitle, dayName);
+                            } else {
+                                cleanTitle = dayName + ", " + cleanTitle;
+                            }
+                            current.Title = cleanTitle; // Сначала ставим чистый заголовок
+                            UpdateTitlePrefixes(current); // А потом вешаем нужные префиксы
+                        } else {
+                            current.Title = dayName + ", @GameDayName Волейбол";
+                        }
+                        txtTitle.Text = current.Title;
+                        dgvGames.Invalidate(); 
+                    }
+                } catch (Exception ex) {
+                    Logger.Log("Error in cmbGameDay_SelectionChangeCommitted", ex);
+                }
+            };
 
+            var hours = Enumerable.Range(0, 24).ToList();
+            cmbGameStartHour.DataSource = hours;
+            cmbGameStartHour.DataBindings.Add("SelectedItem", bsGames, "GameStartHour", true, DataSourceUpdateMode.OnPropertyChanged);
+            cmbGameStartHour.SelectionChangeCommitted += (s, e) => UpdateGameTitleTime();
+            var minutes = Enumerable.Range(0, 60).ToList();
+            cmbGameStartMinute.DataSource = minutes;
+            cmbGameStartMinute.DataBindings.Add("SelectedItem", bsGames, "GameStartMinute", true, DataSourceUpdateMode.OnPropertyChanged);
+            cmbGameStartMinute.SelectionChangeCommitted += (s, e) => UpdateGameTitleTime();
+            numPullBeforeDay.DataBindings.Add("Value", bsGames, "PullBeforeDay", true, DataSourceUpdateMode.OnPropertyChanged);
 
+            var pullHours = Enumerable.Range(0, 24).ToList();
+            cmbPullHour.DataSource = pullHours;
+            cmbPullHour.DataBindings.Add("SelectedItem", bsGames, "PullHour", true, DataSourceUpdateMode.OnPropertyChanged);
 
+            var pullMinutes = Enumerable.Range(0, 60).ToList();
+            cmbPullMinute.DataSource = pullMinutes;
+            cmbPullMinute.DataBindings.Add("SelectedItem", bsGames, "PullMinute", true, DataSourceUpdateMode.OnPropertyChanged);
+            chkActiveGame.DataBindings.Add("Checked", bsGames, "ActiveGame", true, DataSourceUpdateMode.OnPropertyChanged);
+            chkActiveGame.CheckedChanged += (s, e) => dgvGames.Invalidate();
+            chkRatingGame.DataBindings.Add("Checked", bsGames, "RatingGame", true, DataSourceUpdateMode.OnPropertyChanged);
+            chkRatingGame.Click += (s, e) => {
+                try {
+                    if (bsGames.Current is VolleybollGame current) {
+                        current.RatingGame = chkRatingGame.Checked;
+                        if (current.RatingGame) {
+                            current.TrainingGame = false;
+                            chkTrainingGame.Checked = false;
+                        }
+                        UpdateTitlePrefixes(current);
+                        txtTitle.Text = current.Title;
+                        dgvGames.Invalidate();
+                    }
+                } catch (Exception ex) {
+                    Logger.Log("Error in chkRatingGame_Click", ex);
+                }
+            };
 
+            chkTrainingGame.DataBindings.Add("Checked", bsGames, "TrainingGame", true, DataSourceUpdateMode.OnPropertyChanged);
+            chkTrainingGame.Click += (s, e) => {
+                try {
+                    if (bsGames.Current is VolleybollGame current) {
+                        current.TrainingGame = chkTrainingGame.Checked;
+                        if (current.TrainingGame) {
+                            current.RatingGame = false;
+                            chkRatingGame.Checked = false;
+                        }
+                        UpdateTitlePrefixes(current);
+                        txtTitle.Text = current.Title;
+                        dgvGames.Invalidate();
+                    }
+                } catch (Exception ex) {
+                    Logger.Log("Error in chkTrainingGame_Click", ex);
+                }
+            };
+
+            // Настройка для залов
+            var gymsJson = AppConfigHelper.LoadSetting("GymsJson");
+            var gyms = string.IsNullOrEmpty(gymsJson) ? new List<Gym>() : System.Text.Json.JsonSerializer.Deserialize<List<Gym>>(gymsJson) ?? new List<Gym>();
+            bsGyms.DataSource = new BindingList<Gym>(gyms);
+            dgvGyms.DataSource = bsGyms;
+            dgvGyms.AutoGenerateColumns = true;
+            dgvGyms.ReadOnly = true;
+            dgvGyms.AllowUserToAddRows = false;
+
+            // Настройка выбора зала (делаем после того как в bsGyms появились данные)
+            cmbGym.DisplayMember = "Name";
+            cmbGym.ValueMember = "Id";
+            cmbGym.DataSource = bsGyms;
+            cmbGym.DataBindings.Add("SelectedValue", bsGames, "GymId", true, DataSourceUpdateMode.OnPropertyChanged);
+            cmbGym.SelectionChangeCommitted += (s, e) => {
+                try {
+                    if (cmbGym.SelectedValue is int gymId && bsGames.Current is VolleybollGame current) {
+                        current.GymId = gymId; // Принудительно обновляем
+                        
+                        var gyms = bsGyms.DataSource as BindingList<Gym>;
+                        var gym = gyms?.FirstOrDefault(g => g.Id == gymId);
+                        if (gym != null) {
+                            UpdateGameTitleWithGymName(current, gym.Name ?? "");
+                            txtTitle.Text = current.Title;
+                        }
+                        dgvGames.Invalidate(); // Обновляем грид
+                    }
+                } catch (Exception ex) {
+                    Logger.Log("Error in cmbGym_SelectionChangeCommitted", ex);
+                }
+            };
+
+            // Автоматическое обновление всех игр при изменении названия зала в справочнике
+            bsGyms.ListChanged += (s, e) => {
+                if (e.ListChangedType == ListChangedType.ItemChanged) {
+                    if (bsGyms[e.NewIndex] is Gym gym && !string.IsNullOrEmpty(gym.Name)) {
+                        var gamesList = bsGames.DataSource as BindingList<VolleybollGame>;
+                        if (gamesList != null) {
+                            for (int i = 0; i < gamesList.Count; i++) {
+                                if (gamesList[i].GymId == gym.Id) {
+                                    UpdateGameTitleWithGymName(gamesList[i], gym.Name);
+                                    if (bsGames.Current == gamesList[i]) {
+                                        txtTitle.Text = gamesList[i].Title;
+                                    }
+                                }
+                            }
+                            dgvGames.Invalidate(); // Перерисовываем сетку чтобы увидеть изменения
+                        }
+                    }
+                }
+            };
+
+            numGymId.DataBindings.Add("Value", bsGyms, "Id", true, DataSourceUpdateMode.OnPropertyChanged);
+            txtGymName.DataBindings.Add("Text", bsGyms, "Name", true, DataSourceUpdateMode.OnPropertyChanged);
+            txtGymLocation.DataBindings.Add("Text", bsGyms, "Location", true, DataSourceUpdateMode.OnPropertyChanged);
         }
 
         private async void MinuteTimer_Tick(object sender, EventArgs e)
@@ -650,6 +841,253 @@ namespace BallBotGui
             {
                 MessageBox.Show("Нет доступных игр для обновления итогов", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+        }
+
+        private void btnSaveGamesJson_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // Принудительно завершаем редактирование ячейки и формы
+                this.Validate();
+                bsGames.EndEdit();
+
+                var gamesBindingList = (BindingList<VolleybollGame>)bsGames.DataSource;
+                var games = gamesBindingList.ToList();
+
+                var formattedJson = System.Text.Json.JsonSerializer.Serialize(games, new System.Text.Json.JsonSerializerOptions 
+                { 
+                    WriteIndented = true,
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping 
+                });
+                
+                AppConfigHelper.SaveSetting("GamesJson", formattedJson);
+                BallBotGui.Properties.Settings.Default.GamesJson = formattedJson;
+                
+                if (gameManager != null)
+                {
+                    gameManager.LoadGames();
+                }
+                
+                MessageBox.Show("Настройки успешно сохранены и применены.", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка сохранения: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnAddGame_Click(object sender, EventArgs e)
+        {
+            var newGame = new VolleybollGame
+            {
+                Title = "Новая игра",
+                ActiveGame = true,
+                GameDay = 1,
+                GameStartHour = 20,
+                GameStartMinute = 0,
+                PullBeforeDay = 1,
+                PullHour = 10,
+                PullMinute = 0
+            };
+            
+            bsGames.Add(newGame);
+        }
+
+        private void btnDeleteGame_Click(object sender, EventArgs e)
+        {
+            if (bsGames.Current != null)
+            {
+                if (MessageBox.Show("Уверены, что хотите удалить эту игру?", "Удаление", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    bsGames.RemoveCurrent();
+                }
+            }
+        }
+
+        private void btnAddGym_Click(object sender, EventArgs e)
+        {
+            var gyms = bsGyms.DataSource as BindingList<Gym>;
+            if (gyms != null)
+            {
+                int nextId = gyms.Count > 0 ? gyms.Max(g => g.Id) + 1 : 1;
+                gyms.Add(new Gym { Id = nextId, Name = "Новый зал" });
+                bsGyms.MoveLast();
+            }
+        }
+
+        private void btnDeleteGym_Click(object sender, EventArgs e)
+        {
+            if (bsGyms.Current is Gym gym)
+            {
+                if (MessageBox.Show($"Удалить зал '{gym.Name}'?", "Подтверждение", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    bsGyms.RemoveCurrent();
+                }
+            }
+        }
+
+        private void btnSaveGyms_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                this.Validate();
+                bsGyms.EndEdit();
+
+                var gyms = bsGyms.DataSource as BindingList<Gym>;
+                if (gyms != null)
+                {
+                    string json = System.Text.Json.JsonSerializer.Serialize(gyms, new JsonSerializerOptions 
+                    { 
+                        WriteIndented = true,
+                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    });
+                    AppConfigHelper.SaveSetting("GymsJson", json);
+                    Properties.Settings.Default.GymsJson = json;
+                    MessageBox.Show("Справочник залов сохранен успешно!");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при сохранении залов: {ex.Message}");
+            }
+        }
+
+        private void dgvGames_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
+        {
+            try {
+                if (e.RowIndex < 0 || e.RowIndex >= dgvGames.Rows.Count) return;
+
+                var game = dgvGames.Rows[e.RowIndex].DataBoundItem as VolleybollGame;
+                if (game == null) return;
+
+                // Подсветка активных игр
+                if (game.ActiveGame)
+                {
+                    e.CellStyle.BackColor = System.Drawing.Color.LightGreen;
+                }
+
+                // Проверяем наличие колонок перед обращением
+                if (dgvGames.Columns.Count <= e.ColumnIndex) return;
+                var colName = dgvGames.Columns[e.ColumnIndex].Name;
+
+                // Замена номера дня на название
+                if (colName == "GameDay")
+                {
+                    if (e.Value is int dayId)
+                    {
+                        e.Value = GetDayName(dayId);
+                        e.FormattingApplied = true;
+                    }
+                }
+
+                if (colName == "GymId")
+                {
+                    if (e.Value is int gymId)
+                    {
+                        var gyms = bsGyms.DataSource as BindingList<Gym>;
+                        var gym = gyms?.FirstOrDefault(g => g.Id == gymId);
+                        if (gym != null)
+                        {
+                            e.Value = gym.Name;
+                            e.FormattingApplied = true;
+                        }
+                    }
+                }
+
+                // Форматирование времени начала
+                if (colName == "GameStartHour")
+                {
+                    e.Value = $"{game.GameStartHour:D2}:{game.GameStartMinute:D2}";
+                    e.FormattingApplied = true;
+                }
+            } catch {
+                // Formatting errors are usually transient or during shutdown/init, silent ignore
+            }
+        }
+
+        private void UpdateGameTitleTime()
+        {
+            try {
+                if (bsGames.Current is VolleybollGame current) {
+                    // Синхронизируем значения из контролов в объект вручную, 
+                    // так как биндинг может срабатывать с задержкой
+                    if (cmbGameStartHour.SelectedItem is int h) current.GameStartHour = h;
+                    if (cmbGameStartMinute.SelectedItem is int m) current.GameStartMinute = m;
+
+                    string startTime = $"{current.GameStartHour:D2}:{current.GameStartMinute:D2}";
+                    string endTime = $"{(current.GameStartHour + 2) % 24:D2}:{current.GameStartMinute:D2}";
+                    string timeRange = $"{startTime} - {endTime}";
+
+                    if (string.IsNullOrEmpty(current.Title)) {
+                        current.Title = $"@GameDayName Волейбол {timeRange}";
+                    } else {
+                        // Ищем паттерн времени HH.mm - HH.mm или HH:mm - HH:mm
+                        var regex = new System.Text.RegularExpressions.Regex(@"\d{2}[\.:]\d{2}\s*-\s*\d{2}[\.:]\d{2}");
+                        if (regex.IsMatch(current.Title)) {
+                            current.Title = regex.Replace(current.Title, timeRange);
+                        } else {
+                            current.Title = current.Title.Trim() + " " + timeRange;
+                        }
+                    }
+                    
+                    // Обновляем текст напрямую, чтобы не мешать вводу в NumericUpDown (не вызываем ResetCurrentItem)
+                    if (txtTitle.Text != current.Title) {
+                        txtTitle.Text = current.Title;
+                    }
+                    dgvGames.Invalidate(); // Обновляем грид при смене времени
+                }
+            } catch (Exception ex) {
+                Logger.Log("Error in UpdateGameTitleTime", ex);
+            }
+        }
+
+        private void UpdateGameTitleWithGymName(VolleybollGame game, string gymName)
+        {
+            if (string.IsNullOrEmpty(game.Title) || string.IsNullOrEmpty(gymName)) return;
+            // Пытаемся найти формат ЗАЛЕ(Название) или ЗАЛ(Название) и заменить Название
+            var regex = new System.Text.RegularExpressions.Regex(@"ЗАЛЕ?\s*\((.*?)\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            var match = regex.Match(game.Title);
+            if (match.Success)
+            {
+                game.Title = game.Title.Substring(0, match.Groups[1].Index) + gymName + game.Title.Substring(match.Groups[1].Index + match.Groups[1].Length);
+            }
+        }
+
+        private void UpdateTitlePrefixes(VolleybollGame game)
+        {
+            if (string.IsNullOrEmpty(game.Title)) return;
+
+            string ratingPrefix = "Рейтинговая игра! ";
+            string trainingPrefix = "Тренировка! ";
+
+            // Сначала очищаем от обоих префиксов
+            if (game.Title.StartsWith(ratingPrefix)) game.Title = game.Title.Substring(ratingPrefix.Length);
+            else if (game.Title.StartsWith(trainingPrefix)) game.Title = game.Title.Substring(trainingPrefix.Length);
+
+            // Добавляем нужный
+            if (game.RatingGame) game.Title = ratingPrefix + game.Title;
+            else if (game.TrainingGame) game.Title = trainingPrefix + game.Title;
+        }
+
+        private string GetDayName(int dayId)
+        {
+            return dayId switch
+            {
+                1 => "Понедельник",
+                2 => "Вторник",
+                3 => "Среда",
+                4 => "Четверг",
+                5 => "Пятница",
+                6 => "Суббота",
+                7 => "Воскресенье",
+                _ => dayId.ToString()
+            };
+        }
+
+        public class DayInfo
+        {
+            public int Value { get; set; }
+            public string Name { get; set; } = "";
         }
     }
 }
