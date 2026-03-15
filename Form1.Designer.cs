@@ -168,9 +168,9 @@ namespace BallBotGui
             // btnCreatePoll
             // 
             btnCreatePoll.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnCreatePoll.Location = new Point(1778, 1126);
+            btnCreatePoll.Location = new Point(1790, 1850);
             btnCreatePoll.Name = "btnCreatePoll";
-            btnCreatePoll.Size = new Size(309, 46);
+            btnCreatePoll.Size = new Size(350, 60);
             btnCreatePoll.TabIndex = 0;
             btnCreatePoll.Text = "Запуск голосовалки";
             btnCreatePoll.UseVisualStyleBackColor = true;
@@ -179,9 +179,9 @@ namespace BallBotGui
             // button1
             // 
             button1.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button1.Location = new Point(1148, 1126);
+            button1.Location = new Point(1140, 1850);
             button1.Name = "button1";
-            button1.Size = new Size(309, 46);
+            button1.Size = new Size(320, 60);
             button1.TabIndex = 1;
             button1.Text = "Сохранение состояния";
             button1.UseVisualStyleBackColor = true;
@@ -190,9 +190,9 @@ namespace BallBotGui
             // button2
             // 
             button2.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button2.Location = new Point(1778, 1230);
+            button2.Location = new Point(1790, 1920);
             button2.Name = "button2";
-            button2.Size = new Size(309, 46);
+            button2.Size = new Size(350, 60);
             button2.TabIndex = 2;
             button2.Text = "Загрузить состояния";
             button2.UseVisualStyleBackColor = true;
@@ -201,9 +201,9 @@ namespace BallBotGui
             // button3
             // 
             button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button3.Location = new Point(1469, 1178);
+            button3.Location = new Point(1465, 1920);
             button3.Name = "button3";
-            button3.Size = new Size(302, 46);
+            button3.Size = new Size(320, 60);
             button3.TabIndex = 3;
             button3.Text = "Прочитать обновления";
             button3.UseVisualStyleBackColor = true;
@@ -214,12 +214,13 @@ namespace BallBotGui
             dataGridViewPoll.AllowUserToAddRows = false;
             dataGridViewPoll.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridViewPoll.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewPoll.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             dataGridViewPoll.Location = new Point(12, 12);
             dataGridViewPoll.MultiSelect = false;
             dataGridViewPoll.Name = "dataGridViewPoll";
             dataGridViewPoll.RowHeadersWidth = 82;
             dataGridViewPoll.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridViewPoll.Size = new Size(1113, 269);
+            dataGridViewPoll.Size = new Size(2140, 300);
             dataGridViewPoll.TabIndex = 4;
             // 
             // dataGridViewPlayers
@@ -228,21 +229,22 @@ namespace BallBotGui
             dataGridViewPlayers.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridViewPlayers.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridViewPlayers.EditMode = DataGridViewEditMode.EditProgrammatically;
-            dataGridViewPlayers.Location = new Point(12, 287);
+            dataGridViewPlayers.Location = new Point(12, 320);
             dataGridViewPlayers.MultiSelect = false;
             dataGridViewPlayers.Name = "dataGridViewPlayers";
             dataGridViewPlayers.RowHeadersWidth = 82;
             dataGridViewPlayers.RowTemplate.Height = 30;
             dataGridViewPlayers.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridViewPlayers.Size = new Size(983, 930);
+            dataGridViewPlayers.Size = new Size(1001, 1600);
             dataGridViewPlayers.TabIndex = 5;
             dataGridViewPlayers.SelectionChanged += onPlayerSelect;
             // 
             // button4
             // 
-            button4.Location = new Point(1001, 287);
+            button4.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            button4.Location = new Point(1015, 320);
             button4.Name = "button4";
-            button4.Size = new Size(124, 206);
+            button4.Size = new Size(115, 600);
             button4.TabIndex = 6;
             button4.Text = "UP";
             button4.UseVisualStyleBackColor = true;
@@ -250,9 +252,10 @@ namespace BallBotGui
             // 
             // button5
             // 
-            button5.Location = new Point(1001, 499);
+            button5.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            button5.Location = new Point(1015, 930);
             button5.Name = "button5";
-            button5.Size = new Size(124, 291);
+            button5.Size = new Size(115, 990);
             button5.TabIndex = 7;
             button5.Text = "DOWN";
             button5.UseVisualStyleBackColor = true;
@@ -261,9 +264,9 @@ namespace BallBotGui
             // button6
             // 
             button6.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button6.Location = new Point(1468, 1230);
+            button6.Location = new Point(1465, 1850);
             button6.Name = "button6";
-            button6.Size = new Size(304, 46);
+            button6.Size = new Size(320, 60);
             button6.TabIndex = 8;
             button6.Text = "Архивировать опросы";
             button6.UseVisualStyleBackColor = true;
@@ -293,7 +296,7 @@ namespace BallBotGui
             // 
             // dataGridViewRating
             // 
-            dataGridViewRating.AllowUserToAddRows = false;
+            dataGridViewRating.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dataGridViewRating.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dataGridViewRating.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridViewRating.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -303,13 +306,13 @@ namespace BallBotGui
             dataGridViewRating.RowHeadersWidth = 82;
             dataGridViewRating.RowTemplate.Height = 30;
             dataGridViewRating.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridViewRating.Size = new Size(990, 450);
+            dataGridViewRating.Size = new Size(990, 440);
             dataGridViewRating.TabIndex = 11;
             dataGridViewRating.CellEndEdit += dataGridViewRating_CellEndEdit;
             // 
             // gbEditPlayer
             // 
-            gbEditPlayer.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            gbEditPlayer.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             gbEditPlayer.Controls.Add(chkEditLevelChecked);
             gbEditPlayer.Controls.Add(chkEditIsFemale);
             gbEditPlayer.Controls.Add(numEditGroup);
@@ -324,9 +327,9 @@ namespace BallBotGui
             gbEditPlayer.Controls.Add(lblEditName);
             gbEditPlayer.Controls.Add(txtEditId);
             gbEditPlayer.Controls.Add(lblEditId);
-            gbEditPlayer.Location = new Point(3, 526);
+            gbEditPlayer.Location = new Point(3, 520);
             gbEditPlayer.Name = "gbEditPlayer";
-            gbEditPlayer.Size = new Size(990, 508);
+            gbEditPlayer.Size = new Size(990, 440);
             gbEditPlayer.TabIndex = 14;
             gbEditPlayer.TabStop = false;
             gbEditPlayer.Text = "Редактирование игрока";
@@ -342,7 +345,7 @@ namespace BallBotGui
             // 
             // txtEditId
             // 
-            txtEditId.Location = new Point(204, 42);
+            txtEditId.Location = new Point(204, 38);
             txtEditId.Name = "txtEditId";
             txtEditId.ReadOnly = true;
             txtEditId.Size = new Size(488, 39);
@@ -359,7 +362,7 @@ namespace BallBotGui
             // 
             // txtEditName
             // 
-            txtEditName.Location = new Point(204, 92);
+            txtEditName.Location = new Point(204, 78);
             txtEditName.Name = "txtEditName";
             txtEditName.Size = new Size(488, 39);
             txtEditName.TabIndex = 1;
@@ -375,7 +378,7 @@ namespace BallBotGui
             // 
             // txtEditFirstName
             // 
-            txtEditFirstName.Location = new Point(204, 142);
+            txtEditFirstName.Location = new Point(204, 118);
             txtEditFirstName.Name = "txtEditFirstName";
             txtEditFirstName.Size = new Size(488, 39);
             txtEditFirstName.TabIndex = 3;
@@ -391,7 +394,7 @@ namespace BallBotGui
             // 
             // txtEditNormalName
             // 
-            txtEditNormalName.Location = new Point(204, 192);
+            txtEditNormalName.Location = new Point(204, 158);
             txtEditNormalName.Name = "txtEditNormalName";
             txtEditNormalName.Size = new Size(488, 39);
             txtEditNormalName.TabIndex = 5;
@@ -407,7 +410,7 @@ namespace BallBotGui
             // 
             // numEditRating
             // 
-            numEditRating.Location = new Point(204, 242);
+            numEditRating.Location = new Point(204, 198);
             numEditRating.Maximum = new decimal(new int[] { 5000, 0, 0, 0 });
             numEditRating.Name = "numEditRating";
             numEditRating.Size = new Size(240, 39);
@@ -424,7 +427,7 @@ namespace BallBotGui
             // 
             // numEditGroup
             // 
-            numEditGroup.Location = new Point(204, 292);
+            numEditGroup.Location = new Point(204, 238);
             numEditGroup.Maximum = new decimal(new int[] { 10, 0, 0, 0 });
             numEditGroup.Name = "numEditGroup";
             numEditGroup.Size = new Size(240, 39);
@@ -433,7 +436,7 @@ namespace BallBotGui
             // chkEditIsFemale
             // 
             chkEditIsFemale.AutoSize = true;
-            chkEditIsFemale.Location = new Point(204, 345);
+            chkEditIsFemale.Location = new Point(204, 285);
             chkEditIsFemale.Name = "chkEditIsFemale";
             chkEditIsFemale.Size = new Size(146, 36);
             chkEditIsFemale.TabIndex = 10;
@@ -443,7 +446,7 @@ namespace BallBotGui
             // chkEditLevelChecked
             // 
             chkEditLevelChecked.AutoSize = true;
-            chkEditLevelChecked.Location = new Point(204, 395);
+            chkEditLevelChecked.Location = new Point(204, 325);
             chkEditLevelChecked.Name = "chkEditLevelChecked";
             chkEditLevelChecked.Size = new Size(211, 36);
             chkEditLevelChecked.TabIndex = 11;
@@ -457,10 +460,10 @@ namespace BallBotGui
             tabControl1.Controls.Add(Cars);
             tabControl1.Controls.Add(tabGamesConfig);
             tabControl1.Controls.Add(tabGyms);
-            tabControl1.Location = new Point(1140, 12);
+            tabControl1.Location = new Point(1140, 320);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(1012, 1091);
+            tabControl1.Size = new Size(1012, 1520);
             tabControl1.TabIndex = 13;
             // 
             // Players
@@ -529,19 +532,18 @@ namespace BallBotGui
             // 
             // dgvGames
             // 
-            dgvGames.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvGames.Dock = DockStyle.Top;
+            dgvGames.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvGames.Location = new Point(3, 3);
             dgvGames.MultiSelect = false;
             dgvGames.Name = "dgvGames";
             dgvGames.RowHeadersWidth = 82;
             dgvGames.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvGames.Size = new Size(990, 400);
+            dgvGames.Size = new Size(990, 250);
             dgvGames.TabIndex = 0;
             // 
             // gbEditGame
             // 
-            gbEditGame.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            gbEditGame.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             gbEditGame.Controls.Add(lblTitle);
             gbEditGame.Controls.Add(txtTitle);
             gbEditGame.Controls.Add(lblGameDay);
@@ -561,9 +563,9 @@ namespace BallBotGui
             gbEditGame.Controls.Add(chkTrainingGame);
             gbEditGame.Controls.Add(lblGymChoice);
             gbEditGame.Controls.Add(cmbGym);
-            gbEditGame.Location = new Point(3, 420);
+            gbEditGame.Location = new Point(3, 260);
             gbEditGame.Name = "gbEditGame";
-            gbEditGame.Size = new Size(990, 440);
+            gbEditGame.Size = new Size(990, 600);
             gbEditGame.TabIndex = 1;
             gbEditGame.TabStop = false;
             gbEditGame.Text = "Редактирование игры";
@@ -731,7 +733,7 @@ namespace BallBotGui
             chkTrainingGame.TabIndex = 22;
             chkTrainingGame.Text = "Тренировка";
             chkTrainingGame.UseVisualStyleBackColor = true;
-            btnAddGame.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnAddGame.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnAddGame.Location = new Point(15, 900);
             btnAddGame.Name = "btnAddGame";
             btnAddGame.Size = new Size(300, 46);
@@ -742,7 +744,7 @@ namespace BallBotGui
             // 
             // btnDeleteGame
             // 
-            btnDeleteGame.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnDeleteGame.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnDeleteGame.Location = new Point(345, 900);
             btnDeleteGame.Name = "btnDeleteGame";
             btnDeleteGame.Size = new Size(300, 46);
@@ -753,7 +755,7 @@ namespace BallBotGui
             // 
             // btnSaveGamesJson
             // 
-            btnSaveGamesJson.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnSaveGamesJson.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnSaveGamesJson.Location = new Point(675, 900);
             btnSaveGamesJson.Name = "btnSaveGamesJson";
             btnSaveGamesJson.Size = new Size(300, 46);
@@ -779,28 +781,27 @@ namespace BallBotGui
             // 
             // dgvGyms
             // 
-            dgvGyms.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvGyms.Dock = DockStyle.Top;
+            dgvGyms.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvGyms.Location = new Point(3, 3);
             dgvGyms.MultiSelect = false;
             dgvGyms.Name = "dgvGyms";
             dgvGyms.RowHeadersWidth = 82;
             dgvGyms.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvGyms.Size = new Size(990, 400);
+            dgvGyms.Size = new Size(990, 250);
             dgvGyms.TabIndex = 0;
             // 
             // gbEditGym
             // 
-            gbEditGym.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            gbEditGym.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             gbEditGym.Controls.Add(lblGymId);
             gbEditGym.Controls.Add(numGymId);
             gbEditGym.Controls.Add(lblGymName);
             gbEditGym.Controls.Add(txtGymName);
             gbEditGym.Controls.Add(lblGymLocation);
             gbEditGym.Controls.Add(txtGymLocation);
-            gbEditGym.Location = new Point(3, 420);
+            gbEditGym.Location = new Point(3, 260);
             gbEditGym.Name = "gbEditGym";
-            gbEditGym.Size = new Size(990, 440);
+            gbEditGym.Size = new Size(990, 600);
             gbEditGym.TabIndex = 1;
             gbEditGym.TabStop = false;
             gbEditGym.Text = "Редактирование зала";
@@ -856,7 +857,7 @@ namespace BallBotGui
             // 
             // btnAddGym
             // 
-            btnAddGym.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnAddGym.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnAddGym.Location = new Point(15, 900);
             btnAddGym.Name = "btnAddGym";
             btnAddGym.Size = new Size(300, 46);
@@ -889,7 +890,7 @@ namespace BallBotGui
             // 
             // dataGridViewCarStops
             // 
-            dataGridViewCarStops.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            dataGridViewCarStops.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dataGridViewCarStops.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridViewCarStops.Dock = DockStyle.None;
             dataGridViewCarStops.EditMode = DataGridViewEditMode.EditProgrammatically;
@@ -899,7 +900,7 @@ namespace BallBotGui
             dataGridViewCarStops.RowHeadersWidth = 82;
             dataGridViewCarStops.RowTemplate.Height = 30;
             dataGridViewCarStops.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridViewCarStops.Size = new Size(960, 150);
+            dataGridViewCarStops.Size = new Size(960, 325);
             dataGridViewCarStops.TabIndex = 15;
             // 
             // lblStopsHeader
@@ -914,7 +915,6 @@ namespace BallBotGui
             // 
             // dgvCars
             // 
-            dgvCars.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvCars.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             dgvCars.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvCars.Dock = DockStyle.None;
@@ -958,7 +958,7 @@ namespace BallBotGui
             // 
             // gbEditCar
             // 
-            gbEditCar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            gbEditCar.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             gbEditCar.Controls.Add(lblStopsHeader);
             gbEditCar.Controls.Add(gbEditStop);
             gbEditCar.Controls.Add(dataGridViewCarStops);
@@ -972,7 +972,7 @@ namespace BallBotGui
             gbEditCar.Controls.Add(lblCarIdPlayer);
             gbEditCar.Location = new Point(3, 260);
             gbEditCar.Name = "gbEditCar";
-            gbEditCar.Size = new Size(990, 540);
+            gbEditCar.Size = new Size(990, 680);
             gbEditCar.TabIndex = 16;
             gbEditCar.TabStop = false;
             gbEditCar.Text = "Редактирование машины";
@@ -1055,7 +1055,8 @@ namespace BallBotGui
             // 
             // btnAddCar
             // 
-            btnAddCar.Location = new Point(15, 810);
+            btnAddCar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnAddCar.Location = new Point(15, 985);
             btnAddCar.Name = "btnAddCar";
             btnAddCar.Size = new Size(300, 46);
             btnAddCar.TabIndex = 17;
@@ -1065,7 +1066,8 @@ namespace BallBotGui
             // 
             // btnDeleteCar
             // 
-            btnDeleteCar.Location = new Point(345, 810);
+            btnDeleteCar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnDeleteCar.Location = new Point(345, 985);
             btnDeleteCar.Name = "btnDeleteCar";
             btnDeleteCar.Size = new Size(300, 46);
             btnDeleteCar.TabIndex = 18;
@@ -1075,7 +1077,8 @@ namespace BallBotGui
             // 
             // btnSaveCars
             // 
-            btnSaveCars.Location = new Point(675, 810);
+            btnSaveCars.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnSaveCars.Location = new Point(675, 985);
             btnSaveCars.Name = "btnSaveCars";
             btnSaveCars.Size = new Size(300, 46);
             btnSaveCars.TabIndex = 19;
@@ -1085,7 +1088,7 @@ namespace BallBotGui
             // 
             // gbEditStop
             // 
-            gbEditStop.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            gbEditStop.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             gbEditStop.Controls.Add(btnOpenStopLink);
             gbEditStop.Controls.Add(btnAddStop);
             gbEditStop.Controls.Add(btnDeleteStop);
@@ -1095,7 +1098,7 @@ namespace BallBotGui
             gbEditStop.Controls.Add(lblStopLink);
             gbEditStop.Controls.Add(txtStopName);
             gbEditStop.Controls.Add(lblStopName);
-            gbEditStop.Location = new Point(10, 330);
+            gbEditStop.Location = new Point(10, 470);
             gbEditStop.Name = "gbEditStop";
             gbEditStop.Size = new Size(970, 200);
             gbEditStop.TabIndex = 20;
@@ -1184,10 +1187,10 @@ namespace BallBotGui
             // 
             // getCars
             // 
-            getCars.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            getCars.Location = new Point(1151, 1230);
+            getCars.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            getCars.Location = new Point(12, 1920);
             getCars.Name = "getCars";
-            getCars.Size = new Size(303, 46);
+            getCars.Size = new Size(320, 60);
             getCars.TabIndex = 15;
             getCars.Text = "Табло запус";
             getCars.UseVisualStyleBackColor = true;
@@ -1195,10 +1198,10 @@ namespace BallBotGui
             // 
             // button9
             // 
-            button9.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button9.Location = new Point(1151, 1178);
+            button9.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            button9.Location = new Point(12, 1850);
             button9.Name = "button9";
-            button9.Size = new Size(303, 46);
+            button9.Size = new Size(320, 60);
             button9.TabIndex = 16;
             button9.Text = "Опрос после игры";
             button9.UseVisualStyleBackColor = true;
@@ -1206,10 +1209,10 @@ namespace BallBotGui
             // 
             // button10
             // 
-            button10.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button10.Location = new Point(1145, 1291);
+            button10.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            button10.Location = new Point(340, 1850);
             button10.Name = "button10";
-            button10.Size = new Size(309, 46);
+            button10.Size = new Size(320, 60);
             button10.TabIndex = 17;
             button10.Text = "Статистика";
             button10.UseVisualStyleBackColor = true;
@@ -1217,10 +1220,10 @@ namespace BallBotGui
             // 
             // button11
             // 
-            button11.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button11.Location = new Point(1460, 1291);
+            button11.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            button11.Location = new Point(340, 1920);
             button11.Name = "button11";
-            button11.Size = new Size(309, 46);
+            button11.Size = new Size(320, 60);
             button11.TabIndex = 18;
             button11.Text = "Приглашение игроков";
             button11.UseVisualStyleBackColor = true;
@@ -1228,10 +1231,10 @@ namespace BallBotGui
             // 
             // del_afterGameSurvey
             // 
-            del_afterGameSurvey.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            del_afterGameSurvey.Location = new Point(1784, 1291);
+            del_afterGameSurvey.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            del_afterGameSurvey.Location = new Point(670, 1920);
             del_afterGameSurvey.Name = "del_afterGameSurvey";
-            del_afterGameSurvey.Size = new Size(303, 46);
+            del_afterGameSurvey.Size = new Size(320, 60);
             del_afterGameSurvey.TabIndex = 19;
             del_afterGameSurvey.Text = "Del Опрос после игры";
             del_afterGameSurvey.UseVisualStyleBackColor = true;
@@ -1239,10 +1242,10 @@ namespace BallBotGui
             // 
             // btnUpdateSummary
             // 
-            btnUpdateSummary.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnUpdateSummary.Location = new Point(1460, 1178);
+            btnUpdateSummary.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnUpdateSummary.Location = new Point(670, 1850);
             btnUpdateSummary.Name = "btnUpdateSummary";
-            btnUpdateSummary.Size = new Size(309, 46);
+            btnUpdateSummary.Size = new Size(320, 60);
             btnUpdateSummary.TabIndex = 20;
             btnUpdateSummary.Text = "Обновить итоги (звезды)";
             btnUpdateSummary.UseVisualStyleBackColor = true;
@@ -1251,8 +1254,8 @@ namespace BallBotGui
             // Form1
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
-            AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(2164, 1374);
+            components = new System.ComponentModel.Container();
+            ClientSize = new System.Drawing.Size(1600, 900);
             Controls.Add(btnUpdateSummary);
             Controls.Add(del_afterGameSurvey);
             Controls.Add(button11);
@@ -1273,10 +1276,11 @@ namespace BallBotGui
             Controls.Add(button1);
             Controls.Add(btnCreatePoll);
             Margin = new Padding(5);
-            Name = "Form1";
             Text = "Волейбольный бот";
+            this.WindowState = FormWindowState.Maximized;
             Activated += Form1_Activated;
             Load += Form1_Load;
+            Resize += Form1_Resize;
             ((System.ComponentModel.ISupportInitialize)dataGridViewPoll).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPlayers).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewRating).EndInit();

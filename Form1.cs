@@ -80,6 +80,9 @@ namespace BallBotGui
             dgvCars.DataError += dataGridView_DataError;
             dgvGames.DataError += dataGridView_DataError;
             dgvGames.CellFormatting += dgvGames_CellFormatting;
+            
+            // Первоначальный расчет размеров
+            Form1_Resize(this, EventArgs.Empty);
         }
 
         private void dataGridView_DataError(object? sender, DataGridViewDataErrorEventArgs e)
@@ -841,6 +844,76 @@ namespace BallBotGui
             {
                 Logger.Log("Error in filter_TextChanged", ex);
             }
+        }
+
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            if (dataGridViewPoll == null || dataGridViewPlayers == null || tabControl1 == null) return;
+
+            int margin = 10;
+            int bottomPanelHeight = 105; // Компактная панель кнопок
+            int formWidth = this.ClientSize.Width;
+            int formHeight = this.ClientSize.Height;
+
+            // 1. Верхняя таблица (Опросы) - 20% высоты, но не более 220 пикселей
+            dataGridViewPoll.Left = margin;
+            dataGridViewPoll.Top = margin;
+            dataGridViewPoll.Width = formWidth - 2 * margin;
+            dataGridViewPoll.Height = Math.Min((int)(formHeight * 0.2), 220);
+
+            // 2. Расчет области для нижних гридов
+            int gridsTop = dataGridViewPoll.Bottom + 5;
+            int remainingHeight = formHeight - gridsTop - bottomPanelHeight - 5;
+            if (remainingHeight < 150) remainingHeight = 150; 
+
+            // 3. Таблица игроков
+            int leftPanelWidth = (int)(formWidth * 0.45);
+            dataGridViewPlayers.Left = margin;
+            dataGridViewPlayers.Top = gridsTop;
+            dataGridViewPlayers.Width = leftPanelWidth;
+            dataGridViewPlayers.Height = remainingHeight;
+
+            // 4. Кнопки UP/DOWN
+            if (button4 != null && button5 != null)
+            {
+                int buttonWidth = 50;
+                int spacerLeft = dataGridViewPlayers.Right + 5;
+                button4.Left = button5.Left = spacerLeft;
+                button4.Width = button5.Width = buttonWidth;
+                
+                int halfHeight = remainingHeight / 2;
+                button4.Top = gridsTop;
+                button4.Height = halfHeight;
+                button5.Top = gridsTop + halfHeight;
+                button5.Height = remainingHeight - halfHeight;
+            }
+
+            // 5. Вкладки
+            int tabsLeft = (button4?.Right ?? dataGridViewPlayers.Right) + 5;
+            tabControl1.Left = tabsLeft;
+            tabControl1.Top = gridsTop;
+            tabControl1.Width = formWidth - tabsLeft - margin;
+            tabControl1.Height = remainingHeight;
+
+            // 6. Кнопки в самом низу (два ряда)
+            int btnY1 = gridsTop + remainingHeight + 5;
+            int btnY2 = btnY1 + 48;
+            int btnWidth = (formWidth - 5 * margin) / 4;
+
+            // Первый ряд
+            if (btnCreatePoll != null) btnCreatePoll.SetBounds(margin, btnY1, btnWidth, 40);
+            if (button1 != null) button1.SetBounds(margin + btnWidth + 5, btnY1, btnWidth, 40);
+            if (button2 != null) button2.SetBounds(margin + 2 * (btnWidth + 5), btnY1, btnWidth, 40);
+            if (button3 != null) button3.SetBounds(margin + 3 * (btnWidth + 5), btnY1, btnWidth, 40);
+
+            // Второй ряд
+            int smallBtnWidth = (formWidth - 7 * margin) / 6;
+            if (button11 != null) button11.SetBounds(margin, btnY2, smallBtnWidth, 40);
+            if (button9 != null) button9.SetBounds(margin + smallBtnWidth + 5, btnY2, smallBtnWidth, 40);
+            if (getCars != null) getCars.SetBounds(margin + 2 * (smallBtnWidth + 5), btnY2, smallBtnWidth, 40);
+            if (button10 != null) button10.SetBounds(margin + 3 * (smallBtnWidth + 5), btnY2, smallBtnWidth, 40);
+            if (del_afterGameSurvey != null) del_afterGameSurvey.SetBounds(margin + 4 * (smallBtnWidth + 5), btnY2, smallBtnWidth, 40);
+            if (btnUpdateSummary != null) btnUpdateSummary.SetBounds(margin + 5 * (smallBtnWidth + 5), btnY2, smallBtnWidth, 40);
         }
 
         private void txtCarFilter_TextChanged(object sender, EventArgs e)
