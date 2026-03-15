@@ -782,9 +782,11 @@ namespace BallBotGui
             // dgvGyms
             // 
             dgvGyms.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dgvGyms.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvGyms.Location = new Point(3, 3);
             dgvGyms.MultiSelect = false;
             dgvGyms.Name = "dgvGyms";
+            dgvGyms.ReadOnly = true;
             dgvGyms.RowHeadersWidth = 82;
             dgvGyms.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvGyms.Size = new Size(990, 250);
@@ -1254,6 +1256,7 @@ namespace BallBotGui
             // Form1
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
+            AutoScaleMode = AutoScaleMode.None;
             components = new System.ComponentModel.Container();
             ClientSize = new System.Drawing.Size(1600, 900);
             Controls.Add(btnUpdateSummary);
