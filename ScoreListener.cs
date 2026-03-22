@@ -205,11 +205,39 @@ namespace BallBotGui
             // Если админ не найден ни в одном опросе — берём ближайший по времени.
             var currentPoll = _stateManager.GetClosestApprovedPollForToday(adminId)
                               ?? _stateManager.GetClosestApprovedPollForToday();
-            
+
+            // Если пришло 0:0 — это сброс или начало новой партии.
+            if (scoreData.Team1Score == 0 && scoreData.Team2Score == 0)
+            {
+                if (currentPoll != null && currentPoll.GameScores.Any())
+                {
+                    // Находим индекс последнего завершенного сета
+                    int lastFinishedIdx = currentPoll.GameScores.FindLastIndex(gs => gs.IsFinished);
+                    
+                    if (lastFinishedIdx == -1)
+                    {
+                        // Стов еще не было, очищаем всю историю
+                        currentPoll.GameScores.Clear();
+                    }
+                    else
+                    {
+                        // Удаляем всё, что было после последнего завершенного сета
+                        int countToRemove = currentPoll.GameScores.Count - (lastFinishedIdx + 1);
+                        if (countToRemove > 0)
+                        {
+                            currentPoll.GameScores.RemoveRange(lastFinishedIdx + 1, countToRemove);
+                        }
+                    }
+
+                    Logger.Log($"Score reset to 0:0 for poll {currentPoll.idPoll}. Current set history cleared.");
+                    _stateManager.SaveState();
+                    OnScoreUpdated?.Invoke();
+                }
+                return;
+            }
+
             // Определяем, какая команда (в терминах опроса) соответствует Team1Score и Team2Score на табло.
-            // На табло: Team1Score и Team2Score.
-            // В опросе: команды с индексами 0, 1, 2... состава lastComposition.
-            
+            // ...
             int score1 = scoreData.Team1Score;
             int score2 = scoreData.Team2Score;
 
@@ -232,38 +260,21 @@ namespace BallBotGui
                         }
                     }
 
-                    if (adminTeamIndex != -1)
+                    // Если Team1Score всегда счёт моей команды:
+                    // Если я во второй команде (индекс 1, желтые), то мой счёт (Team1Score) должен пойти в score2.
+                    if (adminTeamIndex == 1)
                     {
-                        // MySide = "left" → мой счёт = Team1Score (первый на табло)
-                        // MySide = "right" → мой счёт = Team2Score (второй на табло)
-                        bool isMyScoreFirst = scoreData.MySide?.ToLower() == "left";
-                        
-                        if (isMyScoreFirst) 
-                        {
-                            // Мой счёт = Team1Score. Если я во второй команде (🟡), нужно поменять местами.
-                            if (adminTeamIndex == 1)
-                            {
-                                score1 = scoreData.Team2Score;
-                                score2 = scoreData.Team1Score;
-                            }
-                        }
-                        else if (scoreData.MySide?.ToLower() == "right")
-                        {
-                            // Мой счёт = Team2Score. Если я в первой команде (🟢), нужно поменять местами.
-                            if (adminTeamIndex == 0)
-                            {
-                                score1 = scoreData.Team2Score;
-                                score2 = scoreData.Team1Score;
-                            }
-                        }
+                        score1 = scoreData.Team2Score; // оппонент
+                        score2 = scoreData.Team1Score; // я
                     }
+                    // Если я в первой команде (индекс 0, зеленые) или индекс не найден, оставляем как есть.
                 }
 
                 var newScore = new GameScore(score1, score2, scoreData.IsFinished);
                 currentPoll.GameScores.Add(newScore);
 
                 string statusText = scoreData.IsFinished ? " (Finished)" : "";
-                Logger.Log($"Score updated for poll {currentPoll.idPoll}: {score1}-{score2}{statusText} (MySide={scoreData.MySide})");
+                Logger.Log($"Score updated for poll {currentPoll.idPoll}: {score1}-{score2}{statusText} (Admin score was in Team1Score)");
 
                 _stateManager.SaveState();
                 OnScoreUpdated?.Invoke();
