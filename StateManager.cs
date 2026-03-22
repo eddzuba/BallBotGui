@@ -17,6 +17,22 @@ namespace BallBotGui
         public string fileName = "pollState.json";
         public string ratingFileName = "playersRating.json";
 
+        private long? _adminId;
+        public long AdminId
+        {
+            get
+            {
+                if (!_adminId.HasValue)
+                {
+                    if (long.TryParse(AppConfigHelper.LoadSetting("AdminId"), out long id))
+                        _adminId = id;
+                    else
+                        _adminId = 245566701; // Fallback
+                }
+                return _adminId.Value;
+            }
+        }
+
         public void SaveState()
         {
             try
@@ -170,7 +186,7 @@ namespace BallBotGui
             if (poll != null)
             {
                 long? requesterId = update?.Message?.From?.Id;
-                bool playerExistsInTopPlayers = poll.playrsList.Take(poll.maxPlayersCount).Any(p => p.id == requesterId || (requesterId.HasValue && requesterId.Value == 245566701));
+                bool playerExistsInTopPlayers = poll.playrsList.Take(poll.maxPlayersCount).Any(p => p.id == requesterId || (requesterId.HasValue && requesterId.Value == AdminId));
 
                 Random random = new();
 
@@ -479,7 +495,7 @@ namespace BallBotGui
 
             if (poll != null)
             {
-                bool playerExistsInTopPlayers = poll.playrsList.Take(poll.maxPlayersCount).Any(p => p.id == update?.Message?.From?.Id || update.Message.From.Id == 245566701);
+                bool playerExistsInTopPlayers = poll.playrsList.Take(poll.maxPlayersCount).Any(p => p.id == update?.Message?.From?.Id || update.Message.From.Id == AdminId);
 
                 Random random = new();
 
@@ -698,6 +714,34 @@ namespace BallBotGui
 
             // Если ни одна игра ещё не началась, возвращаем самую раннюю из всех
             return sortedPolls.First();
+        }
+
+        internal List<GameScore> GetScoresForDisplay()
+        {
+            var poll = GetClosestApprovedPollForToday(AdminId)
+                       ?? GetClosestApprovedPollForToday();
+
+            if (poll != null) return poll.GameScores;
+            return state.StandaloneScores;
+        }
+
+        /// <summary>
+        /// Возвращает MessageId последнего сообщения с составами команд, отправленного сегодня.
+        /// Ищет в ближайшем одобренном опросе на сегодня.
+        /// Возвращает 0, если таких сообщений нет.
+        /// </summary>
+        internal int GetLastTodayTeamsMessageId(long? playerId = null)
+        {
+            var poll = GetClosestApprovedPollForToday(playerId);
+            if (poll == null) return 0;
+
+            var today = DateTime.Today;
+            var lastComposition = poll.TeamCompositions
+                .Where(tc => tc.Timestamp.Date == today && tc.MessageId > 0)
+                .OrderByDescending(tc => tc.Timestamp)
+                .FirstOrDefault();
+
+            return lastComposition?.MessageId ?? 0;
         }
 
         internal (string message, string type, Player? player) getRatingRequestStatusText(Update update)

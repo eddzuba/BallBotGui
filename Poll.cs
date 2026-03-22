@@ -34,6 +34,7 @@ namespace BallBotGui
         public List<TeamComposition> TeamCompositions { get; set; } = new(); // История составов команд
 
         public List<SurveyMessageInfo> SurveyMessages { get; set; } = new(); // Сообщения опросов для удаления
+        public List<GameScore> GameScores { get; set; } = new(); // История изменений счета
 
 
         /********************************************************************************************/
@@ -93,7 +94,7 @@ namespace BallBotGui
                     && currentTime.Hour == curGame.GameStartHour - 2); // 1 час это смещение часового пояса и ещё один час это за сколько предупреждать
 
         }
-        public Poll(string idPoll, string date, string question, int idMessage, VolleybollGame curGame, int ratingMessageId)
+        public Poll(string idPoll, string date, string question, int idMessage, VolleybollGame? curGame, int ratingMessageId)
         {
             this.idPoll = idPoll;
             this.question = question;

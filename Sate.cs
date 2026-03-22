@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
 
 namespace BallBotGui
@@ -11,6 +11,7 @@ namespace BallBotGui
         public List<string> spamStopWords = new();
 
         public List<SkillCheckRequest> skillCheckRequests = new();
+        public List<GameScore> StandaloneScores = new();
 
         public Poll AddNewPoll(string idPoll, string date, string question, int messageId, VolleybollGame? curGame, int ratingMessageId)
         {

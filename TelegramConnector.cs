@@ -13,7 +13,6 @@ namespace BallBotGui
     internal class TelegramConnector
     {
         // Глобальная переменная для ID администратора
-        private const long AdminId = 245566701;
 
         private readonly TelegramBotClient botClient;
         private readonly StateManager stateManager;
@@ -714,10 +713,10 @@ namespace BallBotGui
                     {
                         if (update.Message.Chat.Type == ChatType.Private)
                         {
-                            if (update.Message.From != null && update.Message.From.Id == AdminId)
+                            if (update.Message.From != null && update.Message.From.Id == stateManager.AdminId)
                             {
                                 suggestTeams(update, update.Message.From.Id);
-                                _ = SendTodayBansToAdmin(AdminId);
+                                _ = SendTodayBansToAdmin(stateManager.AdminId);
                             }
                         }
                         else
@@ -815,7 +814,7 @@ namespace BallBotGui
             {
                 if (botClient != null)
                 {
-                    await botClient.SendMessage(AdminId, message);
+                    await botClient.SendMessage(stateManager.AdminId, message);
                 }
             }
             catch (Exception ex)
@@ -876,7 +875,7 @@ namespace BallBotGui
 
                     try
                     {
-                        botClient.SendMessage(AdminId, notify);
+                        botClient.SendMessage(stateManager.AdminId, notify);
                     }
                     catch
                     {
@@ -1095,7 +1094,7 @@ namespace BallBotGui
                     // Notify admin
                     try
                     {
-                        await botClient.SendMessage(AdminId, $"Пользователь @{targetUsername} (ID: {targetUserId}) отправлен на проверку минимального уровня игры.");
+                        await botClient.SendMessage(stateManager.AdminId, $"Пользователь @{targetUsername} (ID: {targetUserId}) отправлен на проверку минимального уровня игры.");
                     }
                     catch { }
                 }
@@ -1312,7 +1311,7 @@ namespace BallBotGui
                         // проверяем что тот кто просится тоже среди первых todayApprovedGamePoll.maxPlayersCount
                         if (update.CallbackQuery.From != null && idCurUser > 0)
                         {
-                            if (!firstMaxPlayersCountIds.Contains(idCurUser) && 245566701 != idCurUser) { return; }
+                            if (!firstMaxPlayersCountIds.Contains(idCurUser) && stateManager.AdminId != idCurUser) { return; }
                         }
 
                         // проверяем что водитель есть среди первых todayApprovedGamePoll.maxPlayersCount
@@ -1399,10 +1398,12 @@ namespace BallBotGui
                     string team2Players = formatTeam(teams.Team2);
 
                     string message = $"Предлагаются команды:\n\n🟢 Команда 1:\n{team1Players}\n\n🟡 Команда 2:\n{team2Players}";
+                    int sentMessageId = 0;
                     try
                     {
                         ChatId sendTo = targetChatId.HasValue ? (ChatId)targetChatId.Value : (ChatId)chatId;
-                        await botClient.SendMessage(sendTo, message);
+                        var sentMsg = await botClient.SendMessage(sendTo, message);
+                        sentMessageId = sentMsg.MessageId;
                     }
                     catch (Exception ex)
                     {
@@ -1412,8 +1413,11 @@ namespace BallBotGui
                     // Сохраняем составы команд в опрос для истории
                     var teamComposition = new TeamComposition(
                         DateTime.Now,
-                        teams.Team1.Select(p => p.id).ToList(),
-                        teams.Team2.Select(p => p.id).ToList()
+                        new List<List<long>> {
+                            teams.Team1.Select(p => p.id).ToList(),
+                            teams.Team2.Select(p => p.id).ToList()
+                        },
+                        sentMessageId
                     );
                     poll.TeamCompositions.Add(teamComposition);
                     stateManager.SaveState();
@@ -1444,9 +1448,11 @@ namespace BallBotGui
                                      $"🟡 Команда 2:\n{team2Players}\n\n" +
                                      $"🟠 Команда 3:\n{team3Players}\n\n" +
                                      $"🟣 Команда 4:\n{team4Players}";
+                    int sentMessageId4 = 0;
                     try
                     {
-                        await botClient.SendMessage(chatId, message);
+                        var sentMsg = await botClient.SendMessage(chatId, message);
+                        sentMessageId4 = sentMsg.MessageId;
                     }
                     catch (Exception ex)
                     {
@@ -1459,8 +1465,13 @@ namespace BallBotGui
                     {
                         var teamComposition = new TeamComposition(
                             DateTime.Now,
-                            teams.Team1.Select(p => p.id).ToList(),
-                            teams.Team2.Select(p => p.id).ToList()
+                            new List<List<long>> {
+                                teams.Team1.Select(p => p.id).ToList(),
+                                teams.Team2.Select(p => p.id).ToList(),
+                                teams.Team3.Select(p => p.id).ToList(),
+                                teams.Team4.Select(p => p.id).ToList()
+                            },
+                            sentMessageId4
                         );
                         poll.TeamCompositions.Add(teamComposition);
                         stateManager.SaveState();
@@ -1471,6 +1482,126 @@ namespace BallBotGui
             {
                 Logger.Log(ex.Message, ex);
             }
+        }
+
+        internal async Task<string> UpdateLastTeamsMessageWithScore()
+        {
+            string generatedText = string.Empty;
+            try
+            {
+                var poll = stateManager.GetClosestApprovedPollForToday(stateManager.AdminId)
+                           ?? stateManager.GetClosestApprovedPollForToday();
+                // Если опроса нет, мы все равно можем показать автономный счет
+                
+                var lastComposition = poll?.TeamCompositions
+                    .Where(tc => tc.Timestamp.Date == DateTime.Today && tc.MessageId > 0)
+                    .OrderByDescending(tc => tc.Timestamp)
+                    .FirstOrDefault();
+
+                var sb = new StringBuilder();
+
+                if (lastComposition != null)
+                {
+                    sb.AppendLine("Предлагаются команды:");
+                    sb.AppendLine();
+
+                    for (int i = 0; i < lastComposition.Teams.Count; i++)
+                    {
+                        string emoji = i switch { 0 => "🟢", 1 => "🟡", 2 => "🟠", 3 => "🟣", _ => "⚪" };
+                        sb.AppendLine($"{emoji} Команда {i + 1}:");
+
+                        foreach (var playerId in lastComposition.Teams[i])
+                        {
+                            var player = stateManager.players.FirstOrDefault(p => p.id == playerId);
+                            if (player != null)
+                            {
+                                string displayName = string.IsNullOrWhiteSpace(player.normalName) ? player.firstName : player.normalName;
+                                sb.AppendLine($"{displayName} @{player.name}");
+                            }
+                        }
+                        sb.AppendLine();
+                    }
+                }
+
+                // Получаем подходящий список оценок для отображения (из опроса или автономный)
+                var scoresSnapshot = stateManager.GetScoresForDisplay().ToList();
+
+                // Добавляем счет
+                if (scoresSnapshot.Any())
+                {
+                    sb.AppendLine("━━━━━━━━━━━━━━");
+
+                    // Собираем результаты завершенных партий
+                    var finishedGames = new List<string>();
+                    bool lastWasFinished = false;
+                    foreach (var gs in scoresSnapshot)
+                    {
+                        if (gs.IsFinished)
+                        {
+                            string scoreLine = $"🟢 {gs.Team1Score} : 🟡 {gs.Team2Score}";
+                            if (!lastWasFinished)
+                            {
+                                finishedGames.Add(scoreLine);
+                            }
+                            else if (finishedGames.Count > 0)
+                            {
+                                finishedGames[finishedGames.Count - 1] = scoreLine;
+                            }
+                            lastWasFinished = true;
+                        }
+                        else
+                        {
+                            lastWasFinished = false;
+                        }
+                    }
+
+                    if (finishedGames.Any())
+                    {
+                        sb.AppendLine("Результаты партий:");
+                        foreach (var fg in finishedGames)
+                        {
+                            sb.AppendLine($"<b>{fg}</b>");
+                        }
+                        sb.AppendLine();
+                    }
+
+                    var lastScore = scoresSnapshot.Last();
+                    if (lastScore.IsFinished)
+                    {
+                        sb.AppendLine("🏁 <b>Игра завершена</b>");
+                    }
+                    else
+                    {
+                        sb.AppendLine($"Текущий счёт: <b>🟢 {lastScore.Team1Score} : 🟡 {lastScore.Team2Score}</b>");
+                    }
+                }
+
+                generatedText = sb.ToString();
+
+                if (lastComposition != null && lastComposition.MessageId > 0)
+                {
+                    try
+                    {
+                        await botClient.EditMessageText(
+                            chatId: chatId,
+                            messageId: lastComposition.MessageId,
+                            text: generatedText,
+                            parseMode: ParseMode.Html
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        // Игнорируем ошибку "message is not modified"
+                        if (!ex.Message.Contains("message is not modified"))
+                            Logger.Log("Ошибка при обновлении сообщения с командами (счёт)", ex);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Ошибка в UpdateLastTeamsMessageWithScore", ex);
+            }
+            return generatedText;
         }
 
         internal void ArchPolls()
@@ -2373,7 +2504,7 @@ namespace BallBotGui
             try
             {
                 // Проверяем, что сообщение от администратора
-                if (update.Message?.From?.Id != 245566701)
+                if (update.Message?.From?.Id != stateManager.AdminId)
                     return;
 
                 var text = update.Message?.Text?.Trim();
@@ -2410,7 +2541,7 @@ namespace BallBotGui
                     // Дополнительно уведомляем администратора в личку
                     try
                     {
-                        await botClient.SendMessage(245566701, notFoundMsg);
+                        await botClient.SendMessage(stateManager.AdminId, notFoundMsg);
                     }
                     catch { /* ignore */ }
 
@@ -2442,7 +2573,7 @@ namespace BallBotGui
             try
             {
                 // Проверяем, что сообщение от администратора
-                if (update.Message?.From?.Id != 245566701)
+                if (update.Message?.From?.Id != stateManager.AdminId)
                     return;
 
                 var text = update.Message?.Text?.Trim();

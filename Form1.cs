@@ -25,6 +25,8 @@ namespace BallBotGui
         private BindingSource bsCars = new();
         readonly BindingSource bsCarStops = new(); // CarStops
         private GameManager? gameManager;
+        private ScoreListener? _scoreListener;
+
         
         readonly BindingSource bsGames = new(); // Games
         private BindingSource bsGyms = new BindingSource();
@@ -83,6 +85,239 @@ namespace BallBotGui
             
             // Первоначальный расчет размеров
             Form1_Resize(this, EventArgs.Empty);
+
+            // Запускаем HTTP-слушатель счёта
+            var portStr = AppConfigHelper.LoadSetting("ScoreListenerPort", "5050");
+            if (int.TryParse(portStr, out int scorePort))
+            {
+                _scoreListener = new ScoreListener(stateManager, scorePort);
+                _scoreListener.OnScoreUpdated = () => SafeInvoke(async () =>
+                {
+                    RefreshScoreTab();
+                    if (telConnector != null)
+                    {
+                        var msg = await telConnector.UpdateLastTeamsMessageWithScore();
+                        // Убираем HTML теги для отображения в обычном TextBox
+                        txtLastTelegramMessage.Text = msg.Replace("<b>", "").Replace("</b>", "").Replace("<i>", "").Replace("</i>", "");
+                    }
+                });
+                _scoreListener.OnRawMessageReceived = (json) => SafeInvoke(() => {
+                    string display = json.Length > 50 ? json.Substring(0, 47) + "..." : json;
+                    lblLastRawScore.Text = $"Last Received: {display}";
+                });
+                _scoreListener.Start();
+            }
+
+            this.FormClosing += Form1_FormClosing;
+        }
+
+        private void Form1_FormClosing(object? sender, FormClosingEventArgs e)
+        {
+            _scoreListener?.Stop();
+        }
+
+        private void btnRefreshScore_Click(object? sender, EventArgs e)
+        {
+            RefreshScoreTab();
+        }
+
+        private void RefreshScoreTab()
+        {
+            pnlScoreCards.Controls.Clear();
+
+            var todayPolls = stateManager.state.pollList
+                .Where(p => p.date == DateTime.Now.ToString("dd.MM") && p.approved)
+                .OrderBy(p => p.curGame?.GameStartHour)
+                .ToList();
+
+            if (!todayPolls.Any())
+            {
+                // Если игр нет, но есть автономный счет - показываем его
+                if (stateManager.state.StandaloneScores.Any())
+                {
+                    // Создаем фиктивный объект Poll для отображения
+                    var dummyPoll = new Poll("standalone", DateTime.Now.ToString("dd.MM"), "Автономный счёт (без опроса)", 0, null, 0);
+                    dummyPoll.GameScores = stateManager.state.StandaloneScores.ToList();
+                    pnlScoreCards.Controls.Add(BuildScoreCard(dummyPoll));
+                    return;
+                }
+
+                var lbl = new Label
+                {
+                    Text = "Сегодня нет активных игр.",
+                    AutoSize = true,
+                    Font = new System.Drawing.Font("Segoe UI", 14f),
+                    ForeColor = System.Drawing.Color.Gray,
+                    Margin = new Padding(10)
+                };
+                pnlScoreCards.Controls.Add(lbl);
+                return;
+            }
+
+            foreach (var poll in todayPolls)
+            {
+                pnlScoreCards.Controls.Add(BuildScoreCard(poll));
+            }
+        }
+
+        private Panel BuildScoreCard(Poll poll)
+        {
+            var card = new Panel
+            {
+                Width = pnlScoreCards.Width - 30,
+                AutoSize = true,
+                Margin = new Padding(4, 4, 4, 10),
+                Padding = new Padding(10),
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = System.Drawing.Color.FromArgb(245, 245, 255)
+            };
+
+            int y = 10;
+
+            // Заголовок — время игры и название
+            var gameTitle = poll.question ?? poll.date;
+            var startTime = poll.curGame != null
+                ? $"{poll.curGame.GameStartHour:D2}:{poll.curGame.GameStartMinute:D2}"
+                : "--:--";
+
+            var lblTitle = new Label
+            {
+                Text = $"⚽ {startTime}  |  {gameTitle}",
+                Font = new System.Drawing.Font("Segoe UI", 12f, System.Drawing.FontStyle.Bold),
+                AutoSize = true,
+                Location = new Point(10, y),
+                ForeColor = System.Drawing.Color.FromArgb(40, 40, 120)
+            };
+            card.Controls.Add(lblTitle);
+            y += 40;
+
+            var lastScore = poll.GameScores.LastOrDefault();
+
+            // Текущий счёт
+            if (lastScore != null)
+            {
+                var isFinished = lastScore.IsFinished;
+                var statusText = isFinished ? "✅ Игра завершена" : "🟢 Игра идёт";
+                var statusColor = isFinished
+                    ? System.Drawing.Color.FromArgb(0, 120, 0)
+                    : System.Drawing.Color.FromArgb(0, 90, 180);
+
+                var lblStatus = new Label
+                {
+                    Text = statusText,
+                    Font = new System.Drawing.Font("Segoe UI", 10f, System.Drawing.FontStyle.Italic),
+                    AutoSize = true,
+                    Location = new Point(10, y),
+                    ForeColor = statusColor
+                };
+                card.Controls.Add(lblStatus);
+                y += 30;
+
+                // Делаем снимок для потокобезопасности
+                var scoresSnapshot = poll.GameScores.ToList();
+
+                // Показываем результаты завершенных партий
+                var finishedResults = new List<string>();
+                bool prevWasFinished = false;
+                foreach (var gs in scoresSnapshot)
+                {
+                    if (gs.IsFinished)
+                    {
+                        string scoreLine = $"🟢 {gs.Team1Score} : 🟡 {gs.Team2Score}";
+                        if (!prevWasFinished) finishedResults.Add(scoreLine);
+                        else if (finishedResults.Count > 0) finishedResults[finishedResults.Count - 1] = scoreLine;
+                        prevWasFinished = true;
+                    }
+                    else prevWasFinished = false;
+                }
+
+                if (finishedResults.Any())
+                {
+                    var lblSets = new Label
+                    {
+                        Text = "Партии: " + string.Join(", ", finishedResults),
+                        Font = new System.Drawing.Font("Segoe UI", 13f, System.Drawing.FontStyle.Bold),
+                        AutoSize = true,
+                        Location = new Point(10, y),
+                        ForeColor = System.Drawing.Color.FromArgb(80, 80, 80)
+                    };
+                    card.Controls.Add(lblSets);
+                    y += 35;
+                }
+
+                var lblScore = new Label
+                {
+                    Text = $"🟢 {lastScore.Team1Score}  :  🟡 {lastScore.Team2Score}",
+                    Font = new System.Drawing.Font("Segoe UI", 32f, System.Drawing.FontStyle.Bold),
+                    AutoSize = true,
+                    Location = new Point(10, y),
+                    ForeColor = System.Drawing.Color.FromArgb(30, 30, 100)
+                };
+                card.Controls.Add(lblScore);
+                y += 70;
+
+                var lblTime = new Label
+                {
+                    Text = $"Обновлено: {lastScore.Timestamp:HH:mm:ss}",
+                    Font = new System.Drawing.Font("Segoe UI", 9f),
+                    AutoSize = true,
+                    Location = new Point(10, y),
+                    ForeColor = System.Drawing.Color.Gray
+                };
+                card.Controls.Add(lblTime);
+                y += 30;
+
+                // История изменений счета (последние 10)
+                if (scoresSnapshot.Count > 1)
+                {
+                    var lblHistHeader = new Label
+                    {
+                        Text = "История:",
+                        Font = new System.Drawing.Font("Segoe UI", 9f, System.Drawing.FontStyle.Bold),
+                        AutoSize = true,
+                        Location = new Point(10, y),
+                        ForeColor = System.Drawing.Color.DimGray
+                    };
+                    card.Controls.Add(lblHistHeader);
+                    y += 25;
+
+                    var histEntries = scoresSnapshot
+                        .Take(scoresSnapshot.Count - 1)
+                        .TakeLast(10)
+                        .Reverse()
+                        .ToList();
+
+                    foreach (var hs in histEntries)
+                    {
+                        var lblHist = new Label
+                        {
+                            Text = $"  {hs.Timestamp:HH:mm:ss}  -  🟢 {hs.Team1Score} : 🟡 {hs.Team2Score}",
+                            Font = new System.Drawing.Font("Segoe UI", 9f),
+                            AutoSize = true,
+                            Location = new Point(10, y),
+                            ForeColor = System.Drawing.Color.Gray
+                        };
+                        card.Controls.Add(lblHist);
+                        y += 22;
+                    }
+                }
+            }
+            else
+            {
+                var lblNoScore = new Label
+                {
+                    Text = "Счёт ещё не получен",
+                    Font = new System.Drawing.Font("Segoe UI", 12f),
+                    AutoSize = true,
+                    Location = new Point(10, y),
+                    ForeColor = System.Drawing.Color.FromArgb(160, 100, 0)
+                };
+                card.Controls.Add(lblNoScore);
+                y += 40;
+            }
+
+            card.Height = y + 10;
+            return card;
         }
 
         private void dataGridView_DataError(object? sender, DataGridViewDataErrorEventArgs e)
@@ -743,6 +978,43 @@ namespace BallBotGui
                 stateManager.AddPlayersToRating(curPoll);
             }
 
+        }
+
+        private void btnSavePlayer_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                bsRating.EndEdit();
+                stateManager.SavePlayers();
+                MessageBox.Show("Изменения сохранены", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Error in btnSavePlayer_Click", ex);
+                MessageBox.Show("Ошибка при сохранении: " + ex.Message);
+            }
+        }
+
+        private void btnDeletePlayer_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (bsRating.Current is Player player)
+                {
+                    var res = MessageBox.Show($"Удалить игрока {player.name}?", "Подтверждение", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if (res == DialogResult.Yes)
+                    {
+                        stateManager.players.Remove(player);
+                        stateManager.SavePlayers();
+                        bsRating.ResetBindings(false);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Error in btnDeletePlayer_Click", ex);
+                MessageBox.Show("Ошибка при удалении: " + ex.Message);
+            }
         }
 
         private void dataGridViewRating_CellEndEdit(object sender, DataGridViewCellEventArgs e)
